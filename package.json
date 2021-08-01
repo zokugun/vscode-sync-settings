@@ -23,6 +23,7 @@
 	"main": "./dist/index.js",
 	"scripts": {
 		"bundle": ". \"$HOME/.nvm/nvm.sh\"; nvm use; ncc build out/extension",
+		"commit": "cz",
 		"compile": "tsc -p src",
 		"lint": "xo",
 		"prepare": "husky install",
@@ -47,6 +48,7 @@
 		"@types/vscode": "^1.23.0",
 		"@vercel/ncc": "^0.29.0",
 		"chai": "^4.3.4",
+		"commitizen": "^4.2.4",
 		"fixpack": "^4.0.0",
 		"husky": "^7.0.1",
 		"klaw-sync": "^6.0.0",
