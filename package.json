@@ -1,0 +1,179 @@
+{
+	"name": "sync-settings",
+	"displayName": "Sync Settings",
+	"description": "Synchronize your settings",
+	"version": "0.0.0",
+	"author": {
+		"name": "Baptiste Augrain",
+		"email": "daiyam@zokugun.org"
+	},
+	"publisher": "zokugun",
+	"license": "MIT",
+	"homepage": "https://github.com/zokugun/vscode-sync-settings",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/zokugun/vscode-sync-settings.git"
+	},
+	"bugs": {
+		"url": "https://github.com/zokugun/vscode-sync-settings/issues"
+	},
+	"engines": {
+		"vscode": "^1.23.0"
+	},
+	"main": "./dist/index.js",
+	"scripts": {
+		"bundle": ". \"$HOME/.nvm/nvm.sh\"; nvm use; ncc build out/extension",
+		"compile": "tsc -p src",
+		"lint": "xo",
+		"prepare": "husky install",
+		"vscode:prepublish": "npm run compile && npm run bundle",
+		"watch": "tsc-watch -p src --onSuccess 'npm run bundle'"
+	},
+	"dependencies": {
+		"fs-extra": "^10.0.0",
+		"globby": "^11.0.4",
+		"jsonc-parser": "^3.0.0",
+		"simple-git": "^2.41.2",
+		"yaml": "^1.10.2"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^13.1.0",
+		"@commitlint/config-conventional": "^13.1.0",
+		"@types/chai": "^4.2.17",
+		"@types/fs-extra": "^9.0.12",
+		"@types/klaw-sync": "^6.0.0",
+		"@types/mocha": "^8.2.2",
+		"@types/node": "^14.17.6",
+		"@types/vscode": "^1.23.0",
+		"@vercel/ncc": "^0.29.0",
+		"chai": "^4.3.4",
+		"fixpack": "^4.0.0",
+		"husky": "^7.0.1",
+		"klaw-sync": "^6.0.0",
+		"lint-staged": "^11.1.1",
+		"mocha": "^8.3.2",
+		"tsc-watch": "^4.4.0",
+		"typescript": "^4.2.4",
+		"vscode-test": "^1.5.2",
+		"xo": "^0.42.0"
+	},
+	"activationEvents": [
+		"*"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "syncSettings.createProfile",
+				"title": "Create a new profile",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.download",
+				"title": "Download (repository -> user)",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.openSettings",
+				"title": "Open the settings",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.reloadSettings",
+				"title": "Reload the settings",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.reset",
+				"title": "Reset user's files",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.switchProfile",
+				"title": "Switch to new profile",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.upload",
+				"title": "Upload (user -> repository)",
+				"category": "Sync Settings"
+			}
+		],
+		"configuration": {
+			"title": "Sync Settings configuration",
+			"properties": {
+				"settingsSync.keybindingsPerPlatform": {
+					"type": "boolean",
+					"description": "Synchronize keybindings for each platform.",
+					"default": true,
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"settingsSync.ignoredExtensions": {
+					"type": "array",
+					"markdownDescription": "List of extensions to be ignored while synchronizing. The identifier of an extension is always `${publisher}.${name}`. For example: `zokugun.sync-settings`.",
+					"items": [
+						{
+							"type": "string",
+							"pattern": "^([a-z0-9A-Z][a-z0-9-A-Z]*)\\.([a-z0-9A-Z][a-z0-9-A-Z]*)$",
+							"errorMessage": "Expected format '${publisher}.${name}'. Example: 'zokugun.sync-settings'."
+						}
+					],
+					"default": [],
+					"scope": "application",
+					"uniqueItems": true,
+					"tags": [
+						"sync"
+					]
+				},
+				"settingsSync.ignoredSettings": {
+					"type": "array",
+					"description": "Configure settings to be ignored while synchronizing.",
+					"items": [
+						{
+							"type": "string"
+						}
+					],
+					"default": [],
+					"scope": "application",
+					"additionalProperties": true,
+					"uniqueItems": true,
+					"tags": [
+						"sync"
+					]
+				},
+				"settingsSync.notification": {
+					"type": "string",
+					"enum": [
+						"none",
+						"major",
+						"minor",
+						"patch"
+					],
+					"enumDescriptions": [
+						"The new version notification won't be shown anymore.",
+						"The new version notification will be shown only with a new major version",
+						"The new version notification will be shown only with a new minor version",
+						"The new version notification will always be shown"
+					],
+					"default": "minor",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				}
+			}
+		}
+	},
+	"galleryBanner": {
+		"color": "#373b41",
+		"theme": "dark"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"sync"
+	]
+}

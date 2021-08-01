@@ -1,0 +1,9 @@
+*
+*/**
+**/.DS_Store
+!CHANGELOG.md
+!icon.png
+!package.json
+!LICENSE
+!README.md
+!dist/**
