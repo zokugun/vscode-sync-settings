@@ -15,16 +15,23 @@ export interface ExtensionList {
 	enabled: Array<{ id: string; uuid: string }>;
 }
 
+export enum Resource {
+	Settings = 'settings',
+	Keybindings = 'keybindings',
+	Snippets = 'snippets',
+	Extensions = 'extensions',
+	UIState = 'uiState',
+}
+
 export abstract class Repository {
-	protected _reloadWindow = true;
 	protected _profile = '';
-	protected _includes: string[] = [];
 	protected _initialized = false;
+	protected _settings: Settings;
 
 	public abstract type: RepositoryType;
 
-	public get includes() { // {{{
-		return this._includes;
+	constructor(settings: Settings) { // {{{
+		this._settings = settings;
 	} // }}}
 
 	public get profile() { // {{{
@@ -34,16 +41,10 @@ export abstract class Repository {
 	public async reset(): Promise<void> { // {{{
 		Logger.info('resetting settings');
 
-		const settings = Settings.get();
-
-		await this.resetFiles(settings);
-		await this.resetExtensions(settings);
+		await this.resetExtensions();
+		await this.resetFiles();
 
 		await vscode.commands.executeCommand('workbench.action.reloadWindow');
-	} // }}}
-
-	public setIncludes(includes: string[]): void { // {{{
-		this._includes = includes;
 	} // }}}
 
 	public async setProfile(profile: string): Promise<void> { // {{{
@@ -70,10 +71,7 @@ export abstract class Repository {
 		return vscode.commands.executeCommand('workbench.extensions.disableExtension', id);
 	} // }}}
 
-	protected filterSettings(text: string): string { // {{{
-		const config = vscode.workspace.getConfiguration('syncSettings');
-		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
-
+	protected filterSettings(ignoredSettings: string[], text: string): string { // {{{
 		if(ignoredSettings.length === 0) {
 			return text;
 		}
@@ -88,22 +86,23 @@ export abstract class Repository {
 		return vscode.commands.executeCommand('workbench.extensions.enableExtension', id);
 	} // }}}
 
-	protected async installExtension(id: string): Promise<void> { // {{{
+	protected async installExtension(id: string): Promise<boolean> { // {{{
 		Logger.info('install:', id);
 
 		try {
 			await vscode.commands.executeCommand('workbench.extensions.installExtension', id);
+
+			return true;
 		}
 		catch (error: unknown) {
-			this._reloadWindow = false;
-
 			Logger.error(error);
+
+			return false;
 		}
 	} // }}}
 
-	protected async listExtensions(): Promise<ExtensionList> { // {{{
-		const config = vscode.workspace.getConfiguration('syncSettings');
-		const ignoredExtensions = config.get<string[]>('ignoredExtensions') ?? [];
+	protected async listExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
+		ignoredExtensions = ignoredExtensions.map((id) => id.toLocaleLowerCase());
 
 		const disabled = [];
 		const enabled = [];
@@ -114,7 +113,7 @@ export abstract class Repository {
 			const id = extension.id.toLocaleLowerCase();
 			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
 
-			if(!packageJSON || packageJSON.isBuiltin || packageJSON.isUnderDevelopment || ignoredExtensions.includes(id)) {
+			if(!packageJSON || packageJSON.isBuiltin || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id)) {
 				continue;
 			}
 
@@ -147,7 +146,7 @@ export abstract class Repository {
 
 			const id = match[1];
 
-			if(!ids[id] && !ignoredExtensions.includes(id)) {
+			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id)) {
 				const pkg = JSON.parse(await fs.readFile(path.join(extDataPath, name, 'package.json'), 'utf-8')) as { __metadata: { id: string } };
 
 				disabled.push({
@@ -160,20 +159,47 @@ export abstract class Repository {
 		return { disabled, enabled };
 	} // }}}
 
-	protected async listUserFiles(cwd: string): Promise<string[]> { // {{{
-		return globby(this._includes, {
-			cwd,
+	protected async listKeybindings(userDataPath: string): Promise<string[]> { // {{{
+		if(await exists(path.join(userDataPath, 'keybindings.json'))) {
+			return ['keybindings.json'];
+		}
+		else {
+			return [];
+		}
+	} // }}}
+
+	protected async listSettings(userDataPath: string): Promise<string[]> { // {{{
+		if(await exists(path.join(userDataPath, 'settings.json'))) {
+			return ['settings.json'];
+		}
+		else {
+			return [];
+		}
+	} // }}}
+
+	protected async listSnippets(userDataPath: string): Promise<string[]> { // {{{
+		return globby('snippets/**', {
+			cwd: userDataPath,
 			followSymbolicLinks: false,
 		});
 	} // }}}
 
-	protected async uninstallExtension(id: string): Promise<void> { // {{{
+	protected async uninstallExtension(id: string): Promise<boolean> { // {{{
 		Logger.info('uninstall:', id);
 
-		return vscode.commands.executeCommand('workbench.extensions.uninstallExtension', id);
+		try {
+			await vscode.commands.executeCommand('workbench.extensions.uninstallExtension', id);
+
+			return true;
+		}
+		catch (error: unknown) {
+			Logger.error(error);
+
+			return false;
+		}
 	} // }}}
 
-	private async resetExtensions(settings: Settings): Promise<void> { // {{{
+	private async resetExtensions(): Promise<void> { // {{{
 		const extDataPath = await getExtensionDataPath();
 
 		const obsoletePath = path.join(extDataPath, '.obsolete');
@@ -196,16 +222,20 @@ export abstract class Repository {
 
 			const id = match[1];
 
-			if(id !== settings.extensionId) {
+			if(id !== this._settings.extensionId) {
 				await this.uninstallExtension(id);
 			}
 		}
 	} // }}}
 
-	private async resetFiles(settings: Settings): Promise<void> { // {{{
-		const userDataPath = getUserDataPath(settings);
+	private async resetFiles(): Promise<void> { // {{{
+		const userDataPath = getUserDataPath(this._settings);
 
-		const files = await this.listUserFiles(userDataPath);
+		const files = await globby(['**', '!workspaceStorage', '!globalStorage'], {
+			cwd: userDataPath,
+			followSymbolicLinks: false,
+		});
+
 		const results = files.map(async (file) => {
 			Logger.info('delete:', file);
 

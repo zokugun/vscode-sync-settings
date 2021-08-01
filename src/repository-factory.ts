@@ -1,7 +1,7 @@
 import { DummyRepository } from './repositories/dummy';
-import { FileRepository, FileSettings } from './repositories/file';
-import { LocalGitRepository, LocalGitSettings } from './repositories/local-git';
-import { RemoteGitRepository, RemoteGitSettings } from './repositories/remote-git';
+import { FileRepository } from './repositories/file';
+import { LocalGitRepository } from './repositories/local-git';
+import { RemoteGitRepository } from './repositories/remote-git';
 import { Repository } from './repository';
 import { RepositoryType } from './repository-type';
 import { Settings } from './settings';
@@ -12,25 +12,23 @@ async function create(settings: Settings): Promise<void> { // {{{
 	$instance = undefined;
 
 	if(settings.repository.type === RepositoryType.DUMMY) {
-		$instance = new DummyRepository();
+		$instance = new DummyRepository(settings);
 	}
 	else if(settings.repository.type === RepositoryType.FILE) {
-		$instance = new FileRepository(settings.repository as FileSettings);
+		$instance = new FileRepository(settings);
 	}
 	else if(settings.repository.type === RepositoryType.GIT) {
 		if(settings.repository.path) {
-			$instance = new LocalGitRepository(settings.repository as LocalGitSettings);
+			$instance = new LocalGitRepository(settings);
 		}
 		else if(settings.repository.url) {
-			$instance = new RemoteGitRepository(settings.repository as RemoteGitSettings);
+			$instance = new RemoteGitRepository(settings);
 		}
 	}
 
 	if(!$instance) {
 		throw new Error(`The repository has a mysterious type: ${settings.repository.type}`);
 	}
-
-	$instance.setIncludes(settings.includes);
 
 	return $instance.setProfile(settings.profile);
 } // }}}

@@ -1,27 +1,36 @@
 import fs from 'fs/promises';
 import path from 'path';
-import vscode from 'vscode';
+import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
 import globby from 'globby';
 import fse from 'fs-extra';
-import { ExtensionList, Repository } from '../repository';
+import { ExtensionList, Repository, Resource } from '../repository';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
 import { Logger } from '../utils/logger';
 import { exists } from '../utils/exists';
 import { getUserDataPath } from '../utils/get-user-data-path';
 
-export interface FileSettings {
-	path: string;
+interface ProfileConfig {
+	keybindingsPerPlatform?: boolean;
+	ignoredExtensions?: string[];
+	ignoredSettings?: string[];
+	resources?: Resource[];
+}
+
+interface Transformer {
+	rename?: (file: string) => string;
+	replace?: (text: string) => string;
+	test?: (file: string) => boolean;
 }
 
 export class FileRepository extends Repository {
 	protected _rootPath: string;
 
-	constructor({ path }: FileSettings) { // {{{
-		super();
+	constructor(settings: Settings, rootPath?: string) { // {{{
+		super(settings);
 
-		this._rootPath = path;
+		this._rootPath = rootPath ?? settings.repository.path!;
 	} // }}}
 
 	public override get type() { // {{{
@@ -31,18 +40,36 @@ export class FileRepository extends Repository {
 	public override async download(): Promise<void> { // {{{
 		this.checkInitialized();
 
-		const settings = Settings.get();
-
 		Logger.info('download from:', this._rootPath);
 
-		this._reloadWindow = true;
+		const config = await this.downloadProfileConfig();
 
-		await this.downloadFiles(settings);
-		await this.downloadExtensions(settings);
+		const profileDataPath = this.getProfileDataPath();
+		const userDataPath = getUserDataPath(this._settings);
+
+		let reloadWindow = true;
+
+		for(const resource of config.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets]) {
+			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+			switch(resource) {
+				case Resource.Extensions:
+					reloadWindow = await this.downloadExtensions(config.ignoredExtensions ?? []);
+					break;
+				case Resource.Keybindings:
+					await this.downloadKeybindings(config, userDataPath, profileDataPath);
+					break;
+				case Resource.Settings:
+					await this.downloadSettings(config, userDataPath, profileDataPath);
+					break;
+				case Resource.Snippets:
+					await this.downloadSnippets(userDataPath, profileDataPath);
+					break;
+			}
+		}
 
 		Logger.info('download done');
 
-		if(this._reloadWindow) {
+		if(reloadWindow) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
 		}
 		else {
@@ -80,23 +107,61 @@ export class FileRepository extends Repository {
 	public override async upload(): Promise<void> { // {{{
 		this.checkInitialized();
 
-		const settings = Settings.get();
+		const config = vscode.workspace.getConfiguration('syncSettings');
+		const resources = config.get<string[]>('resources') ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets];
+		console.log(resources);
 
 		Logger.info('upload to:', this._rootPath);
 
-		await this.uploadFiles(settings);
-		await this.uploadExtensions();
+		const userDataPath = getUserDataPath(this._settings);
+
+		const profileDataPath = this.getProfileDataPath();
+		await fs.mkdir(profileDataPath, { recursive: true });
+
+		const profileFiles: Record<string, boolean> = {};
+		for(const file of await this.listProfileFiles(profileDataPath)) {
+			profileFiles[file] = true;
+		}
+
+		for(const resource of resources) {
+			switch(resource) {
+				case Resource.Extensions:
+					await this.uploadExtensions(config);
+					break;
+				case Resource.Keybindings:
+					await this.uploadKeybindings(config, userDataPath, profileDataPath, profileFiles);
+					break;
+				case Resource.Settings:
+					await this.uploadSettings(config, userDataPath, profileDataPath, profileFiles);
+					break;
+				case Resource.Snippets:
+					await this.uploadSnippets(userDataPath, profileDataPath, profileFiles);
+					break;
+			}
+		}
+
+		for(const file in profileFiles) {
+			if(profileFiles[file]) {
+				await fs.unlink(path.join(profileDataPath, file));
+			}
+		}
+
+		await this.uploadProfileConfig(config);
 
 		Logger.info('upload done');
 	} // }}}
 
-	protected async downloadExtensions(settings: Settings): Promise<void> { // {{{
+	protected async downloadExtensions(ignoredExtensions: string[]): Promise<boolean> { // {{{
+		Logger.info('download extensions');
+
 		const listPath = this.getProfileExtensionsPath();
 		if(!await exists(listPath)) {
-			return;
+			return false;
 		}
 
-		const extensions = await this.listExtensions();
+		let reloadWindow = true;
+
+		const extensions = await this.listExtensions(ignoredExtensions);
 
 		const installed: Record<string, boolean> = {};
 
@@ -118,7 +183,7 @@ export class FileRepository extends Repository {
 		if(await this.canManageExtensions()) {
 			for(const { id } of disabled) {
 				if(!installed[id]) {
-					await this.installExtension(id);
+					reloadWindow = await this.installExtension(id) && reloadWindow;
 				}
 				else if(currentlyEnabled[id]) {
 					await this.disableExtension(id);
@@ -129,7 +194,7 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					await this.installExtension(id);
+					reloadWindow = await this.installExtension(id) && reloadWindow;
 				}
 				else if(currentlyDisabled[id]) {
 					await this.enableExtension(id);
@@ -139,8 +204,8 @@ export class FileRepository extends Repository {
 			}
 
 			for(const id in installed) {
-				if(installed[id] && id !== settings.extensionId) {
-					await this.uninstallExtension(id);
+				if(installed[id]) {
+					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
 				}
 			}
 		}
@@ -153,41 +218,34 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					await this.installExtension(id);
+					reloadWindow = await this.installExtension(id) && reloadWindow;
 				}
 				else if(currentlyDisabled[id]) {
-					await this.uninstallExtension(id);
-					await this.installExtension(id);
+					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
+					reloadWindow = await this.installExtension(id) && reloadWindow;
 				}
 
 				installed[id] = false;
 			}
 
 			for(const id in installed) {
-				if(installed[id] && id !== settings.extensionId) {
-					await this.uninstallExtension(id);
+				if(installed[id]) {
+					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
 				}
 			}
 		}
+
+		return reloadWindow;
 	} // }}}
 
-	protected async downloadFiles(settings: Settings): Promise<void> { // {{{
-		const profileDataPath = this.getProfileDataPath();
-		if(!await exists(profileDataPath)) {
-			return;
-		}
-
-		const profileFiles = await this.listProfileFiles(profileDataPath);
-
-		const userDataPath = getUserDataPath(settings);
-
-		const userFiles: Record<string, boolean> = {};
-		for(const file of await this.listUserFiles(userDataPath)) {
-			userFiles[file] = true;
-		}
+	protected async downloadFiles(userDataPath: string, profileDataPath: string, profileFiles: string[], fn: Transformer = {}): Promise<void> { // {{{
+		fn.rename ??= (file) => file;
+		fn.replace ??= (text) => text;
+		fn.test ??= () => false;
 
 		for(const file of profileFiles) {
-			const target = path.join(userDataPath, file);
+			const newFile = fn.rename(file);
+			const target = path.join(userDataPath, newFile);
 
 			if(await exists(target)) {
 				await fs.unlink(target);
@@ -196,16 +254,77 @@ export class FileRepository extends Repository {
 				await fs.mkdir(path.dirname(target), { recursive: true });
 			}
 
-			await fs.copyFile(path.join(profileDataPath, file), target);
+			if(fn.test(file)) {
+				const text = await fs.readFile(path.join(profileDataPath, file), 'utf-8');
 
-			userFiles[file] = false;
-		}
-
-		for(const file in userFiles) {
-			if(userFiles[file]) {
-				await fs.unlink(path.join(profileDataPath, file));
+				await fs.writeFile(target, fn.replace(text), 'utf-8');
+			}
+			else {
+				await fs.copyFile(path.join(profileDataPath, file), target);
 			}
 		}
+	} // }}}
+
+	protected async downloadKeybindings(config: ProfileConfig, userDataPath: string, profileDataPath: string): Promise<void> { // {{{
+		Logger.info('download keybindings');
+
+		const keybindingsPerPlatform = config.keybindingsPerPlatform ?? true;
+
+		let file = 'keybindings.json';
+
+		if(keybindingsPerPlatform) {
+			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+			switch(process.platform) {
+				case 'darwin':
+					file = `${file.slice(0, -5)}-macos.json`;
+					break;
+				case 'linux':
+					file = `${file.slice(0, -5)}-linux.json`;
+					break;
+				case 'win32':
+					file = `${file.slice(0, -5)}-windows.json`;
+					break;
+			}
+		}
+
+		await this.downloadFiles(userDataPath, profileDataPath, [file], {
+			rename: () => 'keybindings.json',
+		});
+	} // }}}
+
+	protected async downloadProfileConfig(): Promise<ProfileConfig> { // {{{
+		const profileConfigPath = this.getProfileConfigPath();
+
+		if(!await exists(profileConfigPath)) {
+			throw new Error('config file of profile can not be found');
+		}
+
+		const data = await fs.readFile(profileConfigPath, 'utf-8');
+
+		return yaml.parse(data) as ProfileConfig;
+	} // }}}
+
+	protected async downloadSettings(config: ProfileConfig, userDataPath: string, profileDataPath: string): Promise<void> { // {{{
+		Logger.info('download settings');
+
+		const ignoredSettings = config.ignoredSettings ?? [];
+
+		await this.downloadFiles(userDataPath, profileDataPath, ['settings.json'], {
+			test: () => true,
+			replace: (text) => this.filterSettings(ignoredSettings, text),
+		});
+	} // }}}
+
+	protected async downloadSnippets(userDataPath: string, profileDataPath: string): Promise<void> { // {{{
+		Logger.info('download snippets');
+
+		const profileFiles = await this.listSnippets(profileDataPath);
+
+		await this.downloadFiles(userDataPath, profileDataPath, profileFiles);
+	} // }}}
+
+	protected getProfileConfigPath(): string { // {{{
+		return path.join(this._rootPath, 'profiles', this.profile, 'config.yml');
 	} // }}}
 
 	protected getProfileDataPath(): string { // {{{
@@ -223,8 +342,12 @@ export class FileRepository extends Repository {
 		});
 	} // }}}
 
-	protected async uploadExtensions(): Promise<void> { // {{{
-		const { disabled, enabled } = await this.listExtensions();
+	protected async uploadExtensions(config: WorkspaceConfiguration): Promise<void> { // {{{
+		Logger.info('upload extensions');
+
+		const ignoredExtensions = config.get<string[]>('ignoredExtensions') ?? [];
+
+		const { disabled, enabled } = await this.listExtensions(ignoredExtensions);
 
 		const data = yaml.stringify({
 			disabled,
@@ -237,20 +360,14 @@ export class FileRepository extends Repository {
 		});
 	} // }}}
 
-	protected async uploadFiles(settings: Settings): Promise<void> { // {{{
-		const userDataPath = getUserDataPath(settings);
-		const userFiles = await this.listUserFiles(userDataPath);
-
-		const profileDataPath = this.getProfileDataPath();
-		await fs.mkdir(profileDataPath, { recursive: true });
-
-		const profileFiles: Record<string, boolean> = {};
-		for(const file of await this.listProfileFiles(profileDataPath)) {
-			profileFiles[file] = true;
-		}
+	protected async uploadFiles(userDataPath: string, userFiles: string[], profileDataPath: string, profileFiles: Record<string, boolean>, fn: Transformer = {}): Promise<void> { // {{{
+		fn.rename ??= (file) => file;
+		fn.replace ??= (text) => text;
+		fn.test ??= () => false;
 
 		for(const file of userFiles) {
-			const target = path.join(profileDataPath, file);
+			const newFile = fn.rename(file);
+			const target = path.join(profileDataPath, newFile);
 
 			if(await exists(target)) {
 				await fs.unlink(target);
@@ -259,23 +376,81 @@ export class FileRepository extends Repository {
 				await fs.mkdir(path.dirname(target), { recursive: true });
 			}
 
-			if(file === 'settings.json') {
-				const input = await fs.readFile(path.join(userDataPath, file), 'utf-8');
-				const output = this.filterSettings(input);
+			if(fn.test(file)) {
+				const text = await fs.readFile(path.join(userDataPath, file), 'utf-8');
 
-				await fs.writeFile(target, output, 'utf-8');
+				await fs.writeFile(target, fn.replace(text), 'utf-8');
 			}
 			else {
 				await fs.copyFile(path.join(userDataPath, file), target);
 			}
 
-			profileFiles[file] = false;
+			profileFiles[newFile] = false;
 		}
+	} // }}}
 
-		for(const file in profileFiles) {
-			if(profileFiles[file]) {
-				await fs.unlink(path.join(profileDataPath, file));
+	protected async uploadKeybindings(config: WorkspaceConfiguration, userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
+		Logger.info('upload keybindings');
+
+		const keybindingsPerPlatform = config.get<boolean>('keybindingsPerPlatform') ?? true;
+
+		const userFiles = await this.listKeybindings(userDataPath);
+
+		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles, {
+			rename: (file) => {
+				if(!keybindingsPerPlatform || !file.endsWith('.json')) {
+					return file;
+				}
+
+				// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+				switch(process.platform) {
+					case 'darwin':
+						return `${file.slice(0, -5)}-macos.json`;
+					case 'linux':
+						return `${file.slice(0, -5)}-linux.json`;
+					case 'win32':
+						return `${file.slice(0, -5)}-windows.json`;
+				}
+
+				return file;
+			},
+		});
+	} // }}}
+
+	protected async uploadProfileConfig(config: WorkspaceConfiguration): Promise<void> { // {{{
+		const settings: Record<string, any> = {};
+
+		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources']) {
+			const data = config.inspect(property);
+
+			if(data && typeof data.globalValue !== 'undefined') {
+				settings[property] = data.globalValue;
 			}
 		}
+
+		const data = yaml.stringify(settings);
+
+		await fs.writeFile(this.getProfileConfigPath(), data, 'utf-8');
+	} // }}}
+
+	protected async uploadSettings(config: WorkspaceConfiguration, userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
+		Logger.info('upload settings');
+
+		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
+
+		const userFiles = await this.listSettings(userDataPath);
+
+		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles, {
+			test: (file) => file === 'settings.json',
+			replace: (text) => this.filterSettings(ignoredSettings, text),
+		});
+	} // }}}
+
+	protected async uploadSnippets(userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
+		Logger.info('upload snippets');
+
+		const userFiles = await this.listSnippets(userDataPath);
+
+		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles);
 	} // }}}
 }

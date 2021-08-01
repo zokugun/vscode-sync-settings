@@ -84,7 +84,7 @@
 			},
 			{
 				"command": "syncSettings.reset",
-				"title": "Reset user's files",
+				"title": "Remove all settings and extensions",
 				"category": "Sync Settings"
 			},
 			{
@@ -101,7 +101,7 @@
 		"configuration": {
 			"title": "Sync Settings configuration",
 			"properties": {
-				"settingsSync.keybindingsPerPlatform": {
+				"syncSettings.keybindingsPerPlatform": {
 					"type": "boolean",
 					"description": "Synchronize keybindings for each platform.",
 					"default": true,
@@ -110,7 +110,7 @@
 						"sync"
 					]
 				},
-				"settingsSync.ignoredExtensions": {
+				"syncSettings.ignoredExtensions": {
 					"type": "array",
 					"markdownDescription": "List of extensions to be ignored while synchronizing. The identifier of an extension is always `${publisher}.${name}`. For example: `zokugun.sync-settings`.",
 					"items": [
@@ -127,7 +127,7 @@
 						"sync"
 					]
 				},
-				"settingsSync.ignoredSettings": {
+				"syncSettings.ignoredSettings": {
 					"type": "array",
 					"description": "Configure settings to be ignored while synchronizing.",
 					"items": [
@@ -143,7 +143,7 @@
 						"sync"
 					]
 				},
-				"settingsSync.notification": {
+				"syncSettings.notification": {
 					"type": "string",
 					"enum": [
 						"none",
@@ -159,6 +159,38 @@
 					],
 					"default": "minor",
 					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.resources": {
+					"type": "array",
+					"markdownDescription": "List of resources to synchronize.",
+					"items": [
+						{
+							"type": "string",
+							"enum": [
+								"extensions",
+								"keybindings",
+								"settings",
+								"snippets"
+							],
+							"enumDescriptions": [
+								"Extensions",
+								"Keyboard Shortcuts",
+								"Settings",
+								"User Snippets"
+							]
+						}
+					],
+					"default": [
+						"extensions",
+						"keybindings",
+						"settings",
+						"snippets"
+					],
+					"scope": "application",
+					"uniqueItems": true,
 					"tags": [
 						"sync"
 					]

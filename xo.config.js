@@ -54,6 +54,9 @@ module.exports = {
 					for: {
 						after: false,
 					},
+					switch: {
+						after: false,
+					},
 					while: {
 						after: false,
 					},

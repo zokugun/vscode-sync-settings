@@ -6,21 +6,16 @@ import { exists } from '../utils/exists';
 import { Logger } from '../utils/logger';
 import { CommitType, LocalGitRepository } from './local-git';
 
-export interface RemoteGitSettings {
-	url: string;
-	branch: string;
-}
-
 export class RemoteGitRepository extends LocalGitRepository {
 	protected _remoteUrl: string;
 	protected _pushRegex: RegExp;
 
-	constructor({ url, branch }: RemoteGitSettings) { // {{{
-		super({ path: Settings.getRepositoryPath(), branch });
+	constructor(settings: Settings) { // {{{
+		super(settings, Settings.getRepositoryPath());
 
-		this._remoteUrl = url;
+		this._remoteUrl = settings.repository.url!;
 
-		this._pushRegex = new RegExp(`${branch} pushes to ${branch} (up to date)`);
+		this._pushRegex = new RegExp(`${this._branch} pushes to ${this._branch} (up to date)`);
 	} // }}}
 
 	public override async download(): Promise<void> { // {{{

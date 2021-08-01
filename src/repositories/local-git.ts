@@ -5,12 +5,8 @@ import fse from 'fs-extra';
 import { RepositoryType } from '../repository-type';
 import { Logger } from '../utils/logger';
 import { exists } from '../utils/exists';
+import { Settings } from '../settings';
 import { FileRepository } from './file';
-
-export interface LocalGitSettings {
-	path: string;
-	branch: string;
-}
 
 export enum CommitType {
 	CREATE = 'create',
@@ -21,11 +17,11 @@ export class LocalGitRepository extends FileRepository {
 	protected _branch: string;
 	protected _git: SimpleGit;
 
-	constructor({ path, branch }: LocalGitSettings) { // {{{
-		super({ path });
+	constructor(settings: Settings, rootPath?: string) { // {{{
+		super(settings, rootPath);
 
 		this._git = createSimpleGit();
-		this._branch = branch;
+		this._branch = settings.repository.branch ?? 'master';
 	} // }}}
 
 	public override get type() { // {{{

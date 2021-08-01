@@ -18,10 +18,6 @@ function defaults() { // {{{
 	};
 } // }}}
 
-function defaultIncludes() { // {{{
-	return ['**', '!workspaceStorage', '!globalStorage'];
-} // }}}
-
 export interface RepositorySettings {
 	type: RepositoryType;
 	path?: string;
@@ -29,11 +25,10 @@ export interface RepositorySettings {
 	branch?: string;
 }
 
-export interface SettingsData {
+interface SettingsData {
 	hostname: string;
 	repository: RepositorySettings;
 	profile: string;
-	includes?: string[];
 }
 
 export class Settings {
@@ -42,10 +37,8 @@ export class Settings {
 	public readonly settingsUri: Uri;
 
 	private _hostname!: string;
-	private _includes!: string[];
 	private _profile!: string;
 	private _repository!: RepositorySettings;
-	private _useDefaultIncludes!: boolean;
 
 	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri, data: SettingsData) { // {{{
 		this.extensionId = id;
@@ -67,10 +60,6 @@ export class Settings {
 		const settings = Settings.get();
 
 		return Uri.joinPath(settings.globalStorageUri, 'repository').fsPath;
-	} // }}}
-
-	public get includes() { // {{{
-		return this._includes;
 	} // }}}
 
 	public get profile() { // {{{
@@ -116,10 +105,6 @@ export class Settings {
 			profile: this._profile,
 		};
 
-		if(!this._useDefaultIncludes) {
-			settings.includes = this._includes;
-		}
-
 		const data = yaml.stringify(settings);
 
 		await fs.mkdir(Uri.joinPath(this.settingsUri, '..').fsPath, { recursive: true });
@@ -142,14 +127,5 @@ export class Settings {
 		this._hostname = data.hostname;
 		this._repository = data.repository;
 		this._profile = data.profile;
-
-		if(data.includes) {
-			this._includes = data.includes;
-			this._useDefaultIncludes = false;
-		}
-		else {
-			this._includes = defaultIncludes();
-			this._useDefaultIncludes = true;
-		}
 	} // }}}
 }
