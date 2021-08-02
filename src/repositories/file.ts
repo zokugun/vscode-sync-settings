@@ -10,6 +10,10 @@ import { Settings } from '../settings';
 import { Logger } from '../utils/logger';
 import { exists } from '../utils/exists';
 import { getUserDataPath } from '../utils/get-user-data-path';
+import { uninstallExtension } from '../utils/uninstall-extension';
+import { installExtension } from '../utils/install-extension';
+import { disableExtension } from '../utils/disable-extension';
+import { enableExtension } from '../utils/enable-extension';
 
 interface ProfileConfig {
 	keybindingsPerPlatform?: boolean;
@@ -182,10 +186,10 @@ export class FileRepository extends Repository {
 		if(await this.canManageExtensions()) {
 			for(const { id } of disabled) {
 				if(!installed[id]) {
-					reloadWindow = await this.installExtension(id) && reloadWindow;
+					reloadWindow = await installExtension(id) && reloadWindow;
 				}
 				else if(currentlyEnabled[id]) {
-					await this.disableExtension(id);
+					await disableExtension(id);
 				}
 
 				installed[id] = false;
@@ -193,10 +197,10 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					reloadWindow = await this.installExtension(id) && reloadWindow;
+					reloadWindow = await installExtension(id) && reloadWindow;
 				}
 				else if(currentlyDisabled[id]) {
-					await this.enableExtension(id);
+					await enableExtension(id);
 				}
 
 				installed[id] = false;
@@ -204,7 +208,7 @@ export class FileRepository extends Repository {
 
 			for(const id in installed) {
 				if(installed[id]) {
-					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
+					reloadWindow = await uninstallExtension(id) && reloadWindow;
 				}
 			}
 		}
@@ -217,11 +221,11 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					reloadWindow = await this.installExtension(id) && reloadWindow;
+					reloadWindow = await installExtension(id) && reloadWindow;
 				}
 				else if(currentlyDisabled[id]) {
-					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
-					reloadWindow = await this.installExtension(id) && reloadWindow;
+					reloadWindow = await uninstallExtension(id) && reloadWindow;
+					reloadWindow = await installExtension(id) && reloadWindow;
 				}
 
 				installed[id] = false;
@@ -229,7 +233,7 @@ export class FileRepository extends Repository {
 
 			for(const id in installed) {
 				if(installed[id]) {
-					reloadWindow = await this.uninstallExtension(id) && reloadWindow;
+					reloadWindow = await uninstallExtension(id) && reloadWindow;
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 import vscode from 'vscode';
-import { RepositoryFactory } from '../repository-factory';
 import { Logger } from '../utils/logger';
+import { reset as doReset } from '../utils/reset';
 
 export async function reset(): Promise<void> {
 	try {
@@ -18,9 +18,7 @@ export async function reset(): Promise<void> {
 			);
 
 			if(result) {
-				const repository = await RepositoryFactory.get();
-
-				await repository.reset();
+				await doReset();
 			}
 		}
 	}
