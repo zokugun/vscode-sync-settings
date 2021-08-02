@@ -22,7 +22,7 @@
 	},
 	"main": "./dist/index.js",
 	"scripts": {
-		"bundle": ". \"$HOME/.nvm/nvm.sh\"; nvm use; ncc build out/extension",
+		"bundle": "ncc build out/extension",
 		"commit": "cz",
 		"compile": "tsc -p src",
 		"lint": "xo",
