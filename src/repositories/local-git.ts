@@ -93,7 +93,7 @@ export class LocalGitRepository extends FileRepository {
 			Logger.info('no changes, no commit');
 		}
 		else {
-			const message = type === CommitType.CREATE ? `${profile}: create` : `${profile}: update`;
+			const message = type === CommitType.CREATE ? `profile(${profile}): init -- ${new Date().toISOString()}` : `profile(${profile}): update -- ${new Date().toISOString()}`;
 
 			Logger.info(`commit: ${message}`);
 

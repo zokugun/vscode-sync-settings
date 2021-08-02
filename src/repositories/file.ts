@@ -109,7 +109,6 @@ export class FileRepository extends Repository {
 
 		const config = vscode.workspace.getConfiguration('syncSettings');
 		const resources = config.get<string[]>('resources') ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets];
-		console.log(resources);
 
 		Logger.info('upload to:', this._rootPath);
 
