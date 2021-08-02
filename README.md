@@ -46,7 +46,7 @@ You can open that file with the command:
 
 #### file
 
-```
+```yaml
 repository:
   type: file
   path: ~/Development/settings
@@ -54,7 +54,7 @@ repository:
 
 #### local git
 
-```
+```yaml
 repository:
   type: git
   path: ~/Development/settings
@@ -65,7 +65,7 @@ If not initialized, the git repository will be automatically initialized.
 
 #### remote git
 
-```
+```yaml
 repository:
   type: git
   url: git@github.com:username/settings.git
@@ -84,6 +84,13 @@ You can configure what and how to synchronize with properties in your regular se
 - `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
 - `"syncSettings.keybindingsPerPlatform": true`
 
+## Profiles
+
+Each profile has its own directory in the repository and can be configured independently of each other.
+
+You can create a new profile with the command `> Sync Settings: Create a new profile`.
+Or switch to an existing one with the command `> Sync Settings: Switch to profile`.
+
 ## Commands
 
 - `> Sync Settings: Open the settings`: open the settings for configuring the repository
@@ -92,9 +99,7 @@ You can configure what and how to synchronize with properties in your regular se
 - `> Sync Settings: Reload the settings`: reload the repository' settings
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
-- `> Sync Settings: Remove all settings and extensions`: :warning::warning: remove all your local resources :warning::warning:
-
-
+- `> Sync Settings: Remove all settings and extensions`: ⚠️⚠️ remove all your local resources ⚠️⚠️
 
 ## Donations
 
@@ -117,9 +122,9 @@ Support this project by becoming a financial contributor.
 
 ## Todo
 
-- [ ] add attributes/decorators in JSONC file
-- [ ] add rsync repository
-- [ ] sync UI states
-- [ ] add relations between profiles (ex: one is extending the main one + few extensions)
+- add attributes/decorators in JSONC file
+- add rsync repository
+- sync UI states
+- add relations between profiles (ex: one is extending the main one + few extensions)
 
 **Enjoy!**
