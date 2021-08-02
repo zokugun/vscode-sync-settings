@@ -35,6 +35,7 @@ export class FileRepository extends Repository {
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 		this._rootPath = resolve(rootPath ?? settings.repository.path!);
 	} // }}}
 
@@ -188,6 +189,8 @@ export class FileRepository extends Repository {
 			for(const { id } of disabled) {
 				if(!installed[id]) {
 					reloadWindow = await installExtension(id) && reloadWindow;
+
+					await disableExtension(id);
 				}
 				else if(currentlyEnabled[id]) {
 					await disableExtension(id);
