@@ -33,6 +33,7 @@
 	"dependencies": {
 		"fs-extra": "^10.0.0",
 		"globby": "^11.0.4",
+		"home": "^2.0.0",
 		"jsonc-parser": "^3.0.0",
 		"simple-git": "^2.41.2",
 		"yaml": "^1.10.2"
