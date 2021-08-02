@@ -58,7 +58,7 @@ repository:
 repository:
   type: git
   path: ~/Development/settings
-  branch: master
+  branch: master    # default
 ```
 
 If not initialized, the git repository will be automatically initialized.
@@ -69,11 +69,22 @@ If not initialized, the git repository will be automatically initialized.
 repository:
   type: git
   url: git@github.com:username/settings.git
-  branch: master
+  branch: master    # default
 ```
 
 The extension don't authentificate to access the remote repository, it's using the default `git` command (from the terminal).<br/>
 That `git` command will need write access to that repository.
+
+#### rsync
+
+```yaml
+repository:
+  type: rsync
+  url: server:~/settings
+  shell: ssh    # default
+```
+
+The access to the server shouldn't require the need of any passwords.
 
 ### Which resources?
 
@@ -123,7 +134,6 @@ Support this project by becoming a financial contributor.
 ## Todo
 
 - add attributes/decorators in JSONC file
-- add rsync repository
 - sync UI states
 - add relations between profiles (ex: one is extending the main one + few extensions)
 

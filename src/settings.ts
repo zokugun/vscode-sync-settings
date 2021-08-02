@@ -19,16 +19,17 @@ function defaults() { // {{{
 } // }}}
 
 export interface RepositorySettings {
-	type: RepositoryType;
-	path?: string;
-	url?: string;
 	branch?: string;
+	path?: string;
+	shell?: string;
+	type: RepositoryType;
+	url?: string;
 }
 
 interface SettingsData {
 	hostname: string;
-	repository: RepositorySettings;
 	profile: string;
+	repository: RepositorySettings;
 }
 
 export class Settings {
@@ -54,12 +55,6 @@ export class Settings {
 		}
 
 		throw new Error('The settings are not initialized');
-	} // }}}
-
-	public static getRepositoryPath(): string { // {{{
-		const settings = Settings.get();
-
-		return Uri.joinPath(settings.globalStorageUri, 'repository').fsPath;
 	} // }}}
 
 	public get profile() { // {{{

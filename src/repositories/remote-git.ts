@@ -4,6 +4,7 @@ import { ResetMode } from 'simple-git';
 import { Settings } from '../settings';
 import { exists } from '../utils/exists';
 import { Logger } from '../utils/logger';
+import { TemporaryRepository } from '../utils/temporary-repository';
 import { CommitType, LocalGitRepository } from './local-git';
 
 export class RemoteGitRepository extends LocalGitRepository {
@@ -11,7 +12,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 	protected _pushRegex: RegExp;
 
 	constructor(settings: Settings) { // {{{
-		super(settings, Settings.getRepositoryPath());
+		super(settings, TemporaryRepository.getPath(settings));
 
 		this._remoteUrl = settings.repository.url!;
 
@@ -28,8 +29,14 @@ export class RemoteGitRepository extends LocalGitRepository {
 		await super.download();
 	} // }}}
 
+	public override async initialize(): Promise<void> { // {{{
+		await TemporaryRepository.initialize(this._settings, this.type, this._remoteUrl);
+
+		await super.initialize();
+	} // }}}
+
 	public override async terminate(): Promise<void> { // {{{
-		await fse.remove(this._rootPath);
+		await TemporaryRepository.terminate(this._settings);
 	} // }}}
 
 	protected async createLocalRepository(remove: boolean): Promise<boolean> { // {{{

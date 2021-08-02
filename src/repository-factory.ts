@@ -2,6 +2,7 @@ import { DummyRepository } from './repositories/dummy';
 import { FileRepository } from './repositories/file';
 import { LocalGitRepository } from './repositories/local-git';
 import { RemoteGitRepository } from './repositories/remote-git';
+import { RsyncRepository } from './repositories/rsync';
 import { Repository } from './repository';
 import { RepositoryType } from './repository-type';
 import { Settings } from './settings';
@@ -24,6 +25,9 @@ async function create(settings: Settings): Promise<void> { // {{{
 		else if(settings.repository.url) {
 			$instance = new RemoteGitRepository(settings);
 		}
+	}
+	else if(settings.repository.type === RepositoryType.RSYNC) {
+		$instance = new RsyncRepository(settings);
 	}
 
 	if(!$instance) {
