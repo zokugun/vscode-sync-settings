@@ -91,7 +91,7 @@
 			},
 			{
 				"command": "syncSettings.switchProfile",
-				"title": "Switch to new profile",
+				"title": "Switch to profile",
 				"category": "Sync Settings"
 			},
 			{

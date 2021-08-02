@@ -8,9 +8,93 @@ Sync Settings
 [![License](https://img.shields.io/badge/donate-liberapay-green)](https://liberapay.com/daiyam/donate)
 [![License](https://img.shields.io/badge/donate-paypal-green)](https://paypal.me/daiyam99)
 
-Synchronize your settings
+With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can synchronize your settings/resources across multiple devices.<br />
+You can also switch between profiles with their own settings/resources.
+
+## Howto
+
+1. configure the repository:
+
+   > &gt; Sync Settings: Open the settings
+
+2. upload your settings to the repository:
+    > &gt; Sync Settings: Upload (user -> repository)
+
+3. download your settings into a new editor:
+    > &gt; Sync Settings: Download (repository -> user)
 
 ## Configuration
+
+### Repository
+
+The repository is configured with the following file:
+
+##### **`settings.yml`**
+```yaml
+hostname: ""
+profile: main
+repository:
+  type: dummy
+  path:
+```
+
+You can open that file with the command:
+
+> &gt; Sync Settings: Open the settings
+
+### Repository types
+
+#### file
+
+```
+repository:
+  type: file
+  path: ~/Development/settings
+```
+
+#### local git
+
+```
+repository:
+  type: git
+  path: ~/Development/settings
+  branch: master
+```
+
+If not initialized, the git repository will be automatically initialized.
+
+#### remote git
+
+```
+repository:
+  type: git
+  url: git@github.com:username/settings.git
+  branch: master
+```
+
+The extension don't authentificate to access the remote repository, it's using the default `git` command (from the terminal).<br/>
+That `git` command will need write access to that repository.
+
+### Which resources?
+
+You can configure what and how to synchronize with properties in your regular settings (`settings.json`).
+
+- `"syncSettings.resources": ["extensions", "keybindings", "settings", "snippets"]`
+- `"syncSettings.ignoredExtensions": ["<extension's id>"]`
+- `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
+- `"syncSettings.keybindingsPerPlatform": true`
+
+## Commands
+
+- `> Sync Settings: Open the settings`: open the settings for configuring the repository
+- `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
+- `> Sync Settings: Download (repository -> user)`: download/copy the resources from the repository to the user
+- `> Sync Settings: Reload the settings`: reload the repository' settings
+- `> Sync Settings: Create a new profile`: create a new profile
+- `> Sync Settings: Switch to profile`: switch to the selected profile
+- `> Sync Settings: Remove all settings and extensions`: :warning::warning: remove all your local resources :warning::warning:
+
+
 
 ## Donations
 
@@ -30,5 +114,12 @@ Support this project by becoming a financial contributor.
         <td><a href="https://paypal.me/daiyam99" target="_blank">paypal.me/daiyam99</a></td>
     </tr>
 </table>
+
+## Todo
+
+- [ ] add attributes/decorators in JSONC file
+- [ ] add rsync repository
+- [ ] sync UI states
+- [ ] add relations between profiles (ex: one is extending the main one + few extensions)
 
 **Enjoy!**
