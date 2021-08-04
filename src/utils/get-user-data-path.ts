@@ -1,4 +1,5 @@
 import path from 'path';
+import process from 'process';
 import { Settings } from '../settings';
 
 export function getUserDataPath(settings: Settings): string { // {{{

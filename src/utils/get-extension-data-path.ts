@@ -1,6 +1,7 @@
 import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
+import process from 'process';
 import vscode from 'vscode';
 
 export async function getExtensionDataPath(): Promise<string> { // {{{

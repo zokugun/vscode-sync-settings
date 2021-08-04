@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import process from 'process';
 import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
 import globby from 'globby';
