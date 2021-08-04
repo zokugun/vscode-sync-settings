@@ -5,7 +5,7 @@ import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
 import globby from 'globby';
 import fse from 'fs-extra';
-import { resolve } from 'home';
+import untildify from 'untildify';
 import { ExtensionList, Repository, Resource } from '../repository';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
@@ -36,8 +36,7 @@ export class FileRepository extends Repository {
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings);
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-		this._rootPath = resolve(rootPath ?? settings.repository.path!);
+		this._rootPath = untildify(rootPath ?? settings.repository.path!);
 	} // }}}
 
 	public override get type() { // {{{
