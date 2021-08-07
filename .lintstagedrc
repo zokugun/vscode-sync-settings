@@ -1,0 +1,4 @@
+{
+	"package.json": "fixpack",
+	"*.ts": "xo"
+}
