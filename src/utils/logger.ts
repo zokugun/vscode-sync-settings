@@ -9,4 +9,7 @@ export const Logger = { // {{{
 	info(...args: any[]): void {
 		channel.appendLine(`[info] ${args.join(' ')}`);
 	},
+	show(): void {
+		channel.show();
+	},
 }; // }}}

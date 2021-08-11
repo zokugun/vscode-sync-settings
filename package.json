@@ -99,6 +99,15 @@
 		"configuration": {
 			"title": "Sync Settings configuration",
 			"properties": {
+				"syncSettings.confirmSync": {
+					"type": "boolean",
+					"description": "Ask for confirmation before synchronizing",
+					"default": false,
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.keybindingsPerPlatform": {
 					"type": "boolean",
 					"description": "Synchronize keybindings for each platform.",
@@ -161,6 +170,15 @@
 						"sync"
 					]
 				},
+				"syncSettings.openOuputOnActivity": {
+					"type": "boolean",
+					"description": "Open the Ouput panel when synchronizing the settings",
+					"default": false,
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.resources": {
 					"type": "array",
 					"markdownDescription": "List of resources to synchronize.",
@@ -189,6 +207,15 @@
 					],
 					"scope": "application",
 					"uniqueItems": true,
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.showFinishAlert": {
+					"type": "boolean",
+					"description": "Show an alert when the synchronization is finished.",
+					"default": true,
+					"scope": "application",
 					"tags": [
 						"sync"
 					]
