@@ -27,6 +27,7 @@
 		"compile": "tsc -p src",
 		"lint": "xo",
 		"prepare": "husky install",
+		"release": "release-it",
 		"vscode:prepublish": "npm run compile && npm run bundle",
 		"watch": "tsc-watch -p src --onSuccess 'npm run bundle'"
 	},
@@ -53,6 +54,7 @@
 		"fixpack": "^4.0.0",
 		"husky": "^7.0.1",
 		"lint-staged": "^11.1.1",
+		"release-it": "^14.11.3",
 		"tsc-watch": "^4.4.0",
 		"typescript": "^4.2.4",
 		"xo": "^0.43.0"
