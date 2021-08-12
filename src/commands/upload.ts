@@ -5,7 +5,7 @@ import { Logger } from '../utils/logger';
 export async function upload(): Promise<void> {
 	const config = vscode.workspace.getConfiguration('syncSettings');
 	const confirmSync = config.get<boolean>('confirmSync') ?? false;
-	const openOuputOnActivity = config.get<boolean>('openOuputOnActivity') ?? false;
+	const openOutputOnActivity = config.get<boolean>('openOutputOnActivity') ?? false;
 	const showFinishAlert = config.get<boolean>('showFinishAlert') ?? true;
 
 	if(confirmSync) {
@@ -22,7 +22,7 @@ export async function upload(): Promise<void> {
 		}
 	}
 
-	if(openOuputOnActivity) {
+	if(openOutputOnActivity) {
 		Logger.show();
 	}
 

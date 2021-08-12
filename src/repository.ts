@@ -1,11 +1,10 @@
 import path from 'path';
 import fs from 'fs/promises';
-import vscode from 'vscode';
+import vscode, { WorkspaceConfiguration } from 'vscode';
 import globby from 'globby';
 import { Settings } from './settings';
 import { RepositoryType } from './repository-type';
 import { exists } from './utils/exists';
-import { filterJSON } from './utils/filter-json';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
 
 export interface ExtensionList {
@@ -54,12 +53,27 @@ export abstract class Repository {
 		}
 	} // }}}
 
-	protected filterSettings(ignoredSettings: string[], text: string): string { // {{{
-		if(ignoredSettings.length === 0) {
-			return text;
+	protected getIgnoredSettings(config: WorkspaceConfiguration): string[] { // {{{
+		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
+
+		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
+	} // }}}
+
+	protected async getKeybindingsFile(userDataPath: string): Promise<string | undefined> { // {{{
+		if(await exists(path.join(userDataPath, 'keybindings.json'))) {
+			return 'keybindings.json';
 		}
 		else {
-			return filterJSON(text, ignoredSettings);
+			return undefined;
+		}
+	} // }}}
+
+	protected async getSettingsFile(userDataPath: string): Promise<string | undefined> { // {{{
+		if(await exists(path.join(userDataPath, 'settings.json'))) {
+			return 'settings.json';
+		}
+		else {
+			return undefined;
 		}
 	} // }}}
 
@@ -119,24 +133,6 @@ export abstract class Repository {
 		}
 
 		return { disabled, enabled };
-	} // }}}
-
-	protected async listKeybindings(userDataPath: string): Promise<string[]> { // {{{
-		if(await exists(path.join(userDataPath, 'keybindings.json'))) {
-			return ['keybindings.json'];
-		}
-		else {
-			return [];
-		}
-	} // }}}
-
-	protected async listSettings(userDataPath: string): Promise<string[]> { // {{{
-		if(await exists(path.join(userDataPath, 'settings.json'))) {
-			return ['settings.json'];
-		}
-		else {
-			return [];
-		}
 	} // }}}
 
 	protected async listSnippets(userDataPath: string): Promise<string[]> { // {{{

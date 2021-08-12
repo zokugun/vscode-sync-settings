@@ -30,8 +30,9 @@
 			"error",
 			12
 		],
-		"no-else-return": "off",
 		"no-await-in-loop": "off",
+		"no-else-return": "off",
+		"no-negated-condition": "off",
 		"one-var": [
 			"error",
 			{

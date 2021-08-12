@@ -31,6 +31,8 @@
 		"watch": "tsc-watch -p src --onSuccess 'npm run bundle'"
 	},
 	"dependencies": {
+		"@daiyam/jsonc-preprocessor": "0.1.0",
+		"detect-newline": "^3.1.0",
 		"fs-extra": "^10.0.0",
 		"globby": "^11.0.4",
 		"jsonc-parser": "^3.0.0",
@@ -170,9 +172,9 @@
 						"sync"
 					]
 				},
-				"syncSettings.openOuputOnActivity": {
+				"syncSettings.openOutputOnActivity": {
 					"type": "boolean",
-					"description": "Open the Ouput panel when synchronizing the settings",
+					"description": "Open the Output panel when synchronizing the settings",
 					"default": false,
 					"scope": "application",
 					"tags": [

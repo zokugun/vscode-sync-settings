@@ -1,6 +1,10 @@
 import { visit } from 'jsonc-parser';
 
-export function filterJSON(text: string, ignored: string[]): string {
+export function removeProperties(text: string, properties: string[]): string {
+	if(properties.length === 0) {
+		return text;
+	}
+
 	const matches: Array<{ from: number; until: number }> = [];
 
 	let level = -1;
@@ -30,8 +34,15 @@ export function filterJSON(text: string, ignored: string[]): string {
 			++level;
 		},
 		onObjectProperty: (name: string, offset: number, length: number) => {
-			if(level === 0 && ignored.includes(name)) {
-				matches.unshift({ from: offset, until: offset + length });
+			if(level === 0 && properties.includes(name)) {
+				const until = offset + length;
+
+				let c;
+				while((c = text.charCodeAt(offset - 1)) === 9 || c === 32) {
+					--offset;
+				}
+
+				matches.unshift({ from: offset, until });
 
 				match = true;
 			}
@@ -41,7 +52,21 @@ export function filterJSON(text: string, ignored: string[]): string {
 		},
 		onSeparator: (character: string, offset: number, length: number) => {
 			if(level === 0 && match && character === ',') {
-				matches[0].until = offset + length;
+				let until = offset + length - 1;
+
+				let c;
+				while((c = text.charCodeAt(until + 1)) === 9 || c === 32 || c === 10 || c === 13) {
+					++until;
+
+					if(c === 10) {
+						break;
+					}
+					else if(c === 13 && text.charCodeAt(until + 1) === 10) {
+						++until;
+					}
+				}
+
+				matches[0].until = until + 1;
 
 				match = false;
 			}

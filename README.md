@@ -11,7 +11,8 @@ Sync Settings
 With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can synchronize your settings/resources across multiple devices.<br />
 You can also switch between profiles with their own settings/resources.
 
-## Howto
+Howto
+-----
 
 1. configure the repository:
 
@@ -23,7 +24,8 @@ You can also switch between profiles with their own settings/resources.
 3. download your settings into a new editor:
     > &gt; Sync Settings: Download (repository -> user)
 
-## Configuration
+Configuration
+-------------
 
 ### Repository
 
@@ -95,14 +97,16 @@ You can configure what and how to synchronize with properties in your regular se
 - `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
 - `"syncSettings.keybindingsPerPlatform": true`
 
-## Profiles
+Profiles
+--------
 
 Each profile has its own directory in the repository and can be configured independently of each other.
 
 You can create a new profile with the command `> Sync Settings: Create a new profile`.
 Or switch to an existing one with the command `> Sync Settings: Switch to profile`.
 
-## Commands
+Commands
+--------
 
 - `> Sync Settings: Open the settings`: open the settings for configuring the repository
 - `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
@@ -112,7 +116,59 @@ Or switch to an existing one with the command `> Sync Settings: Switch to profil
 - `> Sync Settings: Switch to profile`: switch to the selected profile
 - `> Sync Settings: Remove all settings and extensions`: ⚠️⚠️ remove all your local resources ⚠️⚠️
 
-## Donations
+JSONC Attributes
+----------------
+
+### `enable`
+
+```
+{
+    // #enable(os="linux")
+    // "key": "foobar"
+}
+```
+
+If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented. If not, the block will be commented.
+
+### `if/else`
+
+```
+{
+    // #if(os="mac")
+    "key": "foo"
+    // #elif(os="windows", host="host1"|"host2")
+    "key": "bar"
+    // #elif(version>="1.59.0")
+    "key": "qux"
+    // #else
+    "key": "baz"
+    // #endif
+}
+```
+
+`#elif(os="windows", host="host1"|"host2")` is `true` when `os` equals `windows` ***and*** `host` equals `host1` or `host2`.<br />
+`#elif(os="windows", version>="1.59.0")` is `true` when `version` is greater than or equal to `1.59.0`.
+
+### `ignore`
+
+```
+{
+    // #ignore
+    "key": "foobar"
+}
+```
+
+### arguments
+
+- `host`: the hostname found in `settings.yml`
+- `profile`: the profile used to sync
+- `os`: `linux`, `mac` or `windows`
+- `editor`: `vscode`, `vscodium`, `mrcode` or the lowercased `appName` in `product.json`
+- `version`: the version of the editor
+- all env variables are directly available, like `EDITOR` => `#if(EDITOR="vi")`
+
+Donations
+---------
 
 Support this project by becoming a financial contributor.
 
@@ -133,7 +189,6 @@ Support this project by becoming a financial contributor.
 
 ## Todo
 
-- add attributes/decorators in JSONC file
 - sync UI states
 - add relations between profiles (ex: one is extending the main one + few extensions)
 

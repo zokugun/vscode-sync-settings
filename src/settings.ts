@@ -57,6 +57,10 @@ export class Settings {
 		throw new Error('The settings are not initialized');
 	} // }}}
 
+	public get hostname() { // {{{
+		return this._hostname;
+	} // }}}
+
 	public get profile() { // {{{
 		return this._profile;
 	} // }}}

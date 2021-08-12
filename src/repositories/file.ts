@@ -6,6 +6,7 @@ import yaml from 'yaml';
 import globby from 'globby';
 import fse from 'fs-extra';
 import untildify from 'untildify';
+import { comment } from '@daiyam/jsonc-preprocessor';
 import { ExtensionList, Repository, Resource } from '../repository';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
@@ -16,6 +17,10 @@ import { uninstallExtension } from '../utils/uninstall-extension';
 import { installExtension } from '../utils/install-extension';
 import { disableExtension } from '../utils/disable-extension';
 import { enableExtension } from '../utils/enable-extension';
+import { removeProperties } from '../utils/remove-properties';
+import { extractProperties } from '../utils/extract-properties';
+import { preprocessJSON } from '../utils/preprocess-json';
+import { insertProperties } from '../utils/insert-properties';
 
 interface ProfileConfig {
 	keybindingsPerPlatform?: boolean;
@@ -296,6 +301,8 @@ export class FileRepository extends Repository {
 
 		await this.downloadFiles(userDataPath, profileDataPath, [file], {
 			rename: () => 'keybindings.json',
+			test: () => true,
+			replace: (text) => preprocessJSON(text, this._settings),
 		});
 	} // }}}
 
@@ -314,11 +321,27 @@ export class FileRepository extends Repository {
 	protected async downloadSettings(config: ProfileConfig, userDataPath: string, profileDataPath: string): Promise<void> { // {{{
 		Logger.info('download settings');
 
-		const ignoredSettings = config.ignoredSettings ?? [];
+		let extract = '';
+
+		const settings = await this.getSettingsFile(userDataPath);
+		if(settings) {
+			const ignoredSettings = config.ignoredSettings ?? [];
+			const text = await fs.readFile(path.join(userDataPath, settings), 'utf-8');
+
+			extract = extractProperties(text, ignoredSettings);
+		}
 
 		await this.downloadFiles(userDataPath, profileDataPath, ['settings.json'], {
 			test: () => true,
-			replace: (text) => this.filterSettings(ignoredSettings, text),
+			replace: (text) => {
+				text = preprocessJSON(text, this._settings);
+
+				if(extract.length > 0) {
+					text = insertProperties(text, extract);
+				}
+
+				return text;
+			},
 		});
 	} // }}}
 
@@ -401,27 +424,31 @@ export class FileRepository extends Repository {
 
 		const keybindingsPerPlatform = config.get<boolean>('keybindingsPerPlatform') ?? true;
 
-		const userFiles = await this.listKeybindings(userDataPath);
+		const keybindings = await this.getKeybindingsFile(userDataPath);
 
-		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles, {
-			rename: (file) => {
-				if(!keybindingsPerPlatform || !file.endsWith('.json')) {
+		if(keybindings) {
+			await this.uploadFiles(userDataPath, [keybindings], profileDataPath, profileFiles, {
+				rename: (file) => {
+					if(!keybindingsPerPlatform || !file.endsWith('.json')) {
+						return file;
+					}
+
+					// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+					switch(process.platform) {
+						case 'darwin':
+							return `${file.slice(0, -5)}-macos.json`;
+						case 'linux':
+							return `${file.slice(0, -5)}-linux.json`;
+						case 'win32':
+							return `${file.slice(0, -5)}-windows.json`;
+					}
+
 					return file;
-				}
-
-				// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-				switch(process.platform) {
-					case 'darwin':
-						return `${file.slice(0, -5)}-macos.json`;
-					case 'linux':
-						return `${file.slice(0, -5)}-linux.json`;
-					case 'win32':
-						return `${file.slice(0, -5)}-windows.json`;
-				}
-
-				return file;
-			},
-		});
+				},
+				test: () => true,
+				replace: (text) => comment(text),
+			});
+		}
 	} // }}}
 
 	protected async uploadProfileConfig(config: WorkspaceConfiguration): Promise<void> { // {{{
@@ -443,14 +470,16 @@ export class FileRepository extends Repository {
 	protected async uploadSettings(config: WorkspaceConfiguration, userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
 		Logger.info('upload settings');
 
-		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
+		const settings = await this.getSettingsFile(userDataPath);
 
-		const userFiles = await this.listSettings(userDataPath);
+		if(settings) {
+			const ignoredSettings = this.getIgnoredSettings(config);
 
-		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles, {
-			test: (file) => file === 'settings.json',
-			replace: (text) => this.filterSettings(ignoredSettings, text),
-		});
+			await this.uploadFiles(userDataPath, [settings], profileDataPath, profileFiles, {
+				test: () => true,
+				replace: (text) => comment(removeProperties(text, ignoredSettings)),
+			});
+		}
 	} // }}}
 
 	protected async uploadSnippets(userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
