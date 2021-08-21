@@ -9,6 +9,7 @@ import { switchProfile } from './commands/switch-profile';
 import { createProfile } from './commands/create-profile';
 import { Settings } from './settings';
 import { openProfileSettings } from './commands/open-profile-settings';
+import { openProfileDirectory } from './commands/open-profile-directory';
 
 const VERSION_KEY = 'version';
 
@@ -77,6 +78,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		vscode.commands.registerCommand('syncSettings.createProfile', createProfile),
 		vscode.commands.registerCommand('syncSettings.download', download),
 		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
+		vscode.commands.registerCommand('syncSettings.openProfileDirectory', openProfileDirectory),
 		vscode.commands.registerCommand('syncSettings.openSettings', openSettings),
 		vscode.commands.registerCommand('syncSettings.reloadSettings', reloadSettings),
 		vscode.commands.registerCommand('syncSettings.reset', reset),

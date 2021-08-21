@@ -1,11 +1,15 @@
 import { window, workspace } from 'vscode';
+import fse from 'fs-extra';
 import { RepositoryFactory } from '../repository-factory';
+import { exists } from '../utils/exists';
 
 export async function openProfileSettings(): Promise<void> {
 	const repository = await RepositoryFactory.get();
-	const path = repository.getProfileSettingsPath();
+	const filePath = repository.getProfileSettingsPath();
 
-	if(path) {
-		await window.showTextDocument(await workspace.openTextDocument(path));
+	if(!await exists(filePath)) {
+		await fse.createFile(filePath);
 	}
+
+	await window.showTextDocument(await workspace.openTextDocument(filePath));
 }

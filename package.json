@@ -97,6 +97,11 @@
 				"category": "Sync Settings"
 			},
 			{
+				"command": "syncSettings.openProfileDirectory",
+				"title": "Reveal the profile in the file explorer",
+				"category": "Sync Settings"
+			},
+			{
 				"command": "syncSettings.openProfileSettings",
 				"title": "Open the profile settings",
 				"category": "Sync Settings"

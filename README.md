@@ -124,6 +124,7 @@ Commands
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
 - `> Sync Settings: Open the profile settings`: open the settings for configuring the profile
+- `> Sync Settings: Reveal the profile in the file explorer`: open the containing folder in the system file explorer
 - `> Sync Settings: Remove all settings and extensions`: ⚠️⚠️ remove all your local resources ⚠️⚠️
 
 JSONC Attributes
