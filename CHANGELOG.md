@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0 | 2021-08-22
+- add extended profile
+- add command to open the profile's folder in the system file explorer
+
 ## v0.2.0 | 2021-08-12
 - synchronize with `rsync`
 - add alert when the synchronization is done
