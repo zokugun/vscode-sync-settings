@@ -1,7 +1,7 @@
 import vscode from 'vscode';
 import { Logger } from './logger';
 
-export async function uninstallExtension(id: string): Promise<boolean> { // {{{
+export async function uninstallExtension(id: string): Promise<boolean> {
 	Logger.info('uninstall:', id);
 
 	try {
@@ -14,4 +14,4 @@ export async function uninstallExtension(id: string): Promise<boolean> { // {{{
 
 		return false;
 	}
-} // }}}
+}

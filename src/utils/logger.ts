@@ -2,7 +2,7 @@ import { window } from 'vscode';
 
 const channel = window.createOutputChannel('Sync Settings');
 
-export const Logger = { // {{{
+export const Logger = {
 	error(...args: any[]): void {
 		channel.appendLine(`[error] ${args.join(' ')}`);
 	},
@@ -12,4 +12,4 @@ export const Logger = { // {{{
 	show(): void {
 		channel.show();
 	},
-}; // }}}
+};

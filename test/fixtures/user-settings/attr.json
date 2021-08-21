@@ -1,0 +1,11 @@
+{
+    // #if(os="mac")
+    // "key": "foo"
+    // #elif(os="windows", host="host1"|"host2")
+    // "key": "bar"
+    // #elif(version>="1.59.0")
+    // "key": "qux"
+    // #else
+    // "key": "baz"
+    // #endif
+}

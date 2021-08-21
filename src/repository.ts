@@ -8,8 +8,9 @@ import { exists } from './utils/exists';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
 
 export interface ExtensionList {
-	disabled: Array<{ id: string; uuid: string }>;
-	enabled: Array<{ id: string; uuid: string }>;
+	disabled: string[];
+	enabled: string[];
+	uninstall?: string[];
 }
 
 export enum Resource {
@@ -59,25 +60,19 @@ export abstract class Repository {
 		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
 	} // }}}
 
-	protected async getKeybindingsFile(userDataPath: string): Promise<string | undefined> { // {{{
-		if(await exists(path.join(userDataPath, 'keybindings.json'))) {
-			return 'keybindings.json';
-		}
-		else {
-			return undefined;
-		}
+	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'keybindings.json');
 	} // }}}
 
-	protected async getSettingsFile(userDataPath: string): Promise<string | undefined> { // {{{
-		if(await exists(path.join(userDataPath, 'settings.json'))) {
-			return 'settings.json';
-		}
-		else {
-			return undefined;
-		}
+	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'snippets');
 	} // }}}
 
-	protected async listExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
+	protected getEditorUserSettingsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'settings.json');
+	} // }}}
+
+	protected async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
 		ignoredExtensions = ignoredExtensions.map((id) => id.toLocaleLowerCase());
 
 		const disabled = [];
@@ -87,29 +82,25 @@ export abstract class Repository {
 
 		for(const extension of vscode.extensions.all) {
 			const id = extension.id.toLocaleLowerCase();
-			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
+			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean };
 
 			if(!packageJSON || packageJSON.isBuiltin || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id)) {
 				continue;
 			}
 
-			enabled.push({
-				id,
-				uuid: packageJSON.uuid,
-			});
+			enabled.push(id);
 
 			ids[id] = true;
 		}
 
 		const extDataPath = await getExtensionDataPath();
-
 		const obsoletePath = path.join(extDataPath, '.obsolete');
 		const obsolete = await exists(obsoletePath) ? JSON.parse(await fs.readFile(obsoletePath, 'utf-8')) as Record<string, boolean> : {};
-
 		const extensions = await globby('*', {
 			cwd: extDataPath,
 			onlyDirectories: true,
 		});
+
 		for(const name of extensions) {
 			if(obsolete[name]) {
 				continue;
@@ -120,37 +111,46 @@ export abstract class Repository {
 				continue;
 			}
 
-			const id = match[1];
+			const id = match[1].toLocaleLowerCase();
 
 			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id)) {
-				const pkg = JSON.parse(await fs.readFile(path.join(extDataPath, name, 'package.json'), 'utf-8')) as { __metadata: { id: string } };
-
-				disabled.push({
-					id,
-					uuid: pkg.__metadata.id,
-				});
+				disabled.push(id);
 			}
 		}
 
 		return { disabled, enabled };
 	} // }}}
 
-	protected async listSnippets(userDataPath: string): Promise<string[]> { // {{{
-		return globby('snippets/**', {
-			cwd: userDataPath,
-			followSymbolicLinks: false,
-		});
+	protected async listEditorSnippets(userDataPath: string): Promise<string[]> { // {{{
+		const editorPath = this.getEditorSnippetsPath(userDataPath);
+		if(await exists(editorPath)) {
+			return globby('**', {
+				cwd: editorPath,
+				followSymbolicLinks: false,
+			});
+		}
+		else {
+			return [];
+		}
 	} // }}}
 
 	public abstract download(): Promise<void>;
 
 	public abstract duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void>;
 
+	public abstract extendProfileTo(originalProfile: string, newProfile: string): Promise<void>;
+
 	public abstract initialize(): Promise<void>;
 
 	public abstract listProfiles(): Promise<string[]>;
 
+	public abstract restoreProfile(): Promise<void>;
+
+	public abstract serializeProfile(): Promise<void>;
+
 	public abstract terminate(): Promise<void>;
 
 	public abstract upload(): Promise<void>;
+
+	public abstract getProfileSettingsPath(profile?: string): string;
 }

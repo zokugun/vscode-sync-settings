@@ -2,14 +2,19 @@ import { Repository } from '../repository';
 import { RepositoryType } from '../repository-type';
 
 export class DummyRepository extends Repository {
-	public readonly path = '';
-	public readonly type = RepositoryType.DUMMY;
+	public override readonly type = RepositoryType.DUMMY;
 
-	public async download(): Promise<void> { // {{{
+	public override async download(): Promise<void> { // {{{
 	} // }}}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public override async duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void> { // {{{
+	public override async duplicateProfileTo(_originalProfile: string, _newProfile: string): Promise<void> { // {{{
+	} // }}}
+
+	public override async extendProfileTo(_originalProfile: string, _newProfile: string): Promise<void> { // {{{
+	} // }}}
+
+	public override getProfileSettingsPath(_profile?: string): string { // {{{
+		return '';
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -17,6 +22,12 @@ export class DummyRepository extends Repository {
 
 	public override async listProfiles(): Promise<string[]> { // {{{
 		return [];
+	} // }}}
+
+	public override async restoreProfile(): Promise<void> { // {{{
+	} // }}}
+
+	public override async serializeProfile(): Promise<void> { // {{{
 	} // }}}
 
 	public override async terminate(): Promise<void> { // {{{

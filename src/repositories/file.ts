@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
 import path from 'path';
 import process from 'process';
+import { createHash } from 'crypto';
 import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
 import globby from 'globby';
@@ -19,20 +19,19 @@ import { disableExtension } from '../utils/disable-extension';
 import { enableExtension } from '../utils/enable-extension';
 import { removeProperties } from '../utils/remove-properties';
 import { extractProperties } from '../utils/extract-properties';
-import { preprocessJSON } from '../utils/preprocess-json';
+import { preprocessJSONC } from '../utils/preprocess-jsonc';
 import { insertProperties } from '../utils/insert-properties';
+import { arrayDiff } from '../utils/array-diff';
 
-interface ProfileConfig {
+interface ProfileSettings {
+	extends?: string;
+}
+
+interface ProfileSyncSettings {
 	keybindingsPerPlatform?: boolean;
 	ignoredExtensions?: string[];
 	ignoredSettings?: string[];
 	resources?: Resource[];
-}
-
-interface Transformer {
-	rename?: (file: string) => string;
-	replace?: (text: string) => string;
-	test?: (file: string) => boolean;
 }
 
 export class FileRepository extends Repository {
@@ -49,49 +48,26 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	public override async download(): Promise<void> { // {{{
-		this.checkInitialized();
-
-		Logger.info('download from:', this._rootPath);
-
-		const config = await this.downloadProfileConfig();
-
-		const profileDataPath = this.getProfileDataPath();
-		const userDataPath = getUserDataPath(this._settings);
-
-		let reloadWindow = true;
-
-		for(const resource of config.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets]) {
-			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-			switch(resource) {
-				case Resource.Extensions:
-					reloadWindow = await this.downloadExtensions(config.ignoredExtensions ?? []);
-					break;
-				case Resource.Keybindings:
-					await this.downloadKeybindings(config, userDataPath, profileDataPath);
-					break;
-				case Resource.Settings:
-					await this.downloadSettings(config, userDataPath, profileDataPath);
-					break;
-				case Resource.Snippets:
-					await this.downloadSnippets(userDataPath, profileDataPath);
-					break;
-			}
-		}
-
-		Logger.info('download done');
-
-		if(reloadWindow) {
-			await vscode.commands.executeCommand('workbench.action.reloadWindow');
-		}
-		else {
-			Logger.info('window reload cancelled');
-		}
+		await this.restoreProfile();
 	} // }}}
 
 	public override async duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void> { // {{{
 		this.checkInitialized();
 
 		await fse.copy(path.join(this._rootPath, 'profiles', originalProfile), path.join(this._rootPath, 'profiles', newProfile));
+	} // }}}
+
+	public override async extendProfileTo(originalProfile: string, newProfile: string): Promise<void> { // {{{
+		this.checkInitialized();
+
+		const profilePath = path.join(this._rootPath, 'profiles', newProfile, 'profile.yml');
+		const data = yaml.stringify({ extends: originalProfile });
+
+		await fse.outputFile(profilePath, data, 'utf-8');
+	} // }}}
+
+	public override getProfileSettingsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'profile.yml');
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -111,87 +87,417 @@ export class FileRepository extends Repository {
 		});
 	} // }}}
 
+	public override async restoreProfile(): Promise<void> { // {{{
+		this.checkInitialized();
+
+		Logger.info(`restore profile "${this.profile}" from ${this._rootPath}`);
+
+		const syncSettings = await this.loadProfileSyncSettings();
+		const userDataPath = getUserDataPath(this._settings);
+		const ancestorProfile = await this.getAncestorProfile(this.profile);
+
+		let reloadWindow = true;
+
+		for(const resource of syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets]) {
+			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+			switch(resource) {
+				case Resource.Extensions:
+					reloadWindow = await this.restoreExtensions(syncSettings);
+					break;
+				case Resource.Keybindings:
+					await this.restoreKeybindings(ancestorProfile, userDataPath);
+					break;
+				case Resource.Settings:
+					await this.restoreUserSettings(ancestorProfile, userDataPath);
+					break;
+				case Resource.Snippets:
+					await this.restoreSnippets(userDataPath);
+					break;
+			}
+		}
+
+		Logger.info('restore done');
+
+		if(reloadWindow) {
+			await vscode.commands.executeCommand('workbench.action.reloadWindow');
+		}
+		else {
+			Logger.info('window reload cancelled');
+		}
+	} // }}}
+
+	public override async serializeProfile(): Promise<void> { // {{{
+		this.checkInitialized();
+
+		const syncSettings = vscode.workspace.getConfiguration('syncSettings');
+		const resources = syncSettings.get<string[]>('resources') ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets];
+
+		Logger.info('serialize to:', this._rootPath);
+
+		const profileSettings = await this.loadProfileSettings();
+		const userDataPath = getUserDataPath(this._settings);
+
+		const profileDataPath = this.getProfileDataPath();
+		await fse.ensureDir(profileDataPath);
+
+		if(profileSettings.extends) {
+			for(const resource of resources) {
+				switch(resource) {
+					case Resource.Extensions:
+						await this.serializeExtensions(profileSettings, syncSettings);
+						break;
+					case Resource.Snippets:
+						await this.serializeSnippets(profileSettings, userDataPath);
+						break;
+				}
+			}
+		}
+		else {
+			for(const resource of resources) {
+				switch(resource) {
+					case Resource.Extensions:
+						await this.serializeExtensions(profileSettings, syncSettings);
+						break;
+					case Resource.Keybindings:
+						await this.serializeKeybindings(syncSettings, userDataPath);
+						break;
+					case Resource.Settings:
+						await this.serializeUserSettings(syncSettings, userDataPath);
+						break;
+					case Resource.Snippets:
+						await this.serializeSnippets(profileSettings, userDataPath);
+						break;
+				}
+			}
+		}
+
+		await this.saveProfileSyncSettings(syncSettings);
+
+		Logger.info('serialize done');
+	} // }}}
+
 	public override async terminate(): Promise<void> { // {{{
 		this.checkInitialized();
 	} // }}}
 
 	public override async upload(): Promise<void> { // {{{
-		this.checkInitialized();
-
-		const config = vscode.workspace.getConfiguration('syncSettings');
-		const resources = config.get<string[]>('resources') ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets];
-
-		Logger.info('upload to:', this._rootPath);
-
-		const userDataPath = getUserDataPath(this._settings);
-
-		const profileDataPath = this.getProfileDataPath();
-		await fs.mkdir(profileDataPath, { recursive: true });
-
-		const profileFiles: Record<string, boolean> = {};
-		for(const file of await this.listProfileFiles(profileDataPath)) {
-			profileFiles[file] = true;
-		}
-
-		for(const resource of resources) {
-			switch(resource) {
-				case Resource.Extensions:
-					await this.uploadExtensions(config);
-					break;
-				case Resource.Keybindings:
-					await this.uploadKeybindings(config, userDataPath, profileDataPath, profileFiles);
-					break;
-				case Resource.Settings:
-					await this.uploadSettings(config, userDataPath, profileDataPath, profileFiles);
-					break;
-				case Resource.Snippets:
-					await this.uploadSnippets(userDataPath, profileDataPath, profileFiles);
-					break;
-			}
-		}
-
-		for(const file in profileFiles) {
-			if(profileFiles[file]) {
-				await fs.unlink(path.join(profileDataPath, file));
-			}
-		}
-
-		await this.uploadProfileConfig(config);
-
-		Logger.info('upload done');
+		await this.serializeProfile();
 	} // }}}
 
-	protected async downloadExtensions(ignoredExtensions: string[]): Promise<boolean> { // {{{
-		Logger.info('download extensions');
+	protected applyExtensionsDiff({ disabled, enabled }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
+		for(const id of diff.disabled) {
+			const index = enabled.indexOf(id);
+			if(index !== -1) {
+				enabled.splice(index, 1);
+			}
 
-		const listPath = this.getProfileExtensionsPath();
-		if(!await exists(listPath)) {
-			return false;
+			if(!disabled.includes(id)) {
+				disabled.push(id);
+			}
 		}
+
+		for(const id of diff.enabled) {
+			const index = disabled.indexOf(id);
+			if(index !== -1) {
+				disabled.splice(index, 1);
+			}
+
+			if(!enabled.includes(id)) {
+				enabled.push(id);
+			}
+		}
+
+		if(diff.uninstall) {
+			for(const id of diff.uninstall) {
+				const index = disabled.indexOf(id);
+				if(index !== -1) {
+					disabled.splice(index, 1);
+				}
+				else {
+					const index = enabled.indexOf(id);
+					if(index !== -1) {
+						enabled.splice(index, 1);
+					}
+				}
+			}
+		}
+
+		return {
+			disabled,
+			enabled,
+		};
+	} // }}}
+
+	protected async getAncestorProfile(profile: string): Promise<string> { // {{{
+		let settings = await this.loadProfileSettings(profile);
+
+		while(settings.extends) {
+			profile = settings.extends;
+
+			settings = await this.loadProfileSettings(profile);
+		}
+
+		return profile;
+	} // }}}
+
+	protected getDiffSnippetsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'snippets.diff.yml');
+	} // }}}
+
+	protected getProfileDataPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data');
+	} // }}}
+
+	protected getProfileExtensionsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'extensions.yml');
+	} // }}}
+
+	protected async getProfileKeybindings(profile: string, keybindingsPerPlatform: boolean): Promise<string | undefined> { // {{{
+		const syncSettings = await this.loadProfileSyncSettings(profile);
+		const profilePerPlatform = syncSettings.keybindingsPerPlatform ?? true;
+		if(profilePerPlatform !== keybindingsPerPlatform) {
+			return undefined;
+		}
+
+		const dataPath = this.getProfileKeybindingsPath(profile, keybindingsPerPlatform);
+
+		if(await exists(dataPath)) {
+			return fse.readFile(dataPath, 'utf-8');
+		}
+		else {
+			return undefined;
+		}
+	} // }}}
+
+	protected getProfileKeybindingsPath(profile: string, keybindingsPerPlatform: boolean, suffix = ''): string { // {{{
+		const profileDataPath = this.getProfileDataPath(profile);
+
+		if(keybindingsPerPlatform) {
+			switch(process.platform) {
+				case 'darwin':
+					return path.join(profileDataPath, `keybindings-macos${suffix}.json`);
+				case 'linux':
+					return path.join(profileDataPath, `keybindings-linux${suffix}.json`);
+				case 'win32':
+					return path.join(profileDataPath, `keybindings-windows${suffix}.json`);
+				default:
+					return path.join(profileDataPath, `keybindings${suffix}.json`);
+			}
+		}
+		else {
+			return path.join(profileDataPath, `keybindings${suffix}.json`);
+		}
+	} // }}}
+
+	protected getProfileSnippetsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'snippets');
+	} // }}}
+
+	protected getProfileSyncSettingsOldPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'config.yml');
+	} // }}}
+
+	protected getProfileSyncSettingsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, '.sync.yml');
+	} // }}}
+
+	protected async getProfileUserSettings(profile: string = this.profile): Promise<string | undefined> { // {{{
+		const dataPath = this.getProfileUserSettingsPath(profile);
+
+		if(await exists(dataPath)) {
+			return fse.readFile(dataPath, 'utf-8');
+		}
+		else {
+			return undefined;
+		}
+	} // }}}
+
+	protected getProfileUserSettingsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'settings.json');
+	} // }}}
+
+	protected async listProfileExtensions(profile: string = this.profile): Promise<ExtensionList> { // {{{
+		const settings = await this.loadProfileSettings(profile);
+		const extensionsPath = this.getProfileExtensionsPath(profile);
+
+		if(!settings.extends) {
+			if(!await exists(extensionsPath)) {
+				return { disabled: [], enabled: [] };
+			}
+
+			const data = await fse.readFile(extensionsPath, 'utf-8');
+			const raw = yaml.parse(data) as { disabled: Array<string | { id: string; uuid: string }>; enabled: Array<string | { id: string; uuid: string }> };
+
+			return {
+				disabled: raw.disabled.length === 0 || typeof raw.disabled[0] === 'string' ? raw.disabled as string[] : (raw.disabled as Array<{ id: string; uuid: string }>).map(({ id }) => id),
+				enabled: raw.enabled.length === 0 || typeof raw.enabled[0] === 'string' ? raw.enabled as string[] : (raw.enabled as Array<{ id: string; uuid: string }>).map(({ id }) => id),
+			};
+		}
+
+		if(!await exists(extensionsPath)) {
+			return this.listProfileExtensions(settings.extends);
+		}
+
+		const data = await fse.readFile(extensionsPath, 'utf-8');
+		const raw = yaml.parse(data) as {
+			disabled: Array<string | { id: string; uuid: string }>;
+			enabled: Array<string | { id: string; uuid: string }>;
+			uninstall?: Array<string | { id: string; uuid: string }>;
+		};
+		const extensions = {
+			disabled: raw.disabled.length === 0 || typeof raw.disabled[0] === 'string' ? raw.disabled as string[] : (raw.disabled as Array<{ id: string; uuid: string }>).map(({ id }) => id),
+			enabled: raw.enabled.length === 0 || typeof raw.enabled[0] === 'string' ? raw.enabled as string[] : (raw.enabled as Array<{ id: string; uuid: string }>).map(({ id }) => id),
+			uninstall: !raw.uninstall ? undefined : (raw.uninstall.length === 0 || typeof raw.uninstall[0] === 'string' ? raw.uninstall as string[] : (raw.uninstall as Array<{ id: string; uuid: string }>).map(({ id }) => id)),
+		};
+
+		const ancestors = await this.listProfileExtensions(settings.extends);
+
+		return this.applyExtensionsDiff(ancestors, extensions);
+	} // }}}
+
+	protected async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
+		const path = this.getProfileSettingsPath(profile);
+
+		if(await exists(path)) {
+			const data = await fse.readFile(path, 'utf-8');
+
+			return yaml.parse(data) as ProfileSettings;
+		}
+		else {
+			return {};
+		}
+	} // }}}
+
+	protected async listProfileSnippetHashes(profile: string = this.profile): Promise<Record<string, string>> { // {{{
+		const settings = await this.loadProfileSettings(profile);
+		const dataPath = this.getProfileSnippetsPath(profile);
+
+		let snippets;
+		let newFiles;
+
+		if(settings.extends) {
+			snippets = await this.listProfileSnippetHashes(settings.extends);
+
+			const diffPath = this.getDiffSnippetsPath(profile);
+			if(await exists(diffPath)) {
+				const data = await fse.readFile(diffPath, 'utf-8');
+				const diff = yaml.parse(data) as { remove: string[] };
+
+				for(const name of diff.remove) {
+					if(snippets[name]) {
+						delete snippets[name];
+					}
+				}
+			}
+
+			newFiles = await globby('**', {
+				cwd: dataPath,
+				followSymbolicLinks: false,
+			});
+		}
+		else {
+			snippets = {};
+			newFiles = await globby('**', {
+				cwd: dataPath,
+				followSymbolicLinks: false,
+			});
+		}
+
+		const hasher = createHash('SHA1');
+
+		for(const file of newFiles) {
+			const data = await fse.readFile(path.join(dataPath, file), 'utf-8');
+			const hash = hasher.update(data).digest('hex');
+
+			snippets[file] = hash;
+		}
+
+		return snippets;
+	} // }}}
+
+	protected async listProfileSnippetPaths(profile: string = this.profile): Promise<Record<string, string>> { // {{{
+		const settings = await this.loadProfileSettings(profile);
+		const dataPath = this.getProfileSnippetsPath(profile);
+
+		let snippets;
+		let newFiles;
+
+		if(settings.extends) {
+			snippets = await this.listProfileSnippetPaths(settings.extends);
+
+			const diffPath = this.getDiffSnippetsPath(profile);
+			if(await exists(diffPath)) {
+				const data = await fse.readFile(diffPath, 'utf-8');
+				const diff = yaml.parse(data) as { remove: string[] };
+
+				for(const name of diff.remove) {
+					if(snippets[name]) {
+						delete snippets[name];
+					}
+				}
+			}
+
+			newFiles = await globby('**', {
+				cwd: dataPath,
+				followSymbolicLinks: false,
+			});
+		}
+		else {
+			snippets = {};
+			newFiles = await globby('**', {
+				cwd: dataPath,
+				followSymbolicLinks: false,
+			});
+		}
+
+		for(const file of newFiles) {
+			snippets[file] = path.join(dataPath, file);
+		}
+
+		return snippets;
+	} // }}}
+
+	protected async loadProfileSyncSettings(profile: string = this.profile): Promise<ProfileSyncSettings> { // {{{
+		let path = this.getProfileSyncSettingsPath(profile);
+
+		if(!await exists(path)) {
+			path = this.getProfileSyncSettingsOldPath(profile);
+
+			if(!await exists(path)) {
+				throw new Error('sync settings file of profile can not be found');
+			}
+		}
+
+		const data = await fse.readFile(path, 'utf-8');
+
+		return yaml.parse(data) as ProfileSyncSettings;
+	} // }}}
+
+	protected async restoreExtensions(syncSettings: ProfileSyncSettings): Promise<boolean> { // {{{
+		Logger.info('restore extensions');
 
 		let reloadWindow = true;
 
-		const extensions = await this.listExtensions(ignoredExtensions);
+		const editor = await this.listEditorExtensions(syncSettings.ignoredExtensions ?? []);
 
 		const installed: Record<string, boolean> = {};
 
 		const currentlyDisabled: Record<string, boolean> = {};
-		for(const { id } of extensions.disabled) {
+		for(const id of editor.disabled) {
 			currentlyDisabled[id] = true;
 			installed[id] = true;
 		}
 
 		const currentlyEnabled: Record<string, boolean> = {};
-		for(const { id } of extensions.enabled) {
+		for(const id of editor.enabled) {
 			currentlyEnabled[id] = true;
 			installed[id] = true;
 		}
 
-		const data = await fs.readFile(listPath, 'utf-8');
-		const { disabled, enabled } = yaml.parse(data) as ExtensionList;
+		const { disabled, enabled, uninstall } = await this.listProfileExtensions();
 
 		if(await this.canManageExtensions()) {
-			for(const { id } of disabled) {
+			for(const id of disabled) {
 				if(!installed[id]) {
 					reloadWindow = await installExtension(id) && reloadWindow;
 
@@ -204,7 +510,7 @@ export class FileRepository extends Repository {
 				installed[id] = false;
 			}
 
-			for(const { id } of enabled) {
+			for(const id of enabled) {
 				if(!installed[id]) {
 					reloadWindow = await installExtension(id) && reloadWindow;
 				}
@@ -222,13 +528,13 @@ export class FileRepository extends Repository {
 			}
 		}
 		else {
-			for(const { id } of disabled) {
+			for(const id of disabled) {
 				if(currentlyDisabled[id]) {
 					installed[id] = false;
 				}
 			}
 
-			for(const { id } of enabled) {
+			for(const id of enabled) {
 				if(!installed[id]) {
 					reloadWindow = await installExtension(id) && reloadWindow;
 				}
@@ -247,211 +553,93 @@ export class FileRepository extends Repository {
 			}
 		}
 
+		if(uninstall) {
+			for(const id of uninstall) {
+				if(installed[id]) {
+					reloadWindow = await uninstallExtension(id) && reloadWindow;
+				}
+			}
+		}
+
 		return reloadWindow;
 	} // }}}
 
-	protected async downloadFiles(userDataPath: string, profileDataPath: string, profileFiles: string[], fn: Transformer = {}): Promise<void> { // {{{
-		fn.rename ??= (file) => file;
-		fn.replace ??= (text) => text;
-		fn.test ??= () => false;
+	protected async restoreKeybindings(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore keybindings');
 
-		for(const file of profileFiles) {
-			const newFile = fn.rename(file);
-			const target = path.join(userDataPath, newFile);
+		const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
+		const dataPath = this.getEditorKeybindingsPath(userDataPath);
+		const keybindingsPerPlatform = syncSettings.keybindingsPerPlatform ?? true;
 
-			if(await exists(target)) {
-				await fs.unlink(target);
-			}
-			else {
-				await fs.mkdir(path.dirname(target), { recursive: true });
+		let data = await this.getProfileKeybindings(ancestorProfile, keybindingsPerPlatform);
+
+		if(data) {
+			data = preprocessJSONC(data, this._settings);
+		}
+		else {
+			data = '[]';
+		}
+
+		await fse.outputFile(dataPath, data, 'utf-8');
+	} // }}}
+
+	protected async restoreUserSettings(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore settings');
+
+		let extracted = '';
+
+		const dataPath = this.getEditorUserSettingsPath(userDataPath);
+		if(await exists(dataPath)) {
+			const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
+			const ignoredSettings = syncSettings.ignoredSettings ?? [];
+			const text = await fse.readFile(dataPath, 'utf-8');
+
+			extracted = extractProperties(text, ignoredSettings);
+		}
+
+		let data = await this.getProfileUserSettings(ancestorProfile);
+
+		if(data) {
+			data = preprocessJSONC(data, this._settings);
+		}
+		else {
+			data = '{}';
+		}
+
+		if(extracted.length > 0) {
+			data = insertProperties(data, extracted);
+		}
+
+		await fse.outputFile(dataPath, data, 'utf-8');
+	} // }}}
+
+	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore snippets');
+
+		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
+
+		await fse.emptyDir(snippetsPath);
+
+		const ignore: string[] = [];
+		const diffPath = this.getDiffSnippetsPath();
+		if(await exists(diffPath)) {
+			const data = await fse.readFile(diffPath, 'utf-8');
+			const diff = yaml.parse(data) as { remove: string[] };
+
+			ignore.push(...diff.remove);
+		}
+
+		const snippets = await this.listProfileSnippetPaths();
+		for(const [name, snippetPath] of Object.entries(snippets)) {
+			if(ignore.includes(name)) {
+				continue;
 			}
 
-			if(fn.test(file)) {
-				const text = await fs.readFile(path.join(profileDataPath, file), 'utf-8');
-
-				await fs.writeFile(target, fn.replace(text), 'utf-8');
-			}
-			else {
-				await fs.copyFile(path.join(profileDataPath, file), target);
-			}
+			await fse.copyFile(snippetPath, path.join(snippetsPath, name));
 		}
 	} // }}}
 
-	protected async downloadKeybindings(config: ProfileConfig, userDataPath: string, profileDataPath: string): Promise<void> { // {{{
-		Logger.info('download keybindings');
-
-		const keybindingsPerPlatform = config.keybindingsPerPlatform ?? true;
-
-		let file = 'keybindings.json';
-
-		if(keybindingsPerPlatform) {
-			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-			switch(process.platform) {
-				case 'darwin':
-					file = `${file.slice(0, -5)}-macos.json`;
-					break;
-				case 'linux':
-					file = `${file.slice(0, -5)}-linux.json`;
-					break;
-				case 'win32':
-					file = `${file.slice(0, -5)}-windows.json`;
-					break;
-			}
-		}
-
-		await this.downloadFiles(userDataPath, profileDataPath, [file], {
-			rename: () => 'keybindings.json',
-			test: () => true,
-			replace: (text) => preprocessJSON(text, this._settings),
-		});
-	} // }}}
-
-	protected async downloadProfileConfig(): Promise<ProfileConfig> { // {{{
-		const profileConfigPath = this.getProfileConfigPath();
-
-		if(!await exists(profileConfigPath)) {
-			throw new Error('config file of profile can not be found');
-		}
-
-		const data = await fs.readFile(profileConfigPath, 'utf-8');
-
-		return yaml.parse(data) as ProfileConfig;
-	} // }}}
-
-	protected async downloadSettings(config: ProfileConfig, userDataPath: string, profileDataPath: string): Promise<void> { // {{{
-		Logger.info('download settings');
-
-		let extract = '';
-
-		const settings = await this.getSettingsFile(userDataPath);
-		if(settings) {
-			const ignoredSettings = config.ignoredSettings ?? [];
-			const text = await fs.readFile(path.join(userDataPath, settings), 'utf-8');
-
-			extract = extractProperties(text, ignoredSettings);
-		}
-
-		await this.downloadFiles(userDataPath, profileDataPath, ['settings.json'], {
-			test: () => true,
-			replace: (text) => {
-				text = preprocessJSON(text, this._settings);
-
-				if(extract.length > 0) {
-					text = insertProperties(text, extract);
-				}
-
-				return text;
-			},
-		});
-	} // }}}
-
-	protected async downloadSnippets(userDataPath: string, profileDataPath: string): Promise<void> { // {{{
-		Logger.info('download snippets');
-
-		const profileFiles = await this.listSnippets(profileDataPath);
-
-		await this.downloadFiles(userDataPath, profileDataPath, profileFiles);
-	} // }}}
-
-	protected getProfileConfigPath(): string { // {{{
-		return path.join(this._rootPath, 'profiles', this.profile, 'config.yml');
-	} // }}}
-
-	protected getProfileDataPath(): string { // {{{
-		return path.join(this._rootPath, 'profiles', this.profile, 'data');
-	} // }}}
-
-	protected getProfileExtensionsPath(): string { // {{{
-		return path.join(this._rootPath, 'profiles', this.profile, 'extensions.yml');
-	} // }}}
-
-	protected async listProfileFiles(cwd: string): Promise<string[]> { // {{{
-		return globby('**', {
-			cwd,
-			followSymbolicLinks: false,
-		});
-	} // }}}
-
-	protected async uploadExtensions(config: WorkspaceConfiguration): Promise<void> { // {{{
-		Logger.info('upload extensions');
-
-		const ignoredExtensions = config.get<string[]>('ignoredExtensions') ?? [];
-
-		const { disabled, enabled } = await this.listExtensions(ignoredExtensions);
-
-		const data = yaml.stringify({
-			disabled,
-			enabled,
-		});
-
-		await fs.writeFile(this.getProfileExtensionsPath(), data, {
-			encoding: 'utf-8',
-			mode: 0o600,
-		});
-	} // }}}
-
-	protected async uploadFiles(userDataPath: string, userFiles: string[], profileDataPath: string, profileFiles: Record<string, boolean>, fn: Transformer = {}): Promise<void> { // {{{
-		fn.rename ??= (file) => file;
-		fn.replace ??= (text) => text;
-		fn.test ??= () => false;
-
-		for(const file of userFiles) {
-			const newFile = fn.rename(file);
-			const target = path.join(profileDataPath, newFile);
-
-			if(await exists(target)) {
-				await fs.unlink(target);
-			}
-			else {
-				await fs.mkdir(path.dirname(target), { recursive: true });
-			}
-
-			if(fn.test(file)) {
-				const text = await fs.readFile(path.join(userDataPath, file), 'utf-8');
-
-				await fs.writeFile(target, fn.replace(text), 'utf-8');
-			}
-			else {
-				await fs.copyFile(path.join(userDataPath, file), target);
-			}
-
-			profileFiles[newFile] = false;
-		}
-	} // }}}
-
-	protected async uploadKeybindings(config: WorkspaceConfiguration, userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
-		Logger.info('upload keybindings');
-
-		const keybindingsPerPlatform = config.get<boolean>('keybindingsPerPlatform') ?? true;
-
-		const keybindings = await this.getKeybindingsFile(userDataPath);
-
-		if(keybindings) {
-			await this.uploadFiles(userDataPath, [keybindings], profileDataPath, profileFiles, {
-				rename: (file) => {
-					if(!keybindingsPerPlatform || !file.endsWith('.json')) {
-						return file;
-					}
-
-					// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-					switch(process.platform) {
-						case 'darwin':
-							return `${file.slice(0, -5)}-macos.json`;
-						case 'linux':
-							return `${file.slice(0, -5)}-linux.json`;
-						case 'win32':
-							return `${file.slice(0, -5)}-windows.json`;
-					}
-
-					return file;
-				},
-				test: () => true,
-				replace: (text) => comment(text),
-			});
-		}
-	} // }}}
-
-	protected async uploadProfileConfig(config: WorkspaceConfiguration): Promise<void> { // {{{
+	protected async saveProfileSyncSettings(config: WorkspaceConfiguration): Promise<void> { // {{{
 		const settings: Record<string, any> = {};
 
 		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources']) {
@@ -464,29 +652,157 @@ export class FileRepository extends Repository {
 
 		const data = yaml.stringify(settings);
 
-		await fs.writeFile(this.getProfileConfigPath(), data, 'utf-8');
+		await fse.remove(this.getProfileSyncSettingsOldPath());
+
+		await fse.writeFile(this.getProfileSyncSettingsPath(), data, 'utf-8');
 	} // }}}
 
-	protected async uploadSettings(config: WorkspaceConfiguration, userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
-		Logger.info('upload settings');
+	protected async serializeExtensions(profileSettings: ProfileSettings, config: WorkspaceConfiguration): Promise<void> { // {{{
+		Logger.info('serialize extensions');
 
-		const settings = await this.getSettingsFile(userDataPath);
+		const ignoredExtensions = config.get<string[]>('ignoredExtensions') ?? [];
 
-		if(settings) {
-			const ignoredSettings = this.getIgnoredSettings(config);
+		let list: ExtensionList;
 
-			await this.uploadFiles(userDataPath, [settings], profileDataPath, profileFiles, {
-				test: () => true,
-				replace: (text) => comment(removeProperties(text, ignoredSettings)),
+		if(profileSettings.extends) {
+			const profile = await this.listProfileExtensions(profileSettings.extends);
+			const editor = await this.listEditorExtensions(ignoredExtensions);
+
+			const disabled = arrayDiff(editor.disabled, profile.disabled);
+			const enabled = arrayDiff(editor.enabled, profile.enabled);
+			const uninstall = arrayDiff([...profile.disabled, ...profile.enabled], [...editor.disabled, ...editor.enabled]);
+
+			list = {
+				disabled,
+				enabled,
+			};
+
+			if(uninstall.length > 0) {
+				list.uninstall = uninstall;
+			}
+		}
+		else {
+			list = await this.listEditorExtensions(ignoredExtensions);
+		}
+
+		const data = yaml.stringify(list);
+
+		await fse.writeFile(this.getProfileExtensionsPath(), data, {
+			encoding: 'utf-8',
+			mode: 0o600,
+		});
+	} // }}}
+
+	protected async serializeKeybindings(config: WorkspaceConfiguration, userDataPath: string): Promise<void> { // {{{
+		Logger.info('serialize keybindings');
+
+		const keybindingsPerPlatform = config.get<boolean>('keybindingsPerPlatform') ?? true;
+
+		let editor: string | undefined;
+
+		const editorPath = this.getEditorKeybindingsPath(userDataPath);
+		if(await exists(editorPath)) {
+			editor = await fse.readFile(editorPath, 'utf-8');
+			editor = comment(editor);
+		}
+
+		const dataPath = this.getProfileKeybindingsPath(this.profile, keybindingsPerPlatform);
+
+		if(editor) {
+			await fse.writeFile(dataPath, editor, {
+				encoding: 'utf-8',
+				mode: 0o600,
 			});
+		}
+		else {
+			await fse.remove(dataPath);
 		}
 	} // }}}
 
-	protected async uploadSnippets(userDataPath: string, profileDataPath: string, profileFiles: Record<string, boolean>): Promise<void> { // {{{
-		Logger.info('upload snippets');
+	protected async serializeSnippets(profileSettings: ProfileSettings, userDataPath: string): Promise<void> { // {{{
+		Logger.info('serialize snippets');
 
-		const userFiles = await this.listSnippets(userDataPath);
+		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
+		const editor: string[] = await this.listEditorSnippets(userDataPath);
 
-		await this.uploadFiles(userDataPath, userFiles, profileDataPath, profileFiles);
+		if(profileSettings.extends) {
+			const profile = await this.listProfileSnippetHashes(profileSettings.extends);
+			const hasher = createHash('SHA1');
+			const remove = [];
+
+			if(editor.length > 0) {
+				for(const file of editor) {
+					const data = await fse.readFile(path.join(snippetsPath, file), 'utf-8');
+					const hash = hasher.update(data).digest('hex');
+
+					if(profile[file]) {
+						if(hash === profile[file]) {
+							const index = editor.indexOf(file);
+							if(index !== -1) {
+								editor.splice(index, 1);
+							}
+						}
+					}
+					else {
+						remove.push(file);
+					}
+				}
+			}
+			else {
+				remove.push(...Object.keys(profile));
+			}
+
+			if(remove.length > 0) {
+				const data = yaml.stringify({ remove });
+				const dataPath = this.getDiffSnippetsPath();
+
+				await fse.writeFile(dataPath, data, {
+					encoding: 'utf-8',
+					mode: 0o600,
+				});
+			}
+		}
+
+		const dataPath = this.getProfileSnippetsPath();
+
+		if(editor.length > 0) {
+			await fse.emptyDir(dataPath);
+
+			for(const file of editor) {
+				const src = path.join(snippetsPath, file);
+				const dst = path.join(dataPath, file);
+
+				await fse.copyFile(src, dst);
+			}
+		}
+		else {
+			await fse.remove(dataPath);
+		}
+	} // }}}
+
+	protected async serializeUserSettings(config: WorkspaceConfiguration, userDataPath: string): Promise<void> { // {{{
+		Logger.info('serialize settings');
+
+		let editor: string | undefined;
+
+		const editorPath = this.getEditorUserSettingsPath(userDataPath);
+		if(await exists(editorPath)) {
+			const ignoredSettings = this.getIgnoredSettings(config);
+
+			editor = await fse.readFile(editorPath, 'utf-8');
+			editor = comment(removeProperties(editor, ignoredSettings));
+		}
+
+		const dataPath = this.getProfileUserSettingsPath();
+
+		if(editor) {
+			await fse.writeFile(dataPath, editor, {
+				encoding: 'utf-8',
+				mode: 0o600,
+			});
+		}
+		else {
+			await fse.remove(dataPath);
+		}
 	} // }}}
 }

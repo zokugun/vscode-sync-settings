@@ -1,0 +1,5 @@
+hostname: ""
+profile: main
+repository:
+  type: file
+  path: /repository

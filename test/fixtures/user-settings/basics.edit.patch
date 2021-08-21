@@ -1,0 +1,9 @@
+Index: settings.json
+===================================================================
+--- settings.json	profile: main
++++ settings.json	profile: level1
+@@ -3,3 +3,3 @@
+ 	"ext2.prop1": true,
+-	"ext2.prop2": "foobar",
++	"ext2.prop2": "edited",
+ }

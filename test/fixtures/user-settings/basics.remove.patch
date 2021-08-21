@@ -1,0 +1,8 @@
+Index: settings.json
+===================================================================
+--- settings.json	profile: main
++++ settings.json	profile: level1
+@@ -1,3 +1,2 @@
+ {
+-	"ext1.prop1": 0,
+ 	"ext2.prop1": true,

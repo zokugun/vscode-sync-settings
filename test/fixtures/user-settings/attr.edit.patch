@@ -1,0 +1,9 @@
+Index: settings.json
+===================================================================
+--- settings.json	profile: main
++++ settings.json	profile: level1
+@@ -8,3 +8,3 @@
+     // #else
+-    // "key": "baz"
++    // "key": "corge"
+     // #endif

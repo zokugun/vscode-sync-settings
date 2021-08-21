@@ -1,25 +1,27 @@
 {
 	"ignores": [
-		"./*.config.js",
-		"./test/fixtures"
+		"*.config.js",
+		"test/fixtures",
+		"test/mocks/vscode/*"
+	],
+	"plugins": [
+		"chai-friendly"
+	],
+	"overrides": [
+		{
+			"files": "**/*.test.ts",
+			"rules": {
+				"@typescript-eslint/no-unused-expressions": "off",
+				"chai-friendly/no-unused-expressions": "error"
+			}
+		}
 	],
 	"rules": {
 		"arrow-parens": [
 			"error",
 			"always"
 		],
-		"capitalized-comments": [
-			"error",
-			"always",
-			{
-				"line": {
-					"ignorePattern": "."
-				},
-				"block": {
-					"ignorePattern": "\\w+\\.ts\\b"
-				}
-			}
-		],
+		"capitalized-comments": "off",
 		"complexity": "off",
 		"default-case": "off",
 		"max-depth": [
@@ -35,10 +37,7 @@
 		"no-negated-condition": "off",
 		"one-var": [
 			"error",
-			{
-				"initialized": "never",
-				"uninitialized": "consecutive"
-			}
+			"never"
 		],
 		"@typescript-eslint/brace-style": [
 			"error",
@@ -68,6 +67,7 @@
 			}
 		],
 		"@typescript-eslint/no-confusing-void-expression": "off",
+		"@typescript-eslint/no-dynamic-delete": "off",
 		"@typescript-eslint/no-namespace": "off",
 		"@typescript-eslint/object-curly-spacing": [
 			"error",

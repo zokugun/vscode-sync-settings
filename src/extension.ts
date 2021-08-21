@@ -8,6 +8,7 @@ import { upload } from './commands/upload';
 import { switchProfile } from './commands/switch-profile';
 import { createProfile } from './commands/create-profile';
 import { Settings } from './settings';
+import { openProfileSettings } from './commands/open-profile-settings';
 
 const VERSION_KEY = 'version';
 
@@ -39,7 +40,7 @@ async function showWhatsNewMessage(version: string) { // {{{
 	}
 } // }}}
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> { // {{{
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	const previousVersion = context.globalState.get<string>(VERSION_KEY);
 	const currentVersion = pkg.version;
 
@@ -75,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	disposables.push(
 		vscode.commands.registerCommand('syncSettings.createProfile', createProfile),
 		vscode.commands.registerCommand('syncSettings.download', download),
+		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
 		vscode.commands.registerCommand('syncSettings.openSettings', openSettings),
 		vscode.commands.registerCommand('syncSettings.reloadSettings', reloadSettings),
 		vscode.commands.registerCommand('syncSettings.reset', reset),
@@ -83,4 +85,4 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	);
 
 	context.subscriptions.push(...disposables);
-} // }}}
+}

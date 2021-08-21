@@ -122,6 +122,11 @@ export class Settings {
 
 	private set(data: SettingsData) { // {{{
 		Logger.info('repository:', JSON.stringify(data.repository));
+		Logger.info('profile:', data.profile);
+
+		if(data.hostname) {
+			Logger.info('hostname:', data.hostname);
+		}
 
 		this._hostname = data.hostname;
 		this._repository = data.repository;

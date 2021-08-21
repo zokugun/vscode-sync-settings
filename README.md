@@ -16,7 +16,7 @@ Howto
 
 1. configure the repository:
 
-   > &gt; Sync Settings: Open the settings
+   > &gt; Sync Settings: Open the repository settings
 
 2. upload your settings to the repository:
     > &gt; Sync Settings: Upload (user -> repository)
@@ -42,7 +42,7 @@ repository:
 
 You can open that file with the command:
 
-> &gt; Sync Settings: Open the settings
+> &gt; Sync Settings: Open the repository settings
 
 ### Repository types
 
@@ -105,15 +105,25 @@ Each profile has its own directory in the repository and can be configured indep
 You can create a new profile with the command `> Sync Settings: Create a new profile`.
 Or switch to an existing one with the command `> Sync Settings: Switch to profile`.
 
+### Extended Profile
+
+A profile can extend an existing profile but it's limited to the following resources:
+- extensions
+- snippets
+
+You can select the profile to extend from when creating a new profile (command `> Sync Settings: Create a new profile`).
+The command `> Sync Settings: Open the profile settings` will allow you to modify the property `extends`.
+
 Commands
 --------
 
-- `> Sync Settings: Open the settings`: open the settings for configuring the repository
+- `> Sync Settings: Open the repository settings`: open the settings for configuring the repository
 - `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
 - `> Sync Settings: Download (repository -> user)`: download/copy the resources from the repository to the user
 - `> Sync Settings: Reload the settings`: reload the repository' settings
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
+- `> Sync Settings: Open the profile settings`: open the settings for configuring the profile
 - `> Sync Settings: Remove all settings and extensions`: ⚠️⚠️ remove all your local resources ⚠️⚠️
 
 JSONC Attributes
@@ -190,6 +200,5 @@ Support this project by becoming a financial contributor.
 ## Todo
 
 - sync UI states
-- add relations between profiles (ex: one is extending the main one + few extensions)
 
 **Enjoy!**

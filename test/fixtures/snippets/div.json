@@ -1,0 +1,11 @@
+{
+	"Insert div": {
+		"prefix": "div",
+		"body": [
+			"<div>",
+			"$1",
+			"</div>",
+			"$0"
+		]
+	}
+}

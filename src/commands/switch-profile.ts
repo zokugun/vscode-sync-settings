@@ -28,7 +28,7 @@ export async function switchProfile(): Promise<void> {
 		await RepositoryFactory.setProfile(newProfile);
 
 		const result = await window.showInformationMessage(
-			'Do you want to download (repository -> user)?',
+			'Do you want to apply the profile?',
 			{
 				modal: true,
 			},
@@ -36,7 +36,7 @@ export async function switchProfile(): Promise<void> {
 		);
 
 		if(result) {
-			await repository.download();
+			await repository.restoreProfile();
 		}
 	}
 	catch (error: unknown) {

@@ -62,6 +62,14 @@ export namespace RepositoryFactory {
 		}
 	} // }}}
 
+	export async function reset(): Promise<void> { // {{{
+		if($instance) {
+			await $instance.terminate();
+
+			$instance = undefined;
+		}
+	} // }}}
+
 	export async function setProfile(profile: string): Promise<void> { // {{{
 		if($instance) {
 			await $instance.setProfile(profile);

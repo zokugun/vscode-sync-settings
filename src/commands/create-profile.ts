@@ -36,6 +36,9 @@ export async function createProfile(): Promise<void> {
 				label: 'Duplicate an existing profile',
 			},
 			{
+				label: 'Extends an existing profile',
+			},
+			{
 				label: 'Blank profile',
 			},
 		];
@@ -61,9 +64,20 @@ export async function createProfile(): Promise<void> {
 
 			await repository.duplicateProfileTo(selected, newProfile);
 		}
+		else if(selected === quickPickItems[2]) {
+			const selected = await window.showQuickPick(profiles, {
+				placeHolder: 'Profile to extends from',
+			});
+
+			if(!selected) {
+				return;
+			}
+
+			await repository.extendProfileTo(selected, newProfile);
+		}
 
 		const result = await window.showInformationMessage(
-			`Do you want to switch to new profile '${newProfile}'`,
+			`Do you want to switch and apply the new profile '${newProfile}'`,
 			{
 				modal: true,
 			},
@@ -72,6 +86,8 @@ export async function createProfile(): Promise<void> {
 
 		if(result) {
 			await RepositoryFactory.setProfile(newProfile);
+
+			await repository.restoreProfile();
 		}
 	}
 	catch (error: unknown) {

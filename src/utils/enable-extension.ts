@@ -1,7 +1,7 @@
 import vscode from 'vscode';
 import { Logger } from './logger';
 
-export async function enableExtension(id: string): Promise<boolean> { // {{{
+export async function enableExtension(id: string): Promise<boolean> {
 	Logger.info('enable:', id);
 
 	try {
@@ -14,4 +14,4 @@ export async function enableExtension(id: string): Promise<boolean> { // {{{
 
 		return false;
 	}
-} // }}}
+}
