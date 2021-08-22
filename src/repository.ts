@@ -96,12 +96,13 @@ export abstract class Repository {
 		const extDataPath = await getExtensionDataPath();
 		const obsoletePath = path.join(extDataPath, '.obsolete');
 		const obsolete = await exists(obsoletePath) ? JSON.parse(await fs.readFile(obsoletePath, 'utf-8')) as Record<string, boolean> : {};
-		const extensions = await globby('*', {
+		const extensions = await globby('*/package.json', {
 			cwd: extDataPath,
-			onlyDirectories: true,
 		});
 
-		for(const name of extensions) {
+		for(const pkg of extensions) {
+			const name = path.dirname(pkg);
+
 			if(obsolete[name]) {
 				continue;
 			}

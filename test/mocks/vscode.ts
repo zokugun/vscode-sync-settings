@@ -13,6 +13,7 @@ interface Extension {
 }
 
 const $executedCommands: string[] = [];
+const $extensions: string[] = [];
 const $outputLines: string[] = [];
 
 const $outputChannel = {
@@ -73,7 +74,20 @@ const $vscode = {
 			else if(command === 'workbench.extensions.installExtension') {
 				const id = args[0] as string;
 
-				if(!$vscode.extensions.all.some((ext) => ext.id === id)) {
+				if($vscode.extensions.all.some((ext) => ext.id === id)) {
+					return;
+				}
+
+				if($extensions.includes(id)) {
+					$vscode.extensions.all.push({
+						id,
+						packageJSON: {
+							isBuiltin: false,
+							isUnderDevelopment: false,
+						},
+					});
+				}
+				else {
 					$vscode.extensions.all.push({
 						id,
 						packageJSON: {
@@ -83,10 +97,23 @@ const $vscode = {
 					});
 
 					vol.mkdirpSync(`/.vscode/extensions/${id}-0.0.0`);
+					vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
+						name: id,
+						version: '0.0.0',
+					}), {
+						encoding: 'utf-8',
+					});
+
+					$extensions.push(id);
 				}
 			}
 			else if(command === 'workbench.extensions.uninstallExtension') {
 				const id = args[0] as string;
+
+				const index = $extensions.indexOf(id);
+				if(index === -1) {
+					throw new Error(`Extension '${id}' is not installed. Make sure you use the full extension ID, including the publisher, e.g.: ms-dotnettools.csharp.`);
+				}
 
 				for(const [index, ext] of $vscode.extensions.all.entries()) {
 					if(ext.id === id) {
@@ -98,8 +125,10 @@ const $vscode = {
 
 				const dir = `/.vscode/extensions/${id}-0.0.0`;
 				if(vol.existsSync(dir)) {
-					vol.rmdirSync(dir);
+					vol.rmdirSync(dir, { recursive: true });
 				}
+
+				$extensions.splice(index, 1);
 			}
 		}, // }}}
 	},
@@ -144,16 +173,7 @@ function addSnippet(name: string, data: string): void { // {{{
 
 function getExtensions(): { disabled: string[]; enabled: string[] } { // {{{
 	const enabled = $vscode.extensions.all.map(({ id }) => id);
-
-	const disabled = [];
-
-	for(const dir of vol.readdirSync('/.vscode/extensions/') as string[]) {
-		const name = dir.replace(/-0\.0\.0$/, '');
-
-		if(!enabled.includes(name)) {
-			disabled.push(name);
-		}
-	}
+	const disabled = $extensions.filter((id) => !enabled.includes(id));
 
 	disabled.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
 	enabled.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
@@ -177,11 +197,25 @@ function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: str
 		});
 
 		vol.mkdirSync(`/.vscode/extensions/${id}-0.0.0`);
+		vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
+			name: id,
+			version: '0.0.0',
+		}), {
+			encoding: 'utf-8',
+		});
 	}
 
 	for(const id of disabled) {
 		vol.mkdirSync(`/.vscode/extensions/${id}-0.0.0`);
+		vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
+			name: id,
+			version: '0.0.0',
+		}), {
+			encoding: 'utf-8',
+		});
 	}
+
+	$extensions.push(...enabled, ...disabled);
 } // }}}
 
 function setKeybindings(data: string | any[]): void { // {{{
@@ -226,6 +260,7 @@ function setSettings(data: any | string, { profile, hostname }: { profile: strin
 
 export function reset(): void { // {{{
 	$executedCommands.length = 0;
+	$extensions.length = 0;
 	$outputLines.length = 0;
 	$platform = 'linux';
 	$settings = {};

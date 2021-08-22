@@ -11,17 +11,21 @@ Sync Settings
 With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can synchronize your settings/resources across multiple devices.<br />
 You can also switch between profiles with their own settings/resources.
 
-Howto
+HowTo
 -----
 
 1. configure the repository:
 
    > &gt; Sync Settings: Open the repository settings
 
-2. upload your settings to the repository:
+2. reload the updated settings into the extension:
+
+   > &gt; Sync Settings: Reload the repository settings
+
+3. upload your settings to the repository:
     > &gt; Sync Settings: Upload (user -> repository)
 
-3. download your settings into a new editor:
+4. download your settings into a new editor:
     > &gt; Sync Settings: Download (repository -> user)
 
 Configuration
@@ -120,7 +124,7 @@ Commands
 - `> Sync Settings: Open the repository settings`: open the settings for configuring the repository
 - `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
 - `> Sync Settings: Download (repository -> user)`: download/copy the resources from the repository to the user
-- `> Sync Settings: Reload the settings`: reload the repository' settings
+- `> Sync Settings: Reload the repository settings`: reload the repository' settings
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
 - `> Sync Settings: Open the profile settings`: open the settings for configuring the profile

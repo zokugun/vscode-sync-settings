@@ -61,7 +61,11 @@ describe('download', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-			expect(vscode.vscode.extensions.all.map(({ id }) => id)).to.eql(['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2']);
+
+			expect(vscode.getExtensions()).to.eql({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
 		}); // }}}
 
 		it('remove', async () => { // {{{
@@ -81,7 +85,39 @@ describe('download', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-			expect(vscode.vscode.extensions.all).to.be.empty;
+
+			expect(vscode.getExtensions()).to.eql({
+				disabled: [],
+				enabled: [],
+			});
+		}); // }}}
+
+		it('leftovers', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+			});
+
+			vscode.setExtensions({
+				disabled: ['pub3.ext1'],
+				enabled: ['pub1.ext1'],
+			});
+
+			vol.mkdirSync('/.vscode/extensions/leftover-0.0.0');
+			vol.mkdirSync('/.vscode/extensions/leftover-0.1.0');
+			vol.mkdirSync('/.vscode/extensions/leftover-0.2.0');
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.download();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
+
+			expect(vscode.getExtensions()).to.eql({
+				disabled: [],
+				enabled: [],
+			});
 		}); // }}}
 	});
 

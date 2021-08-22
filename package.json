@@ -113,7 +113,7 @@
 			},
 			{
 				"command": "syncSettings.reloadSettings",
-				"title": "Reload the settings",
+				"title": "Reload the repository settings",
 				"category": "Sync Settings"
 			},
 			{
