@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.1 | 2021-08-22
+- fix error when profile file is empty
+
 ## v0.3.0 | 2021-08-22
 - add extended profile
 - add command to open the profile's folder in the system file explorer
