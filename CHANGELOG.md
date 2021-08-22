@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.4 | 2021-08-22
+- fix hash calculation when multiple snippets
+
 ## v0.3.3 | 2021-08-22
 - a sub-profile doesn't require a sync settings file
 
