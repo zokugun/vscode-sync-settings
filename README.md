@@ -178,7 +178,7 @@ If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented. If
 - `host`: the hostname found in `settings.yml`
 - `profile`: the profile used to sync
 - `os`: `linux`, `mac` or `windows`
-- `editor`: `vscode`, `vscodium`, `mrcode` or the lowercased `appName` in `product.json`
+- `editor`: `visual studio code`, `vscodium`, `mrcode` or the lowercased `nameLong` in `product.json`
 - `version`: the version of the editor
 - all env variables are directly available, like `EDITOR` => `#if(EDITOR="vi")`
 

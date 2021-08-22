@@ -137,11 +137,11 @@ describe('download', () => {
 			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basics);
 		}); // }}}
 
-		it('attr', async () => { // {{{
+		it('attr.os', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attr,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attrOsTmpl,
 			});
 
 			vscode.setPlatform('linux');
@@ -151,7 +151,22 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrLinux);
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
+		}); // }}}
+
+		it('attr.editor', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attrEditorTmpl,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.download();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrEditorRes);
 		}); // }}}
 	});
 

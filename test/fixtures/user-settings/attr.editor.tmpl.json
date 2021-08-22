@@ -1,0 +1,12 @@
+{
+    // {{{ Extension: RemoteSSH
+	// #if(editor="vscode")
+	// "remote.SSH.remotePlatform": {
+	// 	"arch": "linux"
+	// },
+	// "remote.SSH.defaultExtensions": [
+	// 	"pub1.ext1",
+	// ],
+	// #endif
+	// }}}
+}

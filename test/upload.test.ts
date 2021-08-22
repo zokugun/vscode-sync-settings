@@ -74,9 +74,9 @@ describe('upload', () => {
 
 		it('attr', async () => { // {{{
 			vscode.setPlatform('linux');
-			vscode.setSettings(userSettingsFxt.json.attr);
+			vscode.setSettings(userSettingsFxt.json.attrOsTmpl);
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrLinux);
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
 
 			const repository = await RepositoryFactory.get();
 
@@ -84,7 +84,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attr);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsTmpl);
 		}); // }}}
 	});
 
