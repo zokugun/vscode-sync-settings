@@ -7,6 +7,7 @@ import globby from 'globby';
 import fse from 'fs-extra';
 import untildify from 'untildify';
 import { comment } from '@daiyam/jsonc-preprocessor';
+import { deepEqual } from 'fast-equals';
 import { ExtensionList, Repository, Resource } from '../repository';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
@@ -394,7 +395,7 @@ export class FileRepository extends Repository {
 
 		for(const file of newFiles) {
 			const data = await fse.readFile(path.join(dataPath, file), 'utf-8');
-			const hash = hasher.update(data).digest('hex');
+			const hash = hasher.copy().update(data).digest('hex');
 
 			snippets[file] = hash;
 		}
@@ -665,7 +666,7 @@ export class FileRepository extends Repository {
 				settings[property] = data.globalValue;
 
 				// @ts-expect-error
-				if(!ancestors || ancestors[property]! !== data.globalValue) {
+				if(!ancestors || !deepEqual(ancestors[property], data.globalValue)) {
 					++length;
 				}
 			}
@@ -696,7 +697,14 @@ export class FileRepository extends Repository {
 
 			const disabled = arrayDiff(editor.disabled, profile.disabled);
 			const enabled = arrayDiff(editor.enabled, profile.enabled);
-			const uninstall = arrayDiff([...profile.disabled, ...profile.enabled], [...editor.disabled, ...editor.enabled]);
+
+			let uninstall;
+			if(await this.canManageExtensions()) {
+				uninstall = arrayDiff([...profile.disabled, ...profile.enabled], [...editor.disabled, ...editor.enabled]);
+			}
+			else {
+				uninstall = arrayDiff([...profile.enabled], [...editor.disabled, ...editor.enabled]);
+			}
 
 			list = {
 				disabled,
@@ -757,7 +765,7 @@ export class FileRepository extends Repository {
 			const remove = [];
 
 			if(editor.length > 0) {
-				for(const file of editor) {
+				for(const file of [...editor]) {
 					const data = await fse.readFile(path.join(snippetsPath, file), 'utf-8');
 					const hash = hasher.copy().update(data).digest('hex');
 

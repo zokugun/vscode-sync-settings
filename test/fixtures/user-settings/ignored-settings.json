@@ -1,0 +1,5 @@
+{
+	"syncSettings.ignoredSettings": [
+		"json.schemas"
+	],
+}

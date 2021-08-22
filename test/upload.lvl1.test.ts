@@ -82,167 +82,222 @@ describe('upload.lvl1', () => {
 
 			expect(vol.readFileSync('/repository/profiles/level1/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.keybindings);
 		}); // }}}
+
+		it('ignoredSettings', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.ignoredSettings,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.ignoredSettings);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/.sync.yml')).to.be.false;
+		}); // }}}
 	});
 
 	describe('extensions', () => {
-		beforeEach(async () => { // {{{
+		beforeEach(() => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
 			});
 		}); // }}}
 
-		it('add.enabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+		describe('managed', () => {
+			it('add.enabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
+
+				vscode.setExtensions({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
+					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2', 'pub3.ext2'],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: [],
+					enabled: ['pub3.ext2'],
+				}));
+			}); // }}}
+
+			it('add.disabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
+
+				vscode.setExtensions({
+					disabled: ['pub1.ext3', 'pub3.ext1', 'pub3.ext2'],
 					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
-			});
+				});
 
-			vscode.setExtensions({
-				disabled: ['pub1.ext3', 'pub3.ext1'],
-				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2', 'pub3.ext2'],
-			});
+				const repository = await RepositoryFactory.get();
 
-			const repository = await RepositoryFactory.get();
+				await repository.upload();
 
-			await repository.upload();
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: ['pub3.ext2'],
+					enabled: [],
+				}));
+			}); // }}}
 
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: [],
-				enabled: ['pub3.ext2'],
-			}));
-		}); // }}}
+			it('become.enabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
 
-		it('add.disabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+				vscode.setExtensions({
+					disabled: ['pub1.ext3'],
+					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2', 'pub3.ext1'],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: [],
+					enabled: ['pub3.ext1'],
+				}));
+			}); // }}}
+
+			it('become.disabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
+
+				vscode.setExtensions({
+					disabled: ['pub1.ext3', 'pub3.ext1', 'pub1.ext2'],
+					enabled: ['pub1.ext1', 'pub2.ext1', 'pub2.ext2'],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: ['pub1.ext2'],
+					enabled: [],
+				}));
+			}); // }}}
+
+			it('remove.enabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
+
+				vscode.setExtensions({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
+					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1'],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: [],
+					enabled: [],
+					uninstall: ['pub2.ext2'],
+				}));
+			}); // }}}
+
+			it('remove.disabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
+
+				vscode.setExtensions({
+					disabled: ['pub1.ext3'],
 					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: [],
+					enabled: [],
+					uninstall: ['pub3.ext1'],
+				}));
+			}); // }}}
+		});
+
+		describe('unmanaged', () => {
+			before(() => { // {{{
+				vscode.setManagedExtensions(false);
 			});
 
-			vscode.setExtensions({
-				disabled: ['pub1.ext3', 'pub3.ext1', 'pub3.ext2'],
-				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			after(() => { // {{{
+				vscode.setManagedExtensions(true);
 			});
 
-			const repository = await RepositoryFactory.get();
+			it('ignore.disabled', async () => { // {{{
+				vol.fromJSON({
+					'/repository/profiles/main/extensions.yml': yaml.stringify({
+						disabled: ['pub1.ext3', 'pub3.ext1'],
+						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+					}),
+				});
 
-			await repository.upload();
+				vscode.setExtensions({
+					disabled: [],
+					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2', 'pub3.ext2'],
+				});
 
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+				const repository = await RepositoryFactory.get();
 
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: ['pub3.ext2'],
-				enabled: [],
-			}));
-		}); // }}}
+				await repository.upload();
 
-		it('become.enabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
-					disabled: ['pub1.ext3', 'pub3.ext1'],
-					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
-			});
+				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			vscode.setExtensions({
-				disabled: ['pub1.ext3'],
-				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2', 'pub3.ext1'],
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: [],
-				enabled: ['pub3.ext1'],
-			}));
-		}); // }}}
-
-		it('become.disabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
-					disabled: ['pub1.ext3', 'pub3.ext1'],
-					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
-			});
-
-			vscode.setExtensions({
-				disabled: ['pub1.ext3', 'pub3.ext1', 'pub1.ext2'],
-				enabled: ['pub1.ext1', 'pub2.ext1', 'pub2.ext2'],
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: ['pub1.ext2'],
-				enabled: [],
-			}));
-		}); // }}}
-
-		it('remove.enabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
-					disabled: ['pub1.ext3', 'pub3.ext1'],
-					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
-			});
-
-			vscode.setExtensions({
-				disabled: ['pub1.ext3', 'pub3.ext1'],
-				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1'],
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: [],
-				enabled: [],
-				uninstall: ['pub2.ext2'],
-			}));
-		}); // }}}
-
-		it('remove.disabled', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
-					disabled: ['pub1.ext3', 'pub3.ext1'],
-					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-				}),
-			});
-
-			vscode.setExtensions({
-				disabled: ['pub1.ext3'],
-				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
-				disabled: [],
-				enabled: [],
-				uninstall: ['pub3.ext1'],
-			}));
-		}); // }}}
+				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+					disabled: [],
+					enabled: ['pub3.ext2'],
+				}));
+			}); // }}}
+		});
 	});
 
 	describe('keybindings', () => {
@@ -361,7 +416,7 @@ describe('upload.lvl1', () => {
 			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('remove:\n  - loop.json\n');
 		}); // }}}
 
-		it('same', async () => { // {{{
+		it('same.one', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
@@ -369,6 +424,7 @@ describe('upload.lvl1', () => {
 			});
 
 			vscode.addSnippet('loop', snippetsFxt.json.loop);
+			vscode.addSnippet('typescriptreact', snippetsFxt.json.typescriptreact);
 
 			const repository = await RepositoryFactory.get();
 
@@ -377,6 +433,30 @@ describe('upload.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
 			expect(vol.existsSync('/repository/profiles/level1/data/snippets/loop.json')).to.be.false;
+		}); // }}}
+
+		it('same.some', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/snippets/hello.json': snippetsFxt.json.hello,
+				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
+				'/repository/profiles/main/data/snippets/typescriptreact.json': snippetsFxt.json.typescriptreact,
+			});
+
+			vscode.addSnippet('hello', snippetsFxt.json.hello);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+			vscode.addSnippet('typescriptreact', snippetsFxt.json.typescriptreact);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/data/snippets/hello.json')).to.be.false;
+			expect(vol.existsSync('/repository/profiles/level1/data/snippets/loop.json')).to.be.false;
+			expect(vol.existsSync('/repository/profiles/level1/data/snippets/typescriptreact.json')).to.be.false;
 		}); // }}}
 	});
 

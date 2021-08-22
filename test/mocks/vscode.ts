@@ -14,6 +14,7 @@ interface Extension {
 
 const $executedCommands: string[] = [];
 const $extensions: string[] = [];
+let $manageExtensions = true;
 const $outputLines: string[] = [];
 
 const $outputChannel = {
@@ -37,13 +38,24 @@ let $settings: Record<string, any> = {};
 
 const $vscode = {
 	commands: {
-		getCommands: () => [
-			'workbench.action.reloadWindow',
-			'workbench.extensions.disableExtension',
-			'workbench.extensions.enableExtension',
-			'workbench.extensions.installExtension',
-			'workbench.extensions.uninstallExtension',
-		],
+		getCommands: () => {
+			if($manageExtensions) {
+				return [
+					'workbench.action.reloadWindow',
+					'workbench.extensions.disableExtension',
+					'workbench.extensions.enableExtension',
+					'workbench.extensions.installExtension',
+					'workbench.extensions.uninstallExtension',
+				];
+			}
+			else {
+				return [
+					'workbench.action.reloadWindow',
+					'workbench.extensions.installExtension',
+					'workbench.extensions.uninstallExtension',
+				];
+			}
+		},
 		executeCommand: (command: string, ...args: any[]) => { // {{{
 			$executedCommands.push(command);
 
@@ -232,6 +244,10 @@ function setKeybindings(data: string | any[]): void { // {{{
 	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf-8' });
 } // }}}
 
+function setManagedExtensions(manage: boolean): void { // {{{
+	$manageExtensions = manage;
+} // }}}
+
 function setPlatform(platform: string): void { // {{{
 	$platform = platform;
 } // }}}
@@ -282,6 +298,7 @@ export {
 	getExtensions,
 	setExtensions,
 	setKeybindings,
+	setManagedExtensions,
 	setPlatform,
 	setSettings,
 };

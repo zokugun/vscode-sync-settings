@@ -1,0 +1,9 @@
+{
+	"import": {
+		"prefix": "import statement",
+		"body": [
+			"import { $0 } from '${1:module}'"
+		],
+		"description": "import"
+	},
+}
