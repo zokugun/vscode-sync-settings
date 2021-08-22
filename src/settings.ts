@@ -90,7 +90,7 @@ export class Settings {
 		const data = await exists(this.settingsUri.fsPath) ? await fs.readFile(this.settingsUri.fsPath, 'utf-8') : null;
 
 		if(data) {
-			this.set(yaml.parse(data));
+			this.set(yaml.parse(data) ?? {});
 		}
 		else {
 			this.set(defaults());

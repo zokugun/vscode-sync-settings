@@ -360,8 +360,9 @@ export class FileRepository extends Repository {
 
 		if(await exists(path)) {
 			const data = await fse.readFile(path, 'utf-8');
+			const settings = yaml.parse(data) as ProfileSettings;
 
-			return yaml.parse(data) as ProfileSettings;
+			return settings ?? {};
 		}
 		else {
 			return {};

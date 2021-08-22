@@ -5,3 +5,4 @@ git:
   requireCleanWorkingDir: false
 npm:
   publish: false
+disable-metrics: true

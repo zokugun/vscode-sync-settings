@@ -9,6 +9,7 @@ import * as vscode from './mocks/vscode';
 describe('upload', () => {
 	const dotsyncFxt = fixtures('dotsync');
 	const keybindingsFxt = fixtures('keybindings');
+	const profilesFxt = fixtures('profiles');
 	const settingsFxt = fixtures('settings');
 	const snippetsFxt = fixtures('snippets');
 	const userSettingsFxt = fixtures('user-settings');
@@ -154,4 +155,24 @@ describe('upload', () => {
 
 		expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 	}); // }}}
+
+	describe('profile', () => {
+		it('empty', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/profile.yml': profilesFxt.yml.empty,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				disabled: [],
+				enabled: [],
+			}));
+			expect(vol.readFileSync('/repository/profiles/main/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.empty);
+		}); // }}}
+	});
 });
