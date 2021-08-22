@@ -759,7 +759,7 @@ export class FileRepository extends Repository {
 			if(editor.length > 0) {
 				for(const file of editor) {
 					const data = await fse.readFile(path.join(snippetsPath, file), 'utf-8');
-					const hash = hasher.update(data).digest('hex');
+					const hash = hasher.copy().update(data).digest('hex');
 
 					if(profile[file]) {
 						if(hash === profile[file]) {

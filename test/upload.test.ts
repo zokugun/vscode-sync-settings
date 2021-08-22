@@ -56,35 +56,6 @@ describe('upload', () => {
 		}));
 	}); // }}}
 
-	describe('settings', () => {
-		it('base', async () => { // {{{
-			vscode.setSettings(userSettingsFxt.json.basics);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basics);
-		}); // }}}
-
-		it('attr', async () => { // {{{
-			vscode.setPlatform('linux');
-			vscode.setSettings(userSettingsFxt.json.attrOsTmpl);
-
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsTmpl);
-		}); // }}}
-	});
-
 	describe('keybindings', () => {
 		it('all', async () => { // {{{
 			vscode.setSettings({
@@ -141,18 +112,6 @@ describe('upload', () => {
 		}); // }}}
 	});
 
-	it('snippets', async () => { // {{{
-		vscode.addSnippet('loop', snippetsFxt.json.loop);
-
-		const repository = await RepositoryFactory.get();
-
-		await repository.upload();
-
-		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-		expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-	}); // }}}
-
 	describe('profile', () => {
 		it('empty', async () => { // {{{
 			vol.fromJSON({
@@ -169,6 +128,65 @@ describe('upload', () => {
 				disabled: [],
 				enabled: [],
 			}));
+		}); // }}}
+	});
+
+	describe('settings', () => {
+		it('base', async () => { // {{{
+			vscode.setSettings(userSettingsFxt.json.basics);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basics);
+		}); // }}}
+
+		it('attr', async () => { // {{{
+			vscode.setPlatform('linux');
+			vscode.setSettings(userSettingsFxt.json.attrOsTmpl);
+
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsTmpl);
+		}); // }}}
+	});
+
+	describe('snippets', () => {
+		it('one', async () => { // {{{
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('some', async () => { // {{{
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+			vscode.addSnippet('loop2', snippetsFxt.json.loop);
+			vscode.addSnippet('loop3', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop2.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop3.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 	});
 });

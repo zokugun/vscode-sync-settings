@@ -288,7 +288,7 @@ describe('upload.lvl1', () => {
 	});
 
 	describe('snippets', () => {
-		it('add', async () => { // {{{
+		it('add.one', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
@@ -303,6 +303,27 @@ describe('upload.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
 			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('add.some', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+			});
+
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+			vscode.addSnippet('loop2', snippetsFxt.json.loop);
+			vscode.addSnippet('loop3', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop2.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop3.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('edit', async () => { // {{{
