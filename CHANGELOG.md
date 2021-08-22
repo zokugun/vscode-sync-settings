@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.2 | 2021-08-22
+- don't list badly uninstalled extension as full-fledged one
+
 ## v0.3.1 | 2021-08-22
 - fix error when profile file is empty
 
