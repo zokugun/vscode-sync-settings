@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.3 | 2021-08-22
+- a sub-profile doesn't require a sync settings file
+
 ## v0.3.2 | 2021-08-22
 - don't list badly uninstalled extension as full-fledged one
 
