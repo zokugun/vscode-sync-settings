@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.5 | 2021-08-22
+- fix several bugs in sub-profile:
+    - fix sync settings matching for non-primary value
+    - editor which can't manage extensions, can't uninstall disabled extensions
+    - fix matching snippets
+
 ## v0.3.4 | 2021-08-22
 - fix hash calculation when multiple snippets
 
