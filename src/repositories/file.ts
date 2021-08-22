@@ -355,20 +355,6 @@ export class FileRepository extends Repository {
 		return this.applyExtensionsDiff(ancestors, extensions);
 	} // }}}
 
-	protected async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
-		const path = this.getProfileSettingsPath(profile);
-
-		if(await exists(path)) {
-			const data = await fse.readFile(path, 'utf-8');
-			const settings = yaml.parse(data) as ProfileSettings;
-
-			return settings ?? {};
-		}
-		else {
-			return {};
-		}
-	} // }}}
-
 	protected async listProfileSnippetHashes(profile: string = this.profile): Promise<Record<string, string>> { // {{{
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileSnippetsPath(profile);
@@ -458,6 +444,20 @@ export class FileRepository extends Repository {
 		return snippets;
 	} // }}}
 
+	protected async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
+		const path = this.getProfileSettingsPath(profile);
+
+		if(await exists(path)) {
+			const data = await fse.readFile(path, 'utf-8');
+			const settings = yaml.parse(data) as ProfileSettings;
+
+			return settings ?? {};
+		}
+		else {
+			return {};
+		}
+	} // }}}
+
 	protected async loadProfileSyncSettings(profile: string = this.profile): Promise<ProfileSyncSettings> { // {{{
 		let path = this.getProfileSyncSettingsPath(profile);
 
@@ -465,7 +465,14 @@ export class FileRepository extends Repository {
 			path = this.getProfileSyncSettingsOldPath(profile);
 
 			if(!await exists(path)) {
-				throw new Error('sync settings file of profile can not be found');
+				const settings = await this.loadProfileSettings(profile);
+
+				if(settings.extends) {
+					return this.loadProfileSyncSettings(settings.extends);
+				}
+				else {
+					throw new Error('sync settings file of profile can not be found');
+				}
 			}
 		}
 
@@ -643,19 +650,37 @@ export class FileRepository extends Repository {
 	protected async saveProfileSyncSettings(config: WorkspaceConfiguration): Promise<void> { // {{{
 		const settings: Record<string, any> = {};
 
+		let ancestors: ProfileSyncSettings | undefined;
+		let length = 0;
+
+		const profile = await this.loadProfileSettings();
+		if(profile.extends) {
+			ancestors = await this.loadProfileSyncSettings(profile.extends);
+		}
+
 		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources']) {
 			const data = config.inspect(property);
 
 			if(data && typeof data.globalValue !== 'undefined') {
 				settings[property] = data.globalValue;
+
+				// @ts-expect-error
+				if(!ancestors || ancestors[property]! !== data.globalValue) {
+					++length;
+				}
 			}
 		}
 
-		const data = yaml.stringify(settings);
-
 		await fse.remove(this.getProfileSyncSettingsOldPath());
 
-		await fse.writeFile(this.getProfileSyncSettingsPath(), data, 'utf-8');
+		if(length > 0) {
+			const data = yaml.stringify(settings);
+
+			await fse.writeFile(this.getProfileSyncSettingsPath(), data, 'utf-8');
+		}
+		else {
+			await fse.remove(this.getProfileSyncSettingsPath());
+		}
 	} // }}}
 
 	protected async serializeExtensions(profileSettings: ProfileSettings, config: WorkspaceConfiguration): Promise<void> { // {{{

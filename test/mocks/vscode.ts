@@ -160,7 +160,11 @@ const $vscode = {
 	workspace: {
 		getConfiguration: (group: string) => ({
 			get: (name: string): any => $settings[`${group}.${name}`],
-			inspect: (name: string): any => $settings[`${group}.${name}`],
+			inspect: (name: string): any => ({
+				key: name,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				globalValue: $settings[`${group}.${name}`],
+			}),
 		}),
 	},
 };

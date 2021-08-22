@@ -109,7 +109,7 @@ Each profile has its own directory in the repository and can be configured indep
 You can create a new profile with the command `> Sync Settings: Create a new profile`.
 Or switch to an existing one with the command `> Sync Settings: Switch to profile`.
 
-### Extended Profile
+### Profile Inheritance
 
 A profile can extend an existing profile but it's limited to the following resources:
 - extensions

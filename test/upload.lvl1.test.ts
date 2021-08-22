@@ -28,6 +28,62 @@ describe('upload.lvl1', () => {
 		await Settings.load(context);
 	}); // }}}
 
+	describe('dotsync', () => {
+		it('empty', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.empty);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/.sync.yml')).to.be.false;
+		}); // }}}
+
+		it('notrequired', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.keybindings);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/.sync.yml')).to.be.false;
+		}); // }}}
+
+		it('required', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.keybindings);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/level1/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.keybindings);
+		}); // }}}
+	});
+
 	describe('extensions', () => {
 		beforeEach(async () => { // {{{
 			vol.fromJSON({
@@ -186,6 +242,120 @@ describe('upload.lvl1', () => {
 				enabled: [],
 				uninstall: ['pub3.ext1'],
 			}));
+		}); // }}}
+	});
+
+	describe('keybindings', () => {
+		it('nopatch', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
+				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.keybindings);
+			vscode.setKeybindings(keybindingsFxt.json.gotolineReload);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/keybindings.diff.yml')).to.be.false;
+		}); // }}}
+	});
+
+	describe('settings', () => {
+		it('nopatch', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
+			});
+
+			vscode.setSettings(userSettingsFxt.json.basicsAdd);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/data/settings.json.patch')).to.be.false;
+		}); // }}}
+	});
+
+	describe('snippets', () => {
+		it('add', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+			});
+
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('edit', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.div,
+			});
+
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.div);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('remove', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('remove:\n  - loop.json\n');
+		}); // }}}
+
+		it('same', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
+			});
+
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/level1/data/snippets/loop.json')).to.be.false;
 		}); // }}}
 	});
 
@@ -402,118 +572,4 @@ describe('upload.lvl1', () => {
 			}));
 		}); // }}}
 	}); */
-
-	describe('settings', () => {
-		it('nopatch', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.basicsAdd);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/data/settings.json.patch')).to.be.false;
-		}); // }}}
-	});
-
-	describe('keybindings', () => {
-		it('nopatch', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotolineReload);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/keybindings.diff.yml')).to.be.false;
-		}); // }}}
-	});
-
-	describe('snippets', () => {
-		it('add', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-			});
-
-			vscode.addSnippet('loop', snippetsFxt.json.loop);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-		}); // }}}
-
-		it('edit', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.div,
-			});
-
-			vscode.addSnippet('loop', snippetsFxt.json.loop);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.div);
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-		}); // }}}
-
-		it('remove', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('remove:\n  - loop.json\n');
-		}); // }}}
-
-		it('same', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
-			});
-
-			vscode.addSnippet('loop', snippetsFxt.json.loop);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/data/snippets/loop.json')).to.be.false;
-		}); // }}}
-	});
 });

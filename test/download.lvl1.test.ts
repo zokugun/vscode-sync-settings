@@ -28,6 +28,24 @@ describe('download.lvl1', () => {
 		await Settings.load(context);
 	}); // }}}
 
+	describe('dotsync', () => {
+		it('none', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.download();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.be.eql(userSettingsFxt.json.basics);
+		}); // }}}
+	});
+
 	describe('extensions', () => {
 		beforeEach(async () => { // {{{
 			vol.fromJSON({
@@ -119,6 +137,44 @@ describe('download.lvl1', () => {
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 			});
+		}); // }}}
+	});
+
+	describe('keybindings', () => {
+		it('nopatch', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.download();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+
+			expect(vol.readFileSync('/user/keybindings.json', 'utf-8')).to.be.eql(keybindingsFxt.json.gotoline);
+		}); // }}}
+	});
+
+	describe('settings', () => {
+		it('nopatch', async () => { // {{{
+			vol.fromJSON({
+				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
+				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.download();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+
+			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.be.eql(userSettingsFxt.json.basics);
 		}); // }}}
 	});
 
@@ -218,42 +274,4 @@ describe('download.lvl1', () => {
 			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAdd);
 		}); // }}}
 	}); */
-
-	describe('settings', () => {
-		it('nopatch', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.be.eql(userSettingsFxt.json.basics);
-		}); // }}}
-	});
-
-	describe('keybindings', () => {
-		it('nopatch', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-
-			expect(vol.readFileSync('/user/keybindings.json', 'utf-8')).to.be.eql(keybindingsFxt.json.gotoline);
-		}); // }}}
-	});
 });

@@ -7,7 +7,6 @@ import { fixtures } from './utils/fixtures';
 import * as vscode from './mocks/vscode';
 
 describe('upload', () => {
-	const dotsyncFxt = fixtures('dotsync');
 	const keybindingsFxt = fixtures('keybindings');
 	const profilesFxt = fixtures('profiles');
 	const settingsFxt = fixtures('settings');
@@ -37,7 +36,6 @@ describe('upload', () => {
 			disabled: [],
 			enabled: [],
 		}));
-		expect(vol.readFileSync('/repository/profiles/main/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.empty);
 	}); // }}}
 
 	it('extensions', async () => { // {{{
@@ -56,7 +54,6 @@ describe('upload', () => {
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 		}));
-		expect(vol.readFileSync('/repository/profiles/main/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.empty);
 	}); // }}}
 
 	describe('settings', () => {
@@ -172,7 +169,6 @@ describe('upload', () => {
 				disabled: [],
 				enabled: [],
 			}));
-			expect(vol.readFileSync('/repository/profiles/main/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.empty);
 		}); // }}}
 	});
 });

@@ -100,8 +100,8 @@ export class Settings {
 	public async save(): Promise<void> { // {{{
 		const settings: SettingsData = {
 			hostname: this._hostname,
-			repository: this._repository,
 			profile: this._profile,
+			repository: this._repository,
 		};
 
 		const data = yaml.stringify(settings);
