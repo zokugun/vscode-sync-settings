@@ -73,7 +73,6 @@ describe('download.lvl1', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
 			expect(vscode.getExtensions()).to.eql({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
@@ -103,7 +102,7 @@ describe('download.lvl1', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
+
 			expect(vscode.getExtensions()).to.eql({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
@@ -132,7 +131,7 @@ describe('download.lvl1', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
+
 			expect(vscode.getExtensions()).to.eql({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],

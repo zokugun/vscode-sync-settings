@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
-import yaml from 'yaml';
 import { RepositoryFactory, Settings } from './rewires/repository';
 import { context } from './mocks/context';
 import { fixtures } from './utils/fixtures';
@@ -32,7 +31,7 @@ describe('upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-		expect(vol.readFileSync('/repository/profiles/main/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 			disabled: [],
 			enabled: [],
 		}));
@@ -50,7 +49,7 @@ describe('upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-		expect(vol.readFileSync('/repository/profiles/main/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 		}));
@@ -124,7 +123,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 				disabled: [],
 				enabled: [],
 			}));

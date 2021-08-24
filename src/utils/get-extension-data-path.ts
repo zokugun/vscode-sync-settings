@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import process from 'process';
 import vscode from 'vscode';
 
-export async function getExtensionDataPath(): Promise<string> { // {{{
+export async function getExtensionDataPath(): Promise<string> {
 	if(process.env.VSCODE_PORTABLE) {
 		return path.join(process.env.VSCODE_PORTABLE, 'extensions');
 	}
@@ -13,4 +13,4 @@ export async function getExtensionDataPath(): Promise<string> { // {{{
 
 		return path.join(os.homedir(), product.dataFolderName, 'extensions');
 	}
-} // }}}
+}

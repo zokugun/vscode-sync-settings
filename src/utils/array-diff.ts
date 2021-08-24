@@ -1,4 +1,4 @@
-export function arrayDiff(original: any[], modified: any[], hasher?: (data: any) => string): any[] {
+export function arrayDiff<T>(original: T[], modified: T[], hasher?: (data: T) => string): T[] {
 	if(hasher) {
 		const rest = new Set<string>(modified.map((value: any) => hasher(value)));
 		return original.filter((element) => !rest.has(hasher(element)));

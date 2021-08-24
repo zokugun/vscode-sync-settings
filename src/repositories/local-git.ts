@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import createSimpleGit, { SimpleGit } from 'simple-git';
 import fse from 'fs-extra';
+import semver from 'semver';
 import { RepositoryType } from '../repository-type';
 import { Logger } from '../utils/logger';
 import { exists } from '../utils/exists';
@@ -16,6 +17,7 @@ export enum CommitType {
 export class LocalGitRepository extends FileRepository {
 	protected _branch: string;
 	protected _git: SimpleGit;
+	protected _version: string | undefined;
 
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings, rootPath);
@@ -68,17 +70,40 @@ export class LocalGitRepository extends FileRepository {
 		await this.push(CommitType.UPLOAD);
 	} // }}}
 
+	protected async getVersion(): Promise<string> { // {{{
+		if(this._version) {
+			return this._version;
+		}
+
+		const raw = await this._git.raw('--version');
+		const match = /(\d+\.\d+\.\d+)/.exec(raw);
+		this._version = match ? match[1] : '2.0.0';
+
+		return this._version;
+	} // }}}
+
+	protected async initRepo(): Promise<void> { // {{{
+		Logger.info('creating git at', this._rootPath);
+
+		if(semver.gte(await this.getVersion(), '2.28.0')) {
+			await this._git.init({
+				'--initial-branch': this._branch,
+			});
+		}
+		else {
+			await this._git.init();
+
+			await this._git.checkoutLocalBranch(this._branch);
+		}
+	} // }}}
+
 	protected async pull(): Promise<boolean> { // {{{
 		await fse.ensureDir(this._rootPath);
 
 		await this._git.cwd(this._rootPath);
 
 		if(!await this._git.checkIsRepo()) {
-			Logger.info('creating git at', this._rootPath);
-
-			await this._git.init({
-				'--initial-branch': this._branch,
-			});
+			await this.initRepo();
 		}
 
 		return true;

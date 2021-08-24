@@ -48,10 +48,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 
 		await this._git.cwd(this._rootPath);
 
-		Logger.info('creating git at', this._rootPath);
-		await this._git.init({
-			'--initial-branch': this._branch,
-		});
+		await this.initRepo();
 
 		Logger.info('adding new remote:', this._remoteUrl);
 		await this._git.addRemote('origin', this._remoteUrl);

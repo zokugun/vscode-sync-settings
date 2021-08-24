@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
-import yaml from 'yaml';
+// import yaml from 'yaml';
 import { RepositoryFactory, Settings } from './rewires/repository';
 import { context } from './mocks/context';
 import { fixtures } from './utils/fixtures';
@@ -113,7 +113,7 @@ describe('upload.lvl1', () => {
 		describe('managed', () => {
 			it('add.enabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -130,7 +130,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext2'],
 				}));
@@ -138,7 +138,7 @@ describe('upload.lvl1', () => {
 
 			it('add.disabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -155,7 +155,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: ['pub3.ext2'],
 					enabled: [],
 				}));
@@ -163,7 +163,7 @@ describe('upload.lvl1', () => {
 
 			it('become.enabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -180,7 +180,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext1'],
 				}));
@@ -188,7 +188,7 @@ describe('upload.lvl1', () => {
 
 			it('become.disabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -205,7 +205,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: ['pub1.ext2'],
 					enabled: [],
 				}));
@@ -213,7 +213,7 @@ describe('upload.lvl1', () => {
 
 			it('remove.enabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -230,7 +230,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [],
 					uninstall: ['pub2.ext2'],
@@ -239,7 +239,7 @@ describe('upload.lvl1', () => {
 
 			it('remove.disabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -256,7 +256,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [],
 					uninstall: ['pub3.ext1'],
@@ -273,9 +273,9 @@ describe('upload.lvl1', () => {
 				vscode.setManagedExtensions(true);
 			});
 
-			it('ignore.disabled', async () => { // {{{
+			it('disabled', async () => { // {{{
 				vol.fromJSON({
-					'/repository/profiles/main/extensions.yml': yaml.stringify({
+					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
 						disabled: ['pub1.ext3', 'pub3.ext1'],
 						enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 					}),
@@ -292,9 +292,10 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/extensions.yml', 'utf-8')).to.eql(yaml.stringify({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext2'],
+					uninstall: ['pub1.ext3', 'pub3.ext1'],
 				}));
 			}); // }}}
 		});
@@ -413,7 +414,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('remove:\n  - loop.json\n');
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('removed:\n  - loop.json\n');
 		}); // }}}
 
 		it('same.one', async () => { // {{{

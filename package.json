@@ -22,7 +22,7 @@
 	},
 	"main": "./dist/index.js",
 	"scripts": {
-		"bundle": "ncc build out/extension",
+		"bundle": "ncc build out/extension --external sql.js",
 		"commit": "cz",
 		"compile": "tsc -p src",
 		"lint": "xo",
@@ -44,7 +44,9 @@
 		"globby": "^11.0.4",
 		"jsonc-parser": "^3.0.0",
 		"rsync": "^0.6.1",
+		"semver": "^7.3.5",
 		"simple-git": "^2.41.2",
+		"sql.js": "^1.6.1",
 		"untildify": "^4.0.0",
 		"yaml": "^1.10.2"
 	},
@@ -57,6 +59,8 @@
 		"@types/mocha": "^8.2.2",
 		"@types/node": "^14.17.6",
 		"@types/rsync": "^0.4.30",
+		"@types/semver": "^7.3.8",
+		"@types/sql.js": "^1.4.2",
 		"@types/universalify": "^1.0.0",
 		"@types/vscode": "^1.23.0",
 		"@vercel/ncc": "^0.29.0",
@@ -226,13 +230,15 @@
 								"extensions",
 								"keybindings",
 								"settings",
-								"snippets"
+								"snippets",
+								"uiState"
 							],
 							"enumDescriptions": [
 								"Extensions",
 								"Keyboard Shortcuts",
 								"Settings",
-								"User Snippets"
+								"User Snippets",
+								"UIState"
 							]
 						}
 					],
@@ -240,7 +246,8 @@
 						"extensions",
 						"keybindings",
 						"settings",
-						"snippets"
+						"snippets",
+						"uiState"
 					],
 					"scope": "application",
 					"uniqueItems": true,

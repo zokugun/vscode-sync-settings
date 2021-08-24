@@ -96,7 +96,7 @@ The access to the server shouldn't require the need of any passwords.
 
 You can configure what and how to synchronize with properties in your regular settings (`settings.json`).
 
-- `"syncSettings.resources": ["extensions", "keybindings", "settings", "snippets"]`
+- `"syncSettings.resources": ["extensions", "keybindings", "settings", "snippets", "uiState"]`
 - `"syncSettings.ignoredExtensions": ["<extension's id>"]`
 - `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
 - `"syncSettings.keybindingsPerPlatform": true`
@@ -201,9 +201,5 @@ Support this project by becoming a financial contributor.
         <td><a href="https://paypal.me/daiyam99" target="_blank">paypal.me/daiyam99</a></td>
     </tr>
 </table>
-
-## Todo
-
-- sync UI states
 
 **Enjoy!**

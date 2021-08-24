@@ -11,6 +11,10 @@ rewiremock('utils/get-extension-data-path').with({
 	getExtensionDataPath: async () => '/.vscode/extensions',
 });
 
+rewiremock('../utils/get-extension-data-uri').with({
+	getExtensionDataUri: async () => '/.vscode/extensions',
+});
+
 rewiremock('../utils/get-user-data-path').with({
 	getUserDataPath: () => '/user',
 });

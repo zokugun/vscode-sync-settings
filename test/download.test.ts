@@ -29,7 +29,7 @@ describe('download', () => {
 	it('empty', async () => { // {{{
 		vol.fromJSON({
 			'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-			'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+			'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 		});
 
 		const repository = await RepositoryFactory.get();
@@ -37,7 +37,7 @@ describe('download', () => {
 		await repository.download();
 
 		expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-		expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
+		expect(vscode.executedCommands.pop()).to.eql(undefined);
 	}); // }}}
 
 	describe('extensions', () => {
@@ -60,7 +60,6 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
 			expect(vscode.getExtensions()).to.eql({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
@@ -84,7 +83,6 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
 			expect(vscode.getExtensions()).to.eql({
 				disabled: [],
@@ -112,7 +110,6 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
 			expect(vscode.getExtensions()).to.eql({
 				disabled: [],

@@ -2,6 +2,7 @@ import { OutputChannel } from 'vscode';
 import { vol } from 'memfs';
 import { transform } from '@daiyam/jsonc-preprocessor';
 import * as JSONC from 'jsonc-parser';
+import yaml from 'yaml';
 import { Uri } from './vscode/uri';
 
 interface Extension {
@@ -9,6 +10,7 @@ interface Extension {
 	packageJSON: {
 		isBuiltin: boolean;
 		isUnderDevelopment: boolean;
+		uuid: string;
 	};
 }
 
@@ -79,6 +81,7 @@ const $vscode = {
 						packageJSON: {
 							isBuiltin: false,
 							isUnderDevelopment: false,
+							uuid: '00000000-0000-0000-0000-000000000000',
 						},
 					});
 				}
@@ -96,6 +99,7 @@ const $vscode = {
 						packageJSON: {
 							isBuiltin: false,
 							isUnderDevelopment: false,
+							uuid: '00000000-0000-0000-0000-000000000000',
 						},
 					});
 				}
@@ -105,13 +109,20 @@ const $vscode = {
 						packageJSON: {
 							isBuiltin: false,
 							isUnderDevelopment: false,
+							uuid: '00000000-0000-0000-0000-000000000000',
 						},
 					});
 
+					const dots = id.split('.');
+
 					vol.mkdirpSync(`/.vscode/extensions/${id}-0.0.0`);
 					vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
-						name: id,
+						name: dots[1],
+						publisher: dots[0],
 						version: '0.0.0',
+						__metadata: {
+							id: '00000000-0000-0000-0000-000000000000',
+						},
 					}), {
 						encoding: 'utf-8',
 					});
@@ -187,6 +198,29 @@ function addSnippet(name: string, data: string): void { // {{{
 	vol.writeFileSync(`/user/snippets/${name}.json`, data, { encoding: 'utf-8' });
 } // }}}
 
+function ext2yml({ disabled, enabled, uninstall }: { disabled: string[]; enabled: string[]; uninstall?: string[] }): string { // {{{
+	const data: any = {
+		disabled: disabled.map((id) => ({
+			id,
+			uuid: '00000000-0000-0000-0000-000000000000',
+		})),
+		enabled: enabled.map((id) => ({
+			id,
+			uuid: '00000000-0000-0000-0000-000000000000',
+		})),
+	};
+
+	if(uninstall) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		data.uninstall = uninstall.map((id) => ({
+			id,
+			uuid: '00000000-0000-0000-0000-000000000000',
+		}));
+	}
+
+	return yaml.stringify(data);
+} // }}}
+
 function getExtensions(): { disabled: string[]; enabled: string[] } { // {{{
 	const enabled = $vscode.extensions.all.map(({ id }) => id);
 	const disabled = $extensions.filter((id) => !enabled.includes(id));
@@ -209,23 +243,36 @@ function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: str
 			packageJSON: {
 				isBuiltin: false,
 				isUnderDevelopment: false,
+				uuid: '00000000-0000-0000-0000-000000000000',
 			},
 		});
 
+		const dots = id.split('.');
+
 		vol.mkdirSync(`/.vscode/extensions/${id}-0.0.0`);
 		vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
-			name: id,
+			name: dots[1],
+			publisher: dots[0],
 			version: '0.0.0',
+			__metadata: {
+				id: '00000000-0000-0000-0000-000000000000',
+			},
 		}), {
 			encoding: 'utf-8',
 		});
 	}
 
 	for(const id of disabled) {
+		const dots = id.split('.');
+
 		vol.mkdirSync(`/.vscode/extensions/${id}-0.0.0`);
 		vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
-			name: id,
+			name: dots[1],
+			publisher: dots[0],
 			version: '0.0.0',
+			__metadata: {
+				id: '00000000-0000-0000-0000-000000000000',
+			},
 		}), {
 			encoding: 'utf-8',
 		});
@@ -295,6 +342,7 @@ export {
 	$process as process,
 	$vscode as vscode,
 	addSnippet,
+	ext2yml,
 	getExtensions,
 	setExtensions,
 	setKeybindings,
