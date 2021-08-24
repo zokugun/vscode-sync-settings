@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.0 | 2021-08-24
+- synchronize UI state
+- synchronize disabled extensions
+
 ## v0.3.5 | 2021-08-22
 - fix several bugs in sub-profile:
     - fix sync settings matching for non-primary value
