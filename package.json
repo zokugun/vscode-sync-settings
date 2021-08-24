@@ -267,14 +267,16 @@
 			}
 		}
 	},
+	"icon": "icon.png",
 	"galleryBanner": {
-		"color": "#373b41",
+		"color": "#003357",
 		"theme": "dark"
 	},
 	"categories": [
 		"Other"
 	],
 	"keywords": [
+		"profile",
 		"sync"
 	]
 }
