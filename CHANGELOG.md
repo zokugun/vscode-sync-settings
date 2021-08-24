@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1 | 2021-08-24
+- fix restart of Visual Studio Code on macOS
+- fix downloading extensions on sub-profile
+
 ## v0.4.0 | 2021-08-24
 - synchronize UI state
 - synchronize disabled extensions
