@@ -117,11 +117,6 @@
 				"category": "Sync Settings"
 			},
 			{
-				"command": "syncSettings.reloadSettings",
-				"title": "Reload the repository settings",
-				"category": "Sync Settings"
-			},
-			{
 				"command": "syncSettings.reset",
 				"title": "Remove all settings and extensions",
 				"category": "Sync Settings"

@@ -1,9 +1,12 @@
-import fs from 'fs/promises';
+import { createHash } from 'crypto';
+import fse from 'fs-extra';
 import { ExtensionContext, Uri } from 'vscode';
 import yaml from 'yaml';
 import { RepositoryType } from './repository-type';
 import { exists } from './utils/exists';
 import { Logger } from './utils/logger';
+
+const $hasher = createHash('SHA1');
 
 let $instance: Settings | undefined;
 
@@ -37,6 +40,7 @@ export class Settings {
 	public readonly globalStorageUri: Uri;
 	public readonly settingsUri: Uri;
 
+	private _hash = '';
 	private _hostname!: string;
 	private _profile!: string;
 	private _repository!: RepositorySettings;
@@ -72,7 +76,7 @@ export class Settings {
 	public static async load(context: ExtensionContext): Promise<Settings> { // {{{
 		const settingsPath = Uri.joinPath(context.globalStorageUri, 'settings.yml');
 
-		const data = await exists(settingsPath.fsPath) ? await fs.readFile(settingsPath.fsPath, 'utf-8') : null;
+		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf-8') : null;
 
 		if(data) {
 			$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, yaml.parse(data));
@@ -83,17 +87,29 @@ export class Settings {
 			await $instance.save();
 		}
 
+		$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
+
 		return $instance;
 	} // }}}
 
-	public async reload(): Promise<void> { // {{{
-		const data = await exists(this.settingsUri.fsPath) ? await fs.readFile(this.settingsUri.fsPath, 'utf-8') : null;
+	public async reload(): Promise<boolean> { // {{{
+		const data = await exists(this.settingsUri.fsPath) ? await fse.readFile(this.settingsUri.fsPath, 'utf-8') : null;
+		const hash = $hasher.copy().update(data ?? '').digest('hex');
 
-		if(data) {
-			this.set(yaml.parse(data) ?? {});
+		if(this._hash !== hash) {
+			if(data) {
+				this.set(yaml.parse(data) ?? {});
+			}
+			else {
+				this.set(defaults());
+			}
+
+			this._hash = hash;
+
+			return true;
 		}
 		else {
-			this.set(defaults());
+			return false;
 		}
 	} // }}}
 
@@ -106,9 +122,11 @@ export class Settings {
 
 		const data = yaml.stringify(settings);
 
-		await fs.mkdir(Uri.joinPath(this.settingsUri, '..').fsPath, { recursive: true });
+		this._hash = $hasher.copy().update(data ?? '').digest('hex');
 
-		await fs.writeFile(this.settingsUri.fsPath, data, {
+		await fse.ensureDir(Uri.joinPath(this.settingsUri, '..').fsPath);
+
+		await fse.writeFile(this.settingsUri.fsPath, data, {
 			encoding: 'utf-8',
 			mode: 0o600,
 		});

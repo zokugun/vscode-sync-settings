@@ -50,15 +50,20 @@ export namespace RepositoryFactory {
 		return $instance!;
 	} // }}}
 
-	export async function reload(): Promise<void> { // {{{
+	export async function reload(): Promise<boolean> { // {{{
 		const settings = Settings.get();
 
-		await settings.reload();
+		if(await settings.reload()) {
+			if($instance) {
+				await $instance.terminate();
 
-		if($instance) {
-			await $instance.terminate();
+				await create(settings);
+			}
 
-			return create(settings);
+			return true;
+		}
+		else {
+			return false;
 		}
 	} // }}}
 

@@ -18,14 +18,10 @@ HowTo
 
    > &gt; Sync Settings: Open the repository settings
 
-2. reload the updated settings into the extension:
-
-   > &gt; Sync Settings: Reload the repository settings
-
-3. upload your settings to the repository:
+2. upload your settings to the repository:
     > &gt; Sync Settings: Upload (user -> repository)
 
-4. download your settings into a new editor:
+3. download your settings into a new editor:
     > &gt; Sync Settings: Download (repository -> user)
 
 Configuration

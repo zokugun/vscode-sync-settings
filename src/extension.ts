@@ -2,7 +2,6 @@ import vscode from 'vscode';
 import pkg from '../package.json';
 import { download } from './commands/download';
 import { openSettings } from './commands/open-settings';
-import { reloadSettings } from './commands/reload-settings';
 import { reset } from './commands/reset';
 import { upload } from './commands/upload';
 import { switchProfile } from './commands/switch-profile';
@@ -10,6 +9,9 @@ import { createProfile } from './commands/create-profile';
 import { Settings } from './settings';
 import { openProfileSettings } from './commands/open-profile-settings';
 import { openProfileDirectory } from './commands/open-profile-directory';
+import { ThrottledDelayer } from './utils/async';
+import { RepositoryFactory } from './repository-factory';
+import { Logger } from './utils/logger';
 
 const VERSION_KEY = 'version';
 
@@ -80,11 +82,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
 		vscode.commands.registerCommand('syncSettings.openProfileDirectory', openProfileDirectory),
 		vscode.commands.registerCommand('syncSettings.openSettings', openSettings),
-		vscode.commands.registerCommand('syncSettings.reloadSettings', reloadSettings),
 		vscode.commands.registerCommand('syncSettings.reset', reset),
 		vscode.commands.registerCommand('syncSettings.switchProfile', switchProfile),
 		vscode.commands.registerCommand('syncSettings.upload', upload),
 	);
+
+	const settings = Settings.get();
+	const fileChangesDelayer = new ThrottledDelayer<void>(200);
+	const watcher = vscode.workspace.createFileSystemWatcher(settings.settingsUri.fsPath);
+
+	watcher.onDidChange(() => {
+		void fileChangesDelayer.trigger(async () => {
+			try {
+				await RepositoryFactory.reload();
+			}
+			catch (error: unknown) {
+				Logger.error(error);
+			}
+		});
+	});
 
 	context.subscriptions.push(...disposables);
 }
