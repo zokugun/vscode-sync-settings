@@ -210,36 +210,36 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	protected applyExtensionsDiff({ disabled, enabled }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
-		for(const id of diff.disabled) {
-			const index = enabled.indexOf(id);
+		for(const ext of diff.disabled) {
+			const index = enabled.findIndex((item) => item.id === ext.id);
 			if(index !== -1) {
 				enabled.splice(index, 1);
 			}
 
-			if(!disabled.includes(id)) {
-				disabled.push(id);
+			if(!disabled.some((item) => item.id === ext.id)) {
+				disabled.push(ext);
 			}
 		}
 
-		for(const id of diff.enabled) {
-			const index = disabled.indexOf(id);
+		for(const ext of diff.enabled) {
+			const index = disabled.findIndex((item) => item.id === ext.id);
 			if(index !== -1) {
 				disabled.splice(index, 1);
 			}
 
-			if(!enabled.includes(id)) {
-				enabled.push(id);
+			if(!enabled.some((item) => item.id === ext.id)) {
+				enabled.push(ext);
 			}
 		}
 
 		if(diff.uninstall) {
-			for(const id of diff.uninstall) {
-				const index = disabled.indexOf(id);
+			for(const { id } of diff.uninstall) {
+				const index = disabled.findIndex((item) => item.id === id);
 				if(index !== -1) {
 					disabled.splice(index, 1);
 				}
 				else {
-					const index = enabled.indexOf(id);
+					const index = enabled.findIndex((item) => item.id === id);
 					if(index !== -1) {
 						enabled.splice(index, 1);
 					}
