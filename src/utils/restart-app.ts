@@ -22,7 +22,7 @@ function restartMac({ nameLong, applicationName }: { nameLong: string; applicati
 	const match = /(.*\.app)\/Contents\/Frameworks\//.exec(process.execPath);
 	const appPath = match ? match[1] : `/Applications/${nameLong}.app`;
 
-	spawn('osascript', ['-e', `quit app "${nameLong}"`, '-e', 'delay 1', '-e', `do shell script "${appPath}/Contents/Resources/app/bin/${applicationName}"`], {
+	spawn('osascript', ['-e', `quit app "${nameLong}"`, '-e', 'delay 1', '-e', `do shell script quoted form of "${appPath}/Contents/Resources/app/bin/${applicationName}"`], {
 		detached: true,
 		stdio: 'ignore',
 	});
