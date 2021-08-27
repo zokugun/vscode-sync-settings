@@ -82,8 +82,23 @@
 		"xo": "^0.43.0"
 	},
 	"activationEvents": [
-		"*"
+		"onStartupFinished",
+		"onCommand:syncSettings.createProfile",
+		"onCommand:syncSettings.deleteProfile",
+		"onCommand:syncSettings.download",
+		"onCommand:syncSettings.openProfileDirectory",
+		"onCommand:syncSettings.openProfileSettings",
+		"onCommand:syncSettings.openSettings",
+		"onCommand:syncSettings.reset",
+		"onCommand:syncSettings.switchProfile",
+		"onCommand:syncSettings.upload"
 	],
+	"capabilities": {
+		"virtualWorkspaces": false,
+		"untrustedWorkspaces": {
+			"supported": false
+		}
+	},
 	"contributes": {
 		"commands": [
 			{
@@ -272,6 +287,7 @@
 	],
 	"keywords": [
 		"profile",
+		"settings",
 		"sync"
 	]
 }

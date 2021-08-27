@@ -17,6 +17,7 @@
 		"devDependencies",
 		"optionalDependencies",
 		"activationEvents",
+		"capabilities",
 		"contributes",
 		"icon",
 		"galleryBanner",
