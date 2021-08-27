@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.1 | 2021-08-27
+- improve activation events
+- add capabilities
+
 ## v0.5.0 | 2021-08-24
 - automatically reload the settings of the repository
 - add icon
