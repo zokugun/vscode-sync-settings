@@ -436,8 +436,8 @@ export class FileRepository extends Repository {
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileSnippetsPath(profile);
 
-		let snippets;
-		let newFiles;
+		let snippets: Record<string, string>;
+		let newFiles: string[];
 
 		if(settings.extends) {
 			snippets = await this.listProfileSnippetHashes(settings.extends);
@@ -483,8 +483,8 @@ export class FileRepository extends Repository {
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileSnippetsPath(profile);
 
-		let snippets;
-		let newFiles;
+		let snippets: Record<string, string>;
+		let newFiles: string[];
 
 		if(settings.extends) {
 			snippets = await this.listProfileSnippetPaths(settings.extends);
@@ -790,7 +790,7 @@ export class FileRepository extends Repository {
 
 		const extDataPath = await getExtensionDataUri();
 		const profile = await this.listProfileUIStateProperties();
-		const values = [];
+		const values: any[] = [];
 
 		const args: Record<string, unknown> = {};
 		let index = 0;
@@ -828,7 +828,6 @@ export class FileRepository extends Repository {
 			if(data && typeof data.globalValue !== 'undefined') {
 				settings[property] = data.globalValue;
 
-				// @ts-expect-error
 				if(!ancestors || !deepEqual(ancestors[property], data.globalValue)) {
 					++length;
 				}
@@ -950,7 +949,7 @@ export class FileRepository extends Repository {
 		if(profileSettings.extends) {
 			const profile = await this.listProfileSnippetHashes(profileSettings.extends);
 			const hasher = createHash('SHA1');
-			const removed = [];
+			const removed: any[] = [];
 
 			if(editor.length > 0) {
 				for(const file of [...editor]) {

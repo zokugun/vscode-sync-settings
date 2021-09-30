@@ -1,22 +1,11 @@
 {
+	"extends": "../tsconfig.base.json",
 	"compilerOptions": {
-		"rootDir": "..",
-		"module": "commonjs",
-		"target": "es6",
-		"outDir": "../out-test",
-		"lib": [
-			"ES2021",
-			"DOM",
-		],
-		"sourceMap": true,
-		"strictNullChecks": true,
-		"noImplicitAny": true,
-		"noImplicitReturns": true,
-		"noUnusedLocals": true,
-		"strict": true,
-		"alwaysStrict": true,
-		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-	}
+		/* Basic Options */
+		"outDir": "../.test",							/* Specify an output folder for all emitted files. */
+		"rootDir": "..",								/* Specify the root directory of input files. */
+
+		/* Source Map Options */
+		"sourceMap": true,								/* Create source map files for emitted JavaScript files. */
+	},
 }

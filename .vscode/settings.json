@@ -1,7 +1,13 @@
 {
 	"debug.onTaskErrors": "debugAnyway",
-	"files.exclude": {},
+	"files.exclude": {
+	},
 	"search.exclude": {
-		"out": true
-	}
+		"lib/**": true,
+		"out/**": true,
+		".test/**": true,
+	},
+	"taskExplorer.exclude": [
+		".husky",
+	],
 }

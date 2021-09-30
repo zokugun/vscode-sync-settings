@@ -77,8 +77,8 @@ export abstract class Repository {
 	} // }}}
 
 	protected async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
-		const disabled = [];
-		const enabled = [];
+		const disabled: Array<{ id: string; uuid: string }> = [];
+		const enabled: Array<{ id: string; uuid: string }> = [];
 
 		const ids: Record<string, boolean> = {};
 

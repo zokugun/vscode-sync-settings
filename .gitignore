@@ -1,6 +1,8 @@
 node_modules
-out*
-dist
+lib
+out
 .vscode-test/
 *.vsix
 icon.sketch
+settings.yml
+.test
