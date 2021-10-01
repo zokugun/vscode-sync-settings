@@ -1,7 +1,7 @@
-import path from 'path';
 import { Buffer } from 'buffer';
-import initSqlJs from 'sql.js';
+import path from 'path';
 import fse from 'fs-extra';
+import initSqlJs from 'sql.js';
 
 export async function writeStateDB(userDataPath: string, query: string, args?: Record<string, any>): Promise<void> {
 	const SQL = await initSqlJs();

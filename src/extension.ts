@@ -1,18 +1,18 @@
 import vscode from 'vscode';
 import pkg from '../package.json';
+import { createProfile } from './commands/create-profile';
 import { download } from './commands/download';
+import { openProfileDirectory } from './commands/open-profile-directory';
+import { openProfileSettings } from './commands/open-profile-settings';
 import { openSettings } from './commands/open-settings';
 import { reset } from './commands/reset';
-import { upload } from './commands/upload';
 import { switchProfile } from './commands/switch-profile';
-import { createProfile } from './commands/create-profile';
-import { Settings } from './settings';
-import { openProfileSettings } from './commands/open-profile-settings';
-import { openProfileDirectory } from './commands/open-profile-directory';
-import { ThrottledDelayer } from './utils/async';
-import { RepositoryFactory } from './repository-factory';
-import { Logger } from './utils/logger';
+import { upload } from './commands/upload';
 import { viewDifferences } from './commands/view-differences';
+import { RepositoryFactory } from './repository-factory';
+import { Settings } from './settings';
+import { ThrottledDelayer } from './utils/async';
+import { Logger } from './utils/logger';
 
 const VERSION_KEY = 'version';
 

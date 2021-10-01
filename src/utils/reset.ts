@@ -1,12 +1,12 @@
-import path from 'path';
 import fs from 'fs/promises';
-import vscode from 'vscode';
+import path from 'path';
 import globby from 'globby';
+import vscode from 'vscode';
 import { Settings } from '../settings';
 import { exists } from './exists';
 import { getExtensionDataPath } from './get-extension-data-path';
-import { Logger } from './logger';
 import { getUserDataPath } from './get-user-data-path';
+import { Logger } from './logger';
 import { uninstallExtension } from './uninstall-extension';
 
 export async function reset(): Promise<void> { // {{{

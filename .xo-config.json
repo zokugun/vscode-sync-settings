@@ -59,6 +59,24 @@
 		"capitalized-comments": "off",
 		"complexity": "off",
 		"default-case": "off",
+		"import/order": [
+			"error",
+			{
+				"groups": [
+					"builtin",
+					"external",
+					"internal",
+					"parent",
+					"sibling",
+					"index",
+					"object"
+				],
+				"alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				}
+			}
+		],
 		"max-depth": [
 			"error",
 			8

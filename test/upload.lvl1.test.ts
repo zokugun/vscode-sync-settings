@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 // import yaml from 'yaml';
-import { RepositoryFactory, Settings } from './rewires/repository';
 import { context } from './mocks/context';
-import { fixtures } from './utils/fixtures';
 import * as vscode from './mocks/vscode';
+import { RepositoryFactory, Settings } from './rewires/repository';
+import { fixtures } from './utils/fixtures';
 
 describe('upload.lvl1', () => {
 	const dotsyncFxt = fixtures('dotsync');

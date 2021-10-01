@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import fs from 'fs/promises';
-import { Uri } from 'vscode';
 import fse from 'fs-extra';
+import { Uri } from 'vscode';
 import { Settings } from '../settings';
 import { exists } from './exists';
 

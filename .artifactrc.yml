@@ -2,7 +2,7 @@ artifacts:
   - name: "@daiyam/artifact-base"
     version: 0.2.0
   - name: "@daiyam/artifact-lang-ts"
-    version: 0.2.0
+    version: 0.2.1
   - name: "@daiyam/artifact-test-mocha-ts"
     version: 0.2.0
   - name: "@daiyam/artifact-vsx-ts"

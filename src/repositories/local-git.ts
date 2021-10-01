@@ -1,12 +1,12 @@
-import path from 'path';
 import fs from 'fs/promises';
-import createSimpleGit, { SimpleGit } from 'simple-git';
+import path from 'path';
 import fse from 'fs-extra';
 import semver from 'semver';
+import createSimpleGit, { SimpleGit } from 'simple-git';
 import { RepositoryType } from '../repository-type';
-import { Logger } from '../utils/logger';
-import { exists } from '../utils/exists';
 import { Settings } from '../settings';
+import { exists } from '../utils/exists';
+import { Logger } from '../utils/logger';
 import { FileRepository } from './file';
 
 export enum CommitType {

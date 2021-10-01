@@ -1,6 +1,6 @@
 import path from 'path';
-import initSqlJs, { QueryExecResult } from 'sql.js';
 import fse from 'fs-extra';
+import initSqlJs, { QueryExecResult } from 'sql.js';
 import { exists } from './exists';
 
 export async function readStateDB(userDataPath: string, query: string, args?: Record<string, any>): Promise<QueryExecResult | undefined> {

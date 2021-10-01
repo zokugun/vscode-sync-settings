@@ -3,9 +3,9 @@ import path from 'path';
 import fse from 'fs-extra';
 import vscode, { Uri } from 'vscode';
 import { FileRepository } from '../repositories/file';
+import { Resource } from '../repository';
 import { RepositoryFactory } from '../repository-factory';
 import { Settings } from '../settings';
-import { Resource } from '../repository';
 
 export async function viewDifferences(): Promise<void> {
 	const oldRepository = await RepositoryFactory.get();

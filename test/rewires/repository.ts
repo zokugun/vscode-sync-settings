@@ -21,10 +21,10 @@ rewiremock('../utils/get-user-data-path').with({
 
 rewiremock.enable();
 
-/* eslint-disable import/first */
+/* eslint-disable import/first, import/order */
 import { Settings } from '../../src/settings';
 import { RepositoryFactory } from '../../src/repository-factory';
-/* eslint-enable import/first */
+/* eslint-enable import/first, import/order */
 
 rewiremock.disable();
 

@@ -1,9 +1,9 @@
 import path from 'path';
 import fse from 'fs-extra';
-import vscode, { WorkspaceConfiguration } from 'vscode';
 import globby from 'globby';
-import { Settings } from './settings';
+import vscode, { WorkspaceConfiguration } from 'vscode';
 import { RepositoryType } from './repository-type';
+import { Settings } from './settings';
 import { exists } from './utils/exists';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
 

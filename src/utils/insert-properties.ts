@@ -1,5 +1,5 @@
-import { visit } from 'jsonc-parser';
 import detectNewline from 'detect-newline';
+import { visit } from 'jsonc-parser';
 
 export function insertProperties(text: string, properties: string): string {
 	if(properties.length === 0) {

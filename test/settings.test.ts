@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
-import { Settings } from './rewires/settings';
 import { context } from './mocks/context';
-import { fixtures } from './utils/fixtures';
 import * as vscode from './mocks/vscode';
+import { Settings } from './rewires/settings';
+import { fixtures } from './utils/fixtures';
 
 describe('settings', () => {
 	const settingsFxt = fixtures('settings');

@@ -1,5 +1,5 @@
-import path from 'path';
 import { spawn } from 'child_process';
+import path from 'path';
 import process from 'process';
 import fse from 'fs-extra';
 import vscode from 'vscode';

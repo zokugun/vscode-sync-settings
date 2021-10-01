@@ -8,7 +8,7 @@ rewiremock('vscode').with(vscode);
 
 rewiremock.enable();
 
-// eslint-disable-next-line import/first
+// eslint-disable-next-line import/first, import/order
 import { Settings } from '../../src/settings';
 
 rewiremock.disable();

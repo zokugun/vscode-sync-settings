@@ -1,5 +1,5 @@
-import { window, workspace } from 'vscode';
 import fse from 'fs-extra';
+import { window, workspace } from 'vscode';
 import { RepositoryFactory } from '../repository-factory';
 import { exists } from '../utils/exists';
 

@@ -1,7 +1,7 @@
-import { OutputChannel } from 'vscode';
-import { vol } from 'memfs';
 import { transform } from '@daiyam/jsonc-preprocessor';
 import * as JSONC from 'jsonc-parser';
+import { vol } from 'memfs';
+import { OutputChannel } from 'vscode';
 import yaml from 'yaml';
 import { Uri } from './vscode/uri';
 
