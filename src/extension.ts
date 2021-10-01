@@ -12,6 +12,7 @@ import { openProfileDirectory } from './commands/open-profile-directory';
 import { ThrottledDelayer } from './utils/async';
 import { RepositoryFactory } from './repository-factory';
 import { Logger } from './utils/logger';
+import { viewDifferences } from './commands/view-differences';
 
 const VERSION_KEY = 'version';
 
@@ -74,7 +75,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 	await Settings.load(context);
 
-	const disposables = [];
+	const disposables: vscode.Disposable[] = [];
 
 	disposables.push(
 		vscode.commands.registerCommand('syncSettings.createProfile', createProfile),
@@ -85,6 +86,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		vscode.commands.registerCommand('syncSettings.reset', reset),
 		vscode.commands.registerCommand('syncSettings.switchProfile', switchProfile),
 		vscode.commands.registerCommand('syncSettings.upload', upload),
+		vscode.commands.registerCommand('syncSettings.viewDifferences', viewDifferences),
 	);
 
 	const settings = Settings.get();

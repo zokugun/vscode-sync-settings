@@ -84,8 +84,40 @@ export class FileRepository extends Repository {
 		await fse.outputFile(profilePath, data, 'utf-8');
 	} // }}}
 
+	public getProfileDataPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data');
+	} // }}}
+
+	public getProfileExtensionsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'extensions.yml');
+	} // }}}
+
+	public getProfileKeybindingsPath(profile: string, keybindingsPerPlatform: boolean, suffix = ''): string { // {{{
+		const profileDataPath = this.getProfileDataPath(profile);
+
+		if(keybindingsPerPlatform) {
+			switch(process.platform) {
+				case 'darwin':
+					return path.join(profileDataPath, `keybindings-macos${suffix}.json`);
+				case 'linux':
+					return path.join(profileDataPath, `keybindings-linux${suffix}.json`);
+				case 'win32':
+					return path.join(profileDataPath, `keybindings-windows${suffix}.json`);
+				default:
+					return path.join(profileDataPath, `keybindings${suffix}.json`);
+			}
+		}
+		else {
+			return path.join(profileDataPath, `keybindings${suffix}.json`);
+		}
+	} // }}}
+
 	public override getProfileSettingsPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, 'profile.yml');
+	} // }}}
+
+	public getProfileUserSettingsPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'settings.json');
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -103,6 +135,20 @@ export class FileRepository extends Repository {
 			cwd: path.join(this._rootPath, 'profiles'),
 			onlyDirectories: true,
 		});
+	} // }}}
+
+	public async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
+		const path = this.getProfileSettingsPath(profile);
+
+		if(await exists(path)) {
+			const data = await fse.readFile(path, 'utf-8');
+			const settings = yaml.parse(data) as ProfileSettings;
+
+			return settings ?? {};
+		}
+		else {
+			return {};
+		}
 	} // }}}
 
 	public override async restoreProfile(): Promise<void> { // {{{
@@ -273,16 +319,8 @@ export class FileRepository extends Repository {
 		return path.join(this._rootPath, 'profiles', profile, 'data', 'ui-state.diff.yml');
 	} // }}}
 
-	protected getProfileDataPath(profile: string = this.profile): string { // {{{
-		return path.join(this._rootPath, 'profiles', profile, 'data');
-	} // }}}
-
 	protected getProfileExtensionsOldPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, 'extensions.yml');
-	} // }}}
-
-	protected getProfileExtensionsPath(profile: string = this.profile): string { // {{{
-		return path.join(this._rootPath, 'profiles', profile, 'data', 'extensions.yml');
 	} // }}}
 
 	protected async getProfileKeybindings(profile: string, keybindingsPerPlatform: boolean): Promise<string | undefined> { // {{{
@@ -299,26 +337,6 @@ export class FileRepository extends Repository {
 		}
 		else {
 			return undefined;
-		}
-	} // }}}
-
-	protected getProfileKeybindingsPath(profile: string, keybindingsPerPlatform: boolean, suffix = ''): string { // {{{
-		const profileDataPath = this.getProfileDataPath(profile);
-
-		if(keybindingsPerPlatform) {
-			switch(process.platform) {
-				case 'darwin':
-					return path.join(profileDataPath, `keybindings-macos${suffix}.json`);
-				case 'linux':
-					return path.join(profileDataPath, `keybindings-linux${suffix}.json`);
-				case 'win32':
-					return path.join(profileDataPath, `keybindings-windows${suffix}.json`);
-				default:
-					return path.join(profileDataPath, `keybindings${suffix}.json`);
-			}
-		}
-		else {
-			return path.join(profileDataPath, `keybindings${suffix}.json`);
 		}
 	} // }}}
 
@@ -347,10 +365,6 @@ export class FileRepository extends Repository {
 		else {
 			return undefined;
 		}
-	} // }}}
-
-	protected getProfileUserSettingsPath(profile: string = this.profile): string { // {{{
-		return path.join(this._rootPath, 'profiles', profile, 'data', 'settings.json');
 	} // }}}
 
 	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, any>> { // {{{
@@ -551,20 +565,6 @@ export class FileRepository extends Repository {
 		}
 
 		return properties;
-	} // }}}
-
-	protected async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
-		const path = this.getProfileSettingsPath(profile);
-
-		if(await exists(path)) {
-			const data = await fse.readFile(path, 'utf-8');
-			const settings = yaml.parse(data) as ProfileSettings;
-
-			return settings ?? {};
-		}
-		else {
-			return {};
-		}
 	} // }}}
 
 	protected async loadProfileSyncSettings(profile: string = this.profile): Promise<ProfileSyncSettings> { // {{{

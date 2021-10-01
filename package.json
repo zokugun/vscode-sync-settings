@@ -92,7 +92,8 @@
 		"onCommand:syncSettings.openSettings",
 		"onCommand:syncSettings.reset",
 		"onCommand:syncSettings.switchProfile",
-		"onCommand:syncSettings.upload"
+		"onCommand:syncSettings.upload",
+		"onCommand:syncSettings.viewDifferences"
 	],
 	"capabilities": {
 		"virtualWorkspaces": false,
@@ -145,6 +146,11 @@
 			{
 				"command": "syncSettings.upload",
 				"title": "Upload (user -> repository)",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.viewDifferences",
+				"title": "View differences between actual and saved settings",
 				"category": "Sync Settings"
 			}
 		],
