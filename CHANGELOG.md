@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.1 | 2021-10-14
+- `.sync.yml` souldn't be required
+
 ## v0.6.0 | 2021-10-01
 - add command to show the differences between the actual settings and the saved ones
 
