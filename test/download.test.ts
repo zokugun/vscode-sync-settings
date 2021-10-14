@@ -40,6 +40,19 @@ describe('download', () => {
 		expect(vscode.executedCommands.pop()).to.eql(undefined);
 	}); // }}}
 
+	it('nodotsync', async () => { // {{{
+		vol.fromJSON({
+			'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
+		});
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.download();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] restore done');
+		expect(vscode.executedCommands.pop()).to.eql(undefined);
+	}); // }}}
+
 	describe('extensions', () => {
 		it('add', async () => { // {{{
 			vol.fromJSON({

@@ -580,7 +580,7 @@ export class FileRepository extends Repository {
 					return this.loadProfileSyncSettings(settings.extends);
 				}
 				else {
-					throw new Error('sync settings file of profile can not be found');
+					return {};
 				}
 			}
 		}
