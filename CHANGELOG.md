@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.2 | 2021-10-21
+- improve handling of missing settings files
+- display a message when there is no differences
+
 ## v0.6.1 | 2021-10-14
 - `.sync.yml` souldn't be required
 
