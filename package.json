@@ -63,7 +63,7 @@
 		"@types/sql.js": "^1.4.2",
 		"@types/universalify": "^1.0.0",
 		"@types/vscode": "^1.23.0",
-		"@vercel/ncc": "^0.29.0",
+		"@vercel/ncc": "^0.31.1",
 		"chai": "^4.3.4",
 		"commitizen": "^4.2.4",
 		"eslint-plugin-chai-friendly": "^0.7.2",
