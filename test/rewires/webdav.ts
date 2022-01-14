@@ -1,0 +1,38 @@
+import { Readable, Writable } from 'stream';
+import rewiremock from 'rewiremock';
+import { fs } from '../mocks/fs';
+
+rewiremock('fs').with(fs);
+
+rewiremock.enable();
+
+/* eslint-disable import/first, import/order */
+import { ReturnCallback, v2 as ws } from 'webdav-server';
+/* eslint-enable import/first, import/order */
+
+rewiremock.disable();
+
+class MemFileSystem extends ws.PhysicalFileSystem {
+	protected _openReadStream(path: ws.Path, _: ws.OpenReadStreamInfo, callback: ReturnCallback<Readable>): void {
+		const { realPath } = this.getRealPath(path);
+
+		const stream = fs.createReadStream(realPath);
+
+		// @ts-expect-error
+		callback(null, stream);
+	}
+
+	protected _openWriteStream(path: ws.Path, _: ws.OpenWriteStreamInfo, callback: ReturnCallback<Writable>): void {
+		const { realPath } = this.getRealPath(path);
+
+		const stream = fs.createWriteStream(realPath);
+
+		// @ts-expect-error
+		callback(null, stream);
+	}
+}
+
+export {
+	ws,
+	MemFileSystem,
+};

@@ -1,0 +1,7 @@
+hostname: ""
+profile: main
+repository:
+  type: webdav
+  url: http://localhost:9988/webdav/server
+  username: webdav-user
+  password: pa$$w0rd!

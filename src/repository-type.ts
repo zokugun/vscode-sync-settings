@@ -3,4 +3,5 @@ export enum RepositoryType {
 	FILE = 'file',
 	GIT = 'git',
 	RSYNC = 'rsync',
+	WEBDAV = 'webdav',
 }

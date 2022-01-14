@@ -1,21 +1,22 @@
+import path from 'path';
 import rewiremock from 'rewiremock';
 import { fs } from '../mocks/fs';
 import { process, vscode } from '../mocks/vscode';
 
 rewiremock('fs').with(fs);
-rewiremock('fs/promises').with(fs.promises);
+rewiremock(path.join('fs', 'promises')).with(fs.promises);
 rewiremock('vscode').with(vscode);
 rewiremock('process').with(process);
 
-rewiremock('utils/get-extension-data-path').with({
+rewiremock(path.join('utils', 'get-extension-data-path')).with({
 	getExtensionDataPath: async () => '/.vscode/extensions',
 });
 
-rewiremock('../utils/get-extension-data-uri').with({
+rewiremock(path.join('..', 'utils', 'get-extension-data-uri')).with({
 	getExtensionDataUri: async () => '/.vscode/extensions',
 });
 
-rewiremock('../utils/get-user-data-path').with({
+rewiremock(path.join('..', 'utils', 'get-user-data-path')).with({
 	getUserDataPath: () => '/user',
 });
 
