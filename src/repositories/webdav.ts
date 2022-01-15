@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import http from 'http';
 import https from 'https';
 import path from 'path';
+import process from 'process';
 import fse from 'fs-extra';
 import globby from 'globby';
 import { fromCallback as u } from 'universalify';
@@ -31,14 +32,17 @@ export class WebDAVRepository extends FileRepository {
 	protected _fs?: WebDAVFS;
 	protected _url: string;
 	protected _options: Record<string, any>;
+	protected _ignoreTLSErrors: boolean;
 
 	constructor(settings: Settings) { // {{{
 		super(settings, TemporaryRepository.getPath(settings));
 
-		const { type, url, ...options } = settings.repository;
+		// @ts-expect-error
+		const { type, url, ignoreTLSErrors, ...options } = settings.repository;
 
 		this._url = url!;
 		this._options = options;
+		this._ignoreTLSErrors = ignoreTLSErrors === true || false;
 	} // }}}
 
 	public override get type() { // {{{
@@ -48,7 +52,14 @@ export class WebDAVRepository extends FileRepository {
 	public override async download(): Promise<void> { // {{{
 		this.checkInitialized();
 
-		await this.pull();
+		try {
+			this.configureTLS();
+
+			await this.pull();
+		}
+		finally {
+			this.restoreTLS();
+		}
 
 		await super.download();
 	} // }}}
@@ -82,6 +93,8 @@ export class WebDAVRepository extends FileRepository {
 		};
 
 		try {
+			this.configureTLS();
+
 			await this._fs.stat('/');
 
 			Logger.info('The connection to WebDAV is successful.');
@@ -110,6 +123,9 @@ export class WebDAVRepository extends FileRepository {
 
 			return;
 		}
+		finally {
+			this.restoreTLS();
+		}
 
 		await super.initialize();
 	} // }}}
@@ -123,7 +139,21 @@ export class WebDAVRepository extends FileRepository {
 
 		await super.upload();
 
-		await this.push();
+		try {
+			this.configureTLS();
+
+			await this.push();
+		}
+		finally {
+			this.restoreTLS();
+		}
+	} // }}}
+
+	protected configureTLS(): void { // {{{
+		if(this._ignoreTLSErrors) {
+			// @ts-expect-error
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+		}
 	} // }}}
 
 	protected async emptyDir(dir: Uri): Promise<void> { // {{{
@@ -239,6 +269,13 @@ export class WebDAVRepository extends FileRepository {
 		const data = await fs.readFile(localFile, 'utf8');
 
 		await this._fs!.writeFile(remoteFile.path, data, 'utf8');
+	} // }}}
+
+	protected restoreTLS(): void { // {{{
+		if(this._ignoreTLSErrors) {
+			// @ts-expect-error
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = 1;
+		}
 	} // }}}
 
 	protected async validate(): Promise<void> { // {{{
