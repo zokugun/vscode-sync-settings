@@ -1,4 +1,6 @@
 import fs from 'fs/promises';
+import http from 'http';
+import https from 'https';
 import path from 'path';
 import fse from 'fs-extra';
 import globby from 'globby';
@@ -49,9 +51,20 @@ export class WebDAVRepository extends FileRepository {
 	public override async initialize(): Promise<void> { // {{{
 		await TemporaryRepository.initialize(this._settings, this.type, this._url, JSON.stringify(this._options));
 
-		const fs = createAdapter(this._url, {
-			...this._options,
-		});
+		const { agent, ...options } = this._options;
+
+		if(agent) {
+			const { scheme } = Uri.parse(this._url);
+
+			if(scheme === 'https') {
+				options.httpsAgent = new https.Agent(agent);
+			}
+			else if(scheme === 'http') {
+				options.httpAgent = new http.Agent(agent);
+			}
+		}
+
+		const fs = createAdapter(this._url, options);
 
 		this._fs = {
 			mkdir: u(fs.mkdir) as (dirPath: PathLike) => Promise<void>,
