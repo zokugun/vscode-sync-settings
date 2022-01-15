@@ -6,7 +6,7 @@ import { RepositoryFactory, Settings } from './rewires/repository';
 import { createWebDAVServer, WebDAVServer } from './utils/create-webdav-server';
 import { fixtures } from './utils/fixtures';
 
-describe('upload.webdav', () => {
+describe('webdav.upload', () => {
 	const settingsFxt = fixtures('settings');
 
 	let server: WebDAVServer;

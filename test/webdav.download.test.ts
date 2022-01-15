@@ -7,7 +7,7 @@ import { RepositoryFactory, Settings } from './rewires/repository';
 import { createWebDAVServer, WebDAVServer } from './utils/create-webdav-server';
 import { fixtures } from './utils/fixtures';
 
-describe('download.webdav', () => {
+describe('webdav.download', () => {
 	const dotsyncFxt = fixtures('dotsync');
 	const extensionsFxt = fixtures('extensions');
 	const settingsFxt = fixtures('settings');
@@ -37,6 +37,7 @@ describe('download.webdav', () => {
 
 	it('empty', async () => { // {{{
 		vol.fromJSON({
+			'/webdav/.vsx': 'zokugun.sync-settings',
 			'/webdav/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 			'/webdav/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 		});
@@ -52,6 +53,7 @@ describe('download.webdav', () => {
 	describe('extensions', () => {
 		it('add', async () => { // {{{
 			vol.fromJSON({
+				'/webdav/.vsx': 'zokugun.sync-settings',
 				'/webdav/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/webdav/profiles/main/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
@@ -78,6 +80,7 @@ describe('download.webdav', () => {
 
 		it('remove', async () => { // {{{
 			vol.fromJSON({
+				'/webdav/.vsx': 'zokugun.sync-settings',
 				'/webdav/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
 				'/webdav/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 			});

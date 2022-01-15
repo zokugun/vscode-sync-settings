@@ -22,6 +22,9 @@ interface WebDAVFS {
 	writeFile: (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>;
 }
 
+class WebDAVError extends Error {
+}
+
 export class WebDAVRepository extends FileRepository {
 	protected _fs?: WebDAVFS;
 	protected _url: string;
@@ -76,6 +79,10 @@ export class WebDAVRepository extends FileRepository {
 
 		try {
 			await this._fs.stat('/');
+
+			Logger.info('The connection to WebDAV is successful.');
+
+			await this.validate();
 		}
 		catch (error: unknown) {
 			// @ts-expect-error
@@ -89,6 +96,9 @@ export class WebDAVRepository extends FileRepository {
 			// @ts-expect-error
 			else if(error?.status === 404) {
 				Logger.error(`The url "${this._url}" can't be found.`);
+			}
+			else if(error instanceof WebDAVError) {
+				Logger.error(error.message);
 			}
 			else {
 				Logger.error(String(error));
@@ -196,4 +206,26 @@ export class WebDAVRepository extends FileRepository {
 
 		await this._fs!.writeFile(remoteFile.path, data, 'utf8');
 	} // }}}
+
+	protected async validate(): Promise<void> {
+		const files: string[] = await this._fs!.readdir('/') as string[];
+		if(files.length === 0) {
+			await this._fs!.writeFile('/.vsx', 'zokugun.sync-settings', 'utf8');
+
+			Logger.info('The working directory is empty. Continue.');
+
+			return;
+		}
+		else if(files.includes('.vsx')) {
+			const data = await this._fs!.readFile('/.vsx', 'utf8') as string;
+
+			if(data === 'zokugun.sync-settings') {
+				Logger.info('The working directory is valid. Continue.');
+
+				return;
+			}
+		}
+
+		throw new WebDAVError('The working directory is not valid. Please use an empty directory.');
+	}
 }
