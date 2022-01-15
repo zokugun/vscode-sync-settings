@@ -139,7 +139,7 @@ export class Settings {
 	} // }}}
 
 	private set(data: SettingsData) { // {{{
-		Logger.info('repository:', JSON.stringify(data.repository));
+		Logger.info('repository:', JSON.stringify(data.repository, (key: string, value: unknown) => key === 'password' ? undefined : value));
 		Logger.info('profile:', data.profile);
 
 		if(data.hostname) {

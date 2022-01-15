@@ -196,6 +196,8 @@ export class WebDAVRepository extends FileRepository {
 		catch {
 		}
 
+		Logger.info(`move "${srcDir.path}" to "${destDir.path}"`);
+
 		await this._fs!.rename(srcDir.path, destDir.path);
 	} // }}}
 
