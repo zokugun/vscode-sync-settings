@@ -62,4 +62,22 @@ describe('webdav.upload', () => {
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 		}));
 	}); // }}}
+
+	it('temp', async () => { // {{{
+		vol.fromJSON({
+			'/webdav/.vsx': 'zokugun.sync-settings',
+			'/webdav/.profiles/main/extensions.yml': 'old upload',
+		});
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.upload();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] push done');
+
+		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+			disabled: [],
+			enabled: [],
+		}));
+	}); // }}}
 });

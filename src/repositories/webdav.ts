@@ -18,6 +18,8 @@ interface WebDAVFS {
 	mkdir: (dirPath: PathLike) => Promise<void>;
 	readdir: (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<string | FsStat>>;
 	readFile: (filename: PathLike, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<string | BufferLike>;
+	rename: (filePath: PathLike, targetPath: PathLike) => Promise<void>;
+	rmdir: (targetPath: PathLike) => Promise<void>;
 	stat: (remotePath: PathLike) => Promise<FsStat>;
 	writeFile: (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>;
 }
@@ -73,6 +75,8 @@ export class WebDAVRepository extends FileRepository {
 			mkdir: u(fs.mkdir) as (dirPath: PathLike) => Promise<void>,
 			readdir: u(fs.readdir) as (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<string | FsStat>>,
 			readFile: u(fs.readFile) as (filename: PathLike, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<string | BufferLike>,
+			rename: u(fs.rename) as (filePath: PathLike, targetPath: PathLike) => Promise<void>,
+			rmdir: u(fs.rmdir) as (targetPath: PathLike) => Promise<void>,
 			stat: u(fs.stat) as (remotePath: PathLike) => Promise<FsStat>,
 			writeFile: u(fs.writeFile) as (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>,
 		};
@@ -122,6 +126,18 @@ export class WebDAVRepository extends FileRepository {
 		await this.push();
 	} // }}}
 
+	protected async emptyDir(dir: Uri): Promise<void> { // {{{
+		try {
+			await this._fs!.stat(dir.path);
+
+			await this._fs!.rmdir(dir.path);
+		}
+		catch {
+		}
+
+		await this._fs!.mkdir(dir.path);
+	} // }}}
+
 	protected async ensureDir(dir: Uri, exists: Record<string, boolean>): Promise<void> { // {{{
 		if(exists[dir.path]) {
 			return;
@@ -139,6 +155,18 @@ export class WebDAVRepository extends FileRepository {
 		}
 
 		exists[dir.path] = true;
+	} // }}}
+
+	protected async moveDir(srcDir: Uri, destDir: Uri): Promise<void> { // {{{
+		try {
+			await this._fs!.stat(destDir.path);
+
+			await this._fs!.rmdir(destDir.path);
+		}
+		catch {
+		}
+
+		await this._fs!.rename(srcDir.path, destDir.path);
 	} // }}}
 
 	protected async pull(): Promise<void> { // {{{
@@ -184,15 +212,21 @@ export class WebDAVRepository extends FileRepository {
 		Logger.info('push to webdav');
 
 		const files = await globby('**', {
-			cwd: this._rootPath,
+			cwd: path.join(this._rootPath, 'profiles'),
 			followSymbolicLinks: false,
 		});
+
+		const temporaryRoot = Uri.parse('/.profiles');
+
+		await this.emptyDir(temporaryRoot);
 
 		const exists = {};
 
 		for(const file of files) {
-			await this.pushFile(path.join(this._rootPath, file), Uri.file(file), exists);
+			await this.pushFile(path.join(this._rootPath, 'profiles', file), Uri.joinPath(temporaryRoot, file), exists);
 		}
+
+		await this.moveDir(temporaryRoot, Uri.parse('/profiles'));
 
 		Logger.info('push done');
 	} // }}}
@@ -207,7 +241,7 @@ export class WebDAVRepository extends FileRepository {
 		await this._fs!.writeFile(remoteFile.path, data, 'utf8');
 	} // }}}
 
-	protected async validate(): Promise<void> {
+	protected async validate(): Promise<void> { // {{{
 		const files: string[] = await this._fs!.readdir('/') as string[];
 		if(files.length === 0) {
 			await this._fs!.writeFile('/.vsx', 'zokugun.sync-settings', 'utf8');
@@ -227,5 +261,5 @@ export class WebDAVRepository extends FileRepository {
 		}
 
 		throw new WebDAVError('The working directory is not valid. Please use an empty directory.');
-	}
+	} // }}}
 }
