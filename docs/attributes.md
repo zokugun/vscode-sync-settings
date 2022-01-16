@@ -9,7 +9,7 @@ Upload/Download
 On upload, all identified blocks will be commented
 
 So if locally, you have:
-```json
+```
 {
     // #enable(os="linux")
     "key": "foobar"
@@ -17,7 +17,7 @@ So if locally, you have:
 ```
 
 The following will be uploaded to the repository:
-```json
+```
 {
     // #enable(os="linux")
     // "key": "foobar"
@@ -45,7 +45,7 @@ Blocks
 
 ### `enable`
 
-```json
+```
 {
     // #enable(os="linux")
     // "key": "foobar"
@@ -56,7 +56,7 @@ If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented.
 
 ### `if/else`
 
-```json
+```
 {
     // #if(os="mac")
     // "key": "foo"
@@ -77,7 +77,7 @@ If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented.
 
 The property won't be uploaded and is kept when downloading a new `settings.json`.
 
-```json
+```
 {
     // #ignore
     "key": "foobar"

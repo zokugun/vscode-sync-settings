@@ -146,15 +146,15 @@ JSONC attributes can be used to enable/disable settings based on, for example, t
 
 ### example
 
-```json
+```
 {
     // #if(os="mac")
-	// "editor.fontWeight": "300",
-	// #elif(os="windows")
-	// "editor.fontWeight": "400",
-	// #else
-	// "editor.fontWeight": "500",
-	// #endif
+    // "editor.fontWeight": "300",
+    // #elif(os="windows")
+    // "editor.fontWeight": "400",
+    // #else
+    // "editor.fontWeight": "500",
+    // #endif
 }
 ```
 
