@@ -29,6 +29,7 @@ export function preprocessJSONC(text: string, { profile, hostname }: { profile: 
 	const args = {
 		...process.env,
 		host: hostname,
+		hostname,
 		profile,
 		os: OS,
 		editor: EDITOR,

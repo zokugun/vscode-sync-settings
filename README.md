@@ -74,7 +74,7 @@ repository:
   branch: master    # default
 ```
 
-The extension don't authentificate to access the remote repository, it's using the default `git` command (from the terminal).<br/>
+The extension don't authentificate to access the remote repository, it's using the default `git` command (from the terminal).<br />
 That `git` command will need write access to that repository.
 
 #### rsync
@@ -87,6 +87,18 @@ repository:
 ```
 
 The access to the server shouldn't require the need of any passwords.
+
+#### webdav
+
+```yaml
+repository:
+  type: webdav
+  url: http://localhost:9988/webdav/server
+  username: webdav-user
+  password: pa$$w0rd!
+```
+
+[More on WebDAV here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md)
 
 ### Which resources?
 
@@ -102,7 +114,7 @@ Profiles
 
 Each profile has its own directory in the repository and can be configured independently of each other.
 
-You can create a new profile with the command `> Sync Settings: Create a new profile`.
+You can create a new profile with the command `> Sync Settings: Create a new profile`.<br />
 Or switch to an existing one with the command `> Sync Settings: Switch to profile`.
 
 ### Profile Inheritance
@@ -111,7 +123,7 @@ A profile can extend an existing profile but it's limited to the following resou
 - extensions
 - snippets
 
-You can select the profile to extend from when creating a new profile (command `> Sync Settings: Create a new profile`).
+You can select the profile to extend from when creating a new profile (command `> Sync Settings: Create a new profile`).<br />
 The command `> Sync Settings: Open the profile settings` will allow you to modify the property `extends`.
 
 Commands
@@ -130,53 +142,31 @@ Commands
 JSONC Attributes
 ----------------
 
-### `enable`
+JSONC attributes can be used to enable/disable settings based on, for example, the OS or the editor's version.
 
-```
-{
-    // #enable(os="linux")
-    // "key": "foobar"
-}
-```
+### example
 
-If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented. If not, the block will be commented.
-
-### `if/else`
-
-```
+```json
 {
     // #if(os="mac")
-    "key": "foo"
-    // #elif(os="windows", host="host1"|"host2")
-    "key": "bar"
-    // #elif(version>="1.59.0")
-    "key": "qux"
-    // #else
-    "key": "baz"
-    // #endif
+	// "editor.fontWeight": "300",
+	// #elif(os="windows")
+	// "editor.fontWeight": "400",
+	// #else
+	// "editor.fontWeight": "500",
+	// #endif
 }
 ```
 
-`#elif(os="windows", host="host1"|"host2")` is `true` when `os` equals `windows` ***and*** `host` equals `host1` or `host2`.<br />
-`#elif(os="windows", version>="1.59.0")` is `true` when `version` is greater than or equal to `1.59.0`.
+When the `settings.json` is downloaded, depending on the OS, the setting `editor.fontWeight` will have the following value:
 
-### `ignore`
+| OS      | `editor.fontWeight` |
+| ------- |:-------------------:|
+| Linux   |        `500`        |
+| MacOS   |        `300`        |
+| Windows |        `400`        |
 
-```
-{
-    // #ignore
-    "key": "foobar"
-}
-```
-
-### arguments
-
-- `host`: the hostname found in `settings.yml`
-- `profile`: the profile used to sync
-- `os`: `linux`, `mac` or `windows`
-- `editor`: `visual studio code`, `vscodium`, `mrcode` or the lowercased `nameLong` in `product.json`
-- `version`: the version of the editor
-- all env variables are directly available, like `EDITOR` => `#if(EDITOR="vi")`
+[More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/attributes.md)
 
 Donations
 ---------
