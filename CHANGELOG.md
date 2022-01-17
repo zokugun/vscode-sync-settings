@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.0 | 2022-01-17
+- add support for WebDAV
+- add documentation for JSONC attributes and WebDAV
+
 ## v0.6.2 | 2021-10-21
 - improve handling of missing settings files
 - display a message when there is no differences

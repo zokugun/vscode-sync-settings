@@ -2,7 +2,7 @@
 	"name": "sync-settings",
 	"displayName": "Sync Settings",
 	"description": "Easily synchronize your settings",
-	"version": "0.6.2",
+	"version": "0.7.0",
 	"author": {
 		"name": "Baptiste Augrain",
 		"email": "daiyam@zokugun.org"
@@ -299,5 +299,10 @@
 		"profile",
 		"settings",
 		"sync"
-	]
+	],
+	"__metadata": {
+		"id": "96e8e36b-03bd-44a6-b158-b7ad48d2e58f",
+		"publisherDisplayName": "zokugun",
+		"publisherId": "7981b718-ae65-4fd8-ad42-96331c0f9872"
+	}
 }
