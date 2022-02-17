@@ -160,7 +160,12 @@ export class Settings {
 
 	private set(data: SettingsData) { // {{{
 		Logger.info('repository:', JSON.stringify(data.repository, (key: string, value: unknown) => key === 'password' || key === 'token' ? '...' : value));
-		Logger.info('profile:', data.profile);
+		if(data.profile) {
+			Logger.info('profile:', data.profile);
+		}
+		else {
+			Logger.error('The `profile` property is required');
+		}
 
 		if(data.hostname) {
 			Logger.info('hostname:', data.hostname);

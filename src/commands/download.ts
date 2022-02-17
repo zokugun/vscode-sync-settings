@@ -3,6 +3,10 @@ import { RepositoryFactory } from '../repository-factory';
 import { Logger } from '../utils/logger';
 
 export async function download(): Promise<void> {
+	if(await RepositoryFactory.isDummy()) {
+		return;
+	}
+
 	const config = vscode.workspace.getConfiguration('syncSettings');
 	const confirmSync = config.get<boolean>('confirmSync') ?? false;
 	const openOutputOnActivity = config.get<boolean>('openOutputOnActivity') ?? false;

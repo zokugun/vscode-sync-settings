@@ -47,6 +47,10 @@ async function hasDifferences(uriA: Uri, uriB: Uri): Promise<boolean> { // {{{
 } // }}}
 
 export async function viewDifferences(): Promise<void> {
+	if(await RepositoryFactory.isDummy()) {
+		return;
+	}
+
 	const oldRepository = await RepositoryFactory.get();
 
 	if(oldRepository instanceof FileRepository) {

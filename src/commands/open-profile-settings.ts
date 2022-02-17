@@ -4,6 +4,10 @@ import { RepositoryFactory } from '../repository-factory';
 import { exists } from '../utils/exists';
 
 export async function openProfileSettings(): Promise<void> {
+	if(await RepositoryFactory.isDummy()) {
+		return;
+	}
+
 	const repository = await RepositoryFactory.get();
 	const filePath = repository.getProfileSettingsPath();
 

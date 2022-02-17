@@ -7,13 +7,19 @@ import { WebDAVRepository } from './repositories/webdav';
 import { Repository } from './repository';
 import { RepositoryType } from './repository-type';
 import { Settings } from './settings';
+import { Logger } from './utils/logger';
 
 let $instance: Repository | undefined;
 
 async function create(settings: Settings): Promise<void> { // {{{
 	$instance = undefined;
 
-	if(settings.repository.type === RepositoryType.DUMMY) {
+	if(settings.profile.length === 0) {
+		$instance = new DummyRepository(settings);
+
+		Logger.error('The `profile` property is required');
+	}
+	else if(settings.repository.type === RepositoryType.DUMMY) {
 		$instance = new DummyRepository(settings);
 	}
 	else if(settings.repository.type === RepositoryType.FILE) {
@@ -57,6 +63,19 @@ export namespace RepositoryFactory {
 		return $instance!;
 	} // }}}
 
+	export async function isDummy(): Promise<boolean> {
+		const repository = await get();
+
+		if(repository instanceof DummyRepository) {
+			Logger.error('The repository isn\'t valid. Please check the settings.');
+
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	export async function reload(): Promise<boolean> { // {{{
 		const settings = Settings.get();
 
@@ -83,12 +102,26 @@ export namespace RepositoryFactory {
 	} // }}}
 
 	export async function setProfile(profile: string): Promise<void> { // {{{
-		if($instance) {
-			await $instance.setProfile(profile);
-		}
-
 		const settings = Settings.get();
 
-		return settings.setProfile(profile);
+		await settings.setProfile(profile);
+
+		if($instance) {
+			if(profile.length === 0) {
+				if(!($instance instanceof DummyRepository)) {
+					$instance = new DummyRepository(settings);
+				}
+
+				Logger.error('The `profile` property is required');
+			}
+			else {
+				if($instance instanceof DummyRepository) {
+					await create(settings);
+				}
+				else {
+					await $instance.setProfile(profile);
+				}
+			}
+		}
 	} // }}}
 }

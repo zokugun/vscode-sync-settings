@@ -3,6 +3,10 @@ import { RepositoryFactory } from '../repository-factory';
 import { Logger } from '../utils/logger';
 
 export async function switchProfile(): Promise<void> {
+	if(await RepositoryFactory.isDummy()) {
+		return;
+	}
+
 	try {
 		const repository = await RepositoryFactory.get();
 		const profile = repository.profile;

@@ -3,6 +3,10 @@ import vscode from 'vscode';
 import { RepositoryFactory } from '../repository-factory';
 
 export async function openProfileDirectory(): Promise<void> {
+	if(await RepositoryFactory.isDummy()) {
+		return;
+	}
+
 	const repository = await RepositoryFactory.get();
 	const filePath = repository.getProfileSettingsPath();
 
