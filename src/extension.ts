@@ -91,7 +91,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 	const settings = Settings.get();
 	const fileChangesDelayer = new ThrottledDelayer<void>(200);
-	const watcher = vscode.workspace.createFileSystemWatcher(settings.settingsUri.fsPath);
+	const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.joinPath(settings.settingsUri, '..').fsPath, 'settings.yml'));
 
 	watcher.onDidChange(() => {
 		void fileChangesDelayer.trigger(async () => {
