@@ -54,7 +54,7 @@ export abstract class Repository {
 
 	protected checkInitialized(): void { // {{{
 		if(!this._initialized) {
-			throw new Error('The repository is not initialized');
+			throw new Error('The repository wasn\'t successfully initialized so the current operation can\'t continue. Please check the previous error.');
 		}
 	} // }}}
 

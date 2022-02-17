@@ -283,6 +283,15 @@
 					"tags": [
 						"sync"
 					]
+				},
+				"syncSettings.showErrorAlert": {
+					"type": "boolean",
+					"description": "Show an alert when an error occurs.",
+					"default": true,
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
 				}
 			}
 		}

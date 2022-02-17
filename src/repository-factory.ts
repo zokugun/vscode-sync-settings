@@ -26,6 +26,9 @@ async function create(settings: Settings): Promise<void> { // {{{
 		else if(settings.repository.url) {
 			$instance = new RemoteGitRepository(settings);
 		}
+		else {
+			throw new Error('A `git` repository requires a `path` or `url` property');
+		}
 	}
 	else if(settings.repository.type === RepositoryType.RSYNC) {
 		$instance = new RsyncRepository(settings);
@@ -35,7 +38,7 @@ async function create(settings: Settings): Promise<void> { // {{{
 	}
 
 	if(!$instance) {
-		throw new Error(`The repository has a mysterious type: ${settings.repository.type}`);
+		throw new Error(`The repository has an unknown type: ${settings.repository.type}`);
 	}
 
 	return $instance.setProfile(settings.profile);

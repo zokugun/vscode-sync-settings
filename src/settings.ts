@@ -30,9 +30,9 @@ export interface RepositorySettings {
 }
 
 interface SettingsData {
-	hostname: string;
-	profile: string;
-	repository: RepositorySettings;
+	hostname?: string;
+	profile?: string;
+	repository?: RepositorySettings;
 }
 
 export class Settings {
@@ -41,16 +41,16 @@ export class Settings {
 	public readonly settingsUri: Uri;
 
 	private _hash = '';
-	private _hostname!: string;
-	private _profile!: string;
-	private _repository!: RepositorySettings;
+	private _hostname: string = '';
+	private _profile: string = '';
+	private _repository: RepositorySettings = {
+		type: RepositoryType.DUMMY,
+	};
 
-	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri, data: SettingsData) { // {{{
+	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri) { // {{{
 		this.extensionId = id;
 		this.globalStorageUri = globalStorageUri;
 		this.settingsUri = settingsUri;
-
-		this.set(data);
 	} // }}}
 
 	public static get(): Settings { // {{{
@@ -76,14 +76,14 @@ export class Settings {
 	public static async load(context: ExtensionContext): Promise<Settings> { // {{{
 		const settingsPath = Uri.joinPath(context.globalStorageUri, 'settings.yml');
 
+		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath);
+
 		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf-8') : null;
 
 		if(data) {
-			$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, yaml.parse(data));
+			$instance.set(yaml.parse(data) ?? {});
 		}
 		else {
-			$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, defaults());
-
 			await $instance.save();
 		}
 
@@ -139,15 +139,26 @@ export class Settings {
 	} // }}}
 
 	private set(data: SettingsData) { // {{{
-		Logger.info('repository:', JSON.stringify(data.repository, (key: string, value: unknown) => key === 'password' ? undefined : value));
+		Logger.info('repository:', JSON.stringify(data.repository, (key: string, value: unknown) => key === 'password' || key === 'token' ? '...' : value));
 		Logger.info('profile:', data.profile);
 
 		if(data.hostname) {
 			Logger.info('hostname:', data.hostname);
 		}
 
-		this._hostname = data.hostname;
-		this._repository = data.repository;
-		this._profile = data.profile;
+		if(data.repository) {
+			this._hostname = data.hostname ?? '';
+			this._profile = data.profile ?? '';
+			this._repository = data.repository;
+		}
+		else {
+			this._hostname = '';
+			this._profile = '';
+			this._repository = {
+				type: RepositoryType.DUMMY,
+			};
+
+			Logger.error('No `repository` property has been defined in the settings');
+		}
 	} // }}}
 }
