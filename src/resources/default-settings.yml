@@ -1,0 +1,54 @@
+# current machine's name, optional; it can be used to filter settings or in the commit message
+hostname: ""
+# selected profile, required
+profile: main
+# repository to sync the settings with, required
+repository:
+  # repository's type, required (dummy: no sync)
+  type: dummy
+
+
+# # sync on local file system
+# repository:
+#   type: file
+#   # path of the local directory to sync with, required
+#   path: ~/Development/settings
+
+
+# # sync on local git
+# repository:
+#   type: git
+#   # path of the local git repository to sync with, required
+#   path: ~/Development/settings
+#   # branch to sync on, optional (set to `master` by default)
+#   branch: master
+
+
+# # sync on remote git
+# repository:
+#   type: git
+#   # url of the remote git repository to sync with, required
+#   url: git@github.com:username/settings.git
+#   # branch to sync on, optional (set to `master` by default)
+#   branch: master
+
+
+# # sync on remote directory with rsync
+# repository:
+#   type: rsync
+#   # url of the remote directory to sync with, required
+#   url: server:~/settings
+#   # shell used by rsync, optional (set to `ssh` by default)
+#   shell: ssh
+
+
+# # sync on remote directory with webdav
+# repository:
+#   type: webdav
+#   # url of the remote directory, required
+#   url: http://localhost:9988/webdav/server
+#   # the username, optional
+#   username: webdav-user
+#   # the password, optional
+#   password: pa$$w0rd!
+#   # all options available at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md

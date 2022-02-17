@@ -82,12 +82,32 @@ export class Settings {
 
 		if(data) {
 			$instance.set(yaml.parse(data) ?? {});
+
+			$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
 		}
 		else {
-			await $instance.save();
-		}
+			const defaultSettingsPath = Uri.joinPath(context.extensionUri, 'src', 'resources', 'default-settings.yml');
 
-		$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
+			if(await exists(defaultSettingsPath.fsPath)) {
+				const data = await fse.readFile(defaultSettingsPath.fsPath, 'utf-8');
+
+				$instance.set(yaml.parse(data) ?? {});
+
+				await fse.ensureDir(Uri.joinPath($instance.settingsUri, '..').fsPath);
+
+				await fse.writeFile($instance.settingsUri.fsPath, data, {
+					encoding: 'utf-8',
+					mode: 0o600,
+				});
+
+				$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
+			}
+			else {
+				$instance.set(defaults());
+
+				await $instance.save();
+			}
+		}
 
 		return $instance;
 	} // }}}
