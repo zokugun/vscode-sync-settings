@@ -5,44 +5,57 @@ import fse from 'fs-extra';
 import vscode from 'vscode';
 
 export async function restartApp(): Promise<void> {
-	const product = JSON.parse(await fse.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { nameLong: string; applicationName: string };
+	const product = JSON.parse(await fse.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { nameLong: string };
 
 	if(process.platform === 'darwin') {
-		restartMac(product);
+		await restartMac(product);
 	}
 	else if(process.platform === 'win32') {
-		restartWindows(product);
+		await restartWindows();
 	}
 	else {
-		restartLinux(product);
+		await restartLinux();
 	}
 }
 
-function restartMac({ nameLong, applicationName }: { nameLong: string; applicationName: string }): void {
+async function getAppBinary(appHomeDir: string): Promise<string> {
+	const files = await fse.readdir(appHomeDir);
+
+	if(files.length === 1) {
+		return path.join(appHomeDir, files[0]);
+	}
+
+	throw new Error('Can determine binary path');
+}
+
+async function restartMac({ nameLong }: { nameLong: string }): Promise<void> {
 	const match = /(.*\.app)\/Contents\/Frameworks\//.exec(process.execPath);
 	const appPath = match ? match[1] : `/Applications/${nameLong}.app`;
+	const binary = await getAppBinary(`${appPath}/Contents/Resources/app/bin/`);
 
-	spawn('osascript', ['-e', `quit app "${nameLong}"`, '-e', 'delay 1', '-e', `do shell script quoted form of "${appPath}/Contents/Resources/app/bin/${applicationName}"`], {
+	spawn('osascript', ['-e', `quit app "${nameLong}"`, '-e', 'delay 1', '-e', `do shell script quoted form of "${binary}"`], {
 		detached: true,
 		stdio: 'ignore',
 	});
 }
 
-function restartWindows({ applicationName }: { applicationName: string }): void {
+async function restartWindows(): Promise<void> {
 	const appHomeDir = path.dirname(process.execPath);
 	const exeName = path.basename(process.execPath);
+	const binary = await getAppBinary(`${appHomeDir}\\bin\\`);
 
-	spawn(process.env.comspec ?? 'cmd', [`/C taskkill /F /IM ${exeName} >nul && timeout /T 1 && "${appHomeDir}\\bin\\${applicationName}"`], {
+	spawn(process.env.comspec ?? 'cmd', [`/C taskkill /F /IM ${exeName} >nul && timeout /T 1 && "${binary}"`], {
 		detached: true,
 		stdio: 'ignore',
 		windowsVerbatimArguments: true,
 	});
 }
 
-function restartLinux({ applicationName }: { applicationName: string }): void {
+async function restartLinux(): Promise<void> {
 	const appHomeDir = path.dirname(process.execPath);
+	const binary = await getAppBinary(`${appHomeDir}/bin/`);
 
-	spawn('/bin/sh', ['-c', `killall "${process.execPath}" && sleep 1 && killall -9 "${process.execPath}" && sleep 1 && ${appHomeDir}/bin/${applicationName}`], {
+	spawn('/bin/sh', ['-c', `killall "${process.execPath}" && sleep 1 && killall -9 "${process.execPath}" && sleep 1 && "${binary}"`], {
 		detached: true,
 		stdio: 'ignore',
 	});
