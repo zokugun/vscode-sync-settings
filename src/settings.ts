@@ -23,6 +23,7 @@ function defaults() { // {{{
 
 export interface RepositorySettings {
 	branch?: string;
+	messages?: Record<string, string>;
 	path?: string;
 	shell?: string;
 	type: RepositoryType;

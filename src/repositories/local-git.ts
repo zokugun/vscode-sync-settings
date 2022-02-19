@@ -6,24 +6,31 @@ import createSimpleGit, { SimpleGit } from 'simple-git';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
 import { exists } from '../utils/exists';
+import { format } from '../utils/format';
 import { Logger } from '../utils/logger';
 import { FileRepository } from './file';
 
 export enum CommitType {
-	CREATE = 'create',
-	UPLOAD = 'upload',
+	INIT = 'init',
+	UPDATE = 'update',
 }
 
 export class LocalGitRepository extends FileRepository {
 	protected _branch: string;
 	protected _git: SimpleGit;
+	protected _initMessage: string;
 	protected _version: string | undefined;
+	protected _updateMessage: string;
 
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings, rootPath);
 
 		this._git = createSimpleGit();
 		this._branch = settings.repository.branch ?? 'master';
+
+		const messages = settings.repository.messages;
+		this._initMessage = messages?.init ?? 'profile({{profile}}): init -- {{now|date:iso}}';
+		this._updateMessage = messages?.update ?? 'profile({{profile}}): update -- {{now|date:iso}}';
 	} // }}}
 
 	public override get type() { // {{{
@@ -42,7 +49,7 @@ export class LocalGitRepository extends FileRepository {
 			await fs.writeFile(gitkeepPath, '', 'utf-8');
 		}
 
-		return this.push(CommitType.CREATE, newProfile);
+		return this.push(CommitType.INIT, newProfile);
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -58,7 +65,7 @@ export class LocalGitRepository extends FileRepository {
 
 			await fs.writeFile(gitkeepPath, '', 'utf-8');
 
-			await this.push(CommitType.CREATE);
+			await this.push(CommitType.INIT);
 		}
 
 		this._initialized = true;
@@ -67,7 +74,7 @@ export class LocalGitRepository extends FileRepository {
 	public override async upload(): Promise<void> { // {{{
 		await super.upload();
 
-		await this.push(CommitType.UPLOAD);
+		await this.push(CommitType.UPDATE);
 	} // }}}
 
 	protected async getVersion(): Promise<string> { // {{{
@@ -118,7 +125,11 @@ export class LocalGitRepository extends FileRepository {
 			Logger.info('no changes, no commit');
 		}
 		else {
-			const message = type === CommitType.CREATE ? `profile(${profile}): init -- ${new Date().toISOString()}` : `profile(${profile}): update -- ${new Date().toISOString()}`;
+			const message = format(type === CommitType.INIT ? this._initMessage : this._updateMessage, {
+				profile,
+				now: new Date(),
+				hostname: this._settings.hostname,
+			});
 
 			Logger.info(`commit: ${message}`);
 
