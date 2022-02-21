@@ -33,11 +33,14 @@ The repository is configured with the following file:
 
 ##### **`settings.yml`**
 ```yaml
+# current machine's name, optional; it can be used to filter settings or in the commit message
 hostname: ""
+# selected profile, required
 profile: main
+# repository to sync the settings with, required
 repository:
+  # repository's type, required (dummy: no sync)
   type: dummy
-  path:
 ```
 
 You can open that file with the command:
@@ -49,41 +52,70 @@ You can open that file with the command:
 #### file
 
 ```yaml
+# sync on local file system
 repository:
   type: file
+  # path of the local directory to sync with, required
   path: ~/Development/settings
 ```
 
 #### local git
 
 ```yaml
+# sync on local git
 repository:
   type: git
+  # path of the local git repository to sync with, required
   path: ~/Development/settings
-  branch: master    # default
+  # branch to sync on, optional (set to `master` by default)
+  branch: master
+  # commit messages used when initializing or updating a profile, optional
+  messages:
+    # commit message used when initializing a new profile, optional (set to `profile({{profile}}): init -- {{now|date:iso}}` by default)
+    init: 'profile({{profile}}): init -- {{now|date:iso}}'
+    # commit message used when updating a profile, optional (set to `profile({{profile}}): update -- {{now|date:iso}}` by default)
+    update: 'profile({{profile}}): update -- {{now|date:iso}}'
+    # more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
 ```
+
+[More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
 
 If not initialized, the git repository will be automatically initialized.
 
 #### remote git
 
 ```yaml
+# sync on remote git
 repository:
   type: git
+  # url of the remote git repository to sync with, required
   url: git@github.com:username/settings.git
-  branch: master    # default
+  # branch to sync on, optional (set to `master` by default)
+  branch: master
+  # commit messages used when initializing or updating a profile, optional
+  messages:
+    # commit message used when initializing a new profile, optional (set to `profile({{profile}}): init -- {{now|date:iso}}` by default)
+    init: 'profile({{profile}}): init -- {{now|date:iso}}'
+    # commit message used when updating a profile, optional (set to `profile({{profile}}): update -- {{now|date:iso}}` by default)
+    update: 'profile({{profile}}): update -- {{now|date:iso}}'
+    # more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
 ```
 
-The extension don't authentificate to access the remote repository, it's using the default `git` command (from the terminal).<br />
-That `git` command will need write access to that repository.
+[More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
+
+No authentifications are stored.<br/>
+But the `git` command on your system will need to be able to read/write on the remote repository.
 
 #### rsync
 
 ```yaml
+# sync on remote directory with rsync
 repository:
   type: rsync
+  # url of the remote directory to sync with, required
   url: server:~/settings
-  shell: ssh    # default
+  # shell used by rsync, optional (set to `ssh` by default)
+  shell: ssh
 ```
 
 The access to the server shouldn't require the need of any passwords.
@@ -91,14 +123,19 @@ The access to the server shouldn't require the need of any passwords.
 #### webdav
 
 ```yaml
+# sync on remote directory with webdav
 repository:
   type: webdav
+  # url of the remote directory, required
   url: http://localhost:9988/webdav/server
+  # the username, optional
   username: webdav-user
+  # the password, optional
   password: pa$$w0rd!
+  # all options available at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md
 ```
 
-[More on WebDAV here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md)
+[All WebDAV options available here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md)
 
 ### Which resources?
 
