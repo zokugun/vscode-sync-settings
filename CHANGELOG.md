@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.0 | 2022-02-21
+- commit messages can be personalized
+- display an alert when an error occurs
+- default `settings.yml` contains an example and comments for all types of repository
+- fix reloading settings when changed
+- fix restart Visual Studio Code - Insiders
+- improve error messages
+
 ## v0.7.0 | 2022-01-17
 - add support for WebDAV
 - add documentation for JSONC attributes and WebDAV
