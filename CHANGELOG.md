@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.1 | 2022-02-25
+- add settings `syncSettings.gitInitMessage`, `syncSettings.gitUpdateMessage` to share messages between computers
+- add `syncSettings.hostname` setting to automatically generate the hostname.
+
 ## v0.8.0 | 2022-02-21
 - commit messages can be personalized
 - display an alert when an error occurs
