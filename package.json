@@ -169,6 +169,24 @@
 						"sync"
 					]
 				},
+				"syncSettings.gitInitMessage": {
+					"type": "string",
+					"description": "Message used when commiting a new profile.",
+					"default": "profile({{profile}}): init -- {{now|date:iso}}",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.gitUpdateMessage": {
+					"type": "string",
+					"description": "Message used when commiting changes of a profile.",
+					"default": "profile({{profile}}): update -- {{now|date:iso}}",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.keybindingsPerPlatform": {
 					"type": "boolean",
 					"description": "Synchronize keybindings for each platform.",

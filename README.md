@@ -80,6 +80,8 @@ repository:
 
 [More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
 
+The commit messages can also be configured with the settings `syncSettings.gitInitMessage` and `syncSettings.gitUpdateMessage`.
+
 If not initialized, the git repository will be automatically initialized.
 
 #### remote git
@@ -102,6 +104,8 @@ repository:
 ```
 
 [More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
+
+The commit messages can also be configured with the settings `syncSettings.gitInitMessage` and `syncSettings.gitUpdateMessage`.
 
 No authentifications are stored.<br/>
 But the `git` command on your system will need to be able to read/write on the remote repository.

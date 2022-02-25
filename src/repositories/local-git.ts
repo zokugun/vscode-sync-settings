@@ -3,6 +3,7 @@ import path from 'path';
 import fse from 'fs-extra';
 import semver from 'semver';
 import createSimpleGit, { SimpleGit } from 'simple-git';
+import vscode from 'vscode';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
 import { exists } from '../utils/exists';
@@ -28,9 +29,11 @@ export class LocalGitRepository extends FileRepository {
 		this._git = createSimpleGit();
 		this._branch = settings.repository.branch ?? 'master';
 
+		const config = vscode.workspace.getConfiguration('syncSettings');
 		const messages = settings.repository.messages;
-		this._initMessage = messages?.init ?? 'profile({{profile}}): init -- {{now|date:iso}}';
-		this._updateMessage = messages?.update ?? 'profile({{profile}}): update -- {{now|date:iso}}';
+
+		this._initMessage = messages?.init ?? config.get<string>('gitInitMessage') ?? 'profile({{profile}}): init -- {{now|date:iso}}';
+		this._updateMessage = messages?.update ?? config.get<string>('gitUpdateMessage') ?? 'profile({{profile}}): update -- {{now|date:iso}}';
 	} // }}}
 
 	public override get type() { // {{{
