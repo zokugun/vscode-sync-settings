@@ -35,6 +35,8 @@ The repository is configured with the following file:
 ```yaml
 # current machine's name, optional; it can be used to filter settings or in the commit message
 hostname: ""
+# more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hostname.md
+
 # selected profile, required
 profile: main
 # repository to sync the settings with, required

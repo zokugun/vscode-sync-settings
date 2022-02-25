@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { format } from '../src/utils/format';
+import { formatter } from '../src/utils/formatter';
 
-describe('format', () => {
+describe('formatter', () => {
 	it('profile', () => { // {{{
-		expect(format('profile({{profile}})', {
+		expect(formatter('profile({{profile}})', {
 			profile: 'test',
 		})).to.eql('profile(test)');
 	}); // }}}
@@ -11,7 +11,7 @@ describe('format', () => {
 	it('date:iso', () => { // {{{
 		const now = new Date();
 
-		expect(format('update -- {{now|date:iso}}', {
+		expect(formatter('update -- {{now|date:iso}}', {
 			now,
 		})).to.eql(`update -- ${now.toISOString()}`);
 	}); // }}}
@@ -23,7 +23,7 @@ describe('format', () => {
 			timeStyle: 'full',
 		});
 
-		expect(format('update -- {{now|date:full,full:fr}}', {
+		expect(formatter('update -- {{now|date:full,full:fr}}', {
 			now,
 		})).to.eql(`update -- ${formater.format(now)}`);
 	}); // }}}
@@ -31,7 +31,7 @@ describe('format', () => {
 	it('2vars', () => { // {{{
 		const now = new Date();
 
-		expect(format('profile({{profile}}): update -- {{now|date:iso}}', {
+		expect(formatter('profile({{profile}}): update -- {{now|date:iso}}', {
 			profile: 'test',
 			now,
 		})).to.eql(`profile(test): update -- ${now.toISOString()}`);

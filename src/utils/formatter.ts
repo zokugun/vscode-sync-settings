@@ -1,6 +1,6 @@
 const $regex = /{{([a-z]+)(?:\|([a-z]+)(?::([a-z,]+))?(?::([a-z,]+))?)?}}/g;
 
-export function format(format: string, properties: Record<string, unknown>): string {
+export function formatter(format: string, properties: Record<string, unknown>): string {
 	let match = $regex.exec(format);
 	if(!match) {
 		return format;

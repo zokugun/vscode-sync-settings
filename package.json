@@ -187,6 +187,15 @@
 						"sync"
 					]
 				},
+				"syncSettings.hostname": {
+					"type": "string",
+					"description": "Hostname generator",
+					"default": "",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.keybindingsPerPlatform": {
 					"type": "boolean",
 					"description": "Synchronize keybindings for each platform.",

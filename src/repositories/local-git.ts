@@ -7,7 +7,8 @@ import vscode from 'vscode';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
 import { exists } from '../utils/exists';
-import { format } from '../utils/format';
+import { formatter } from '../utils/formatter';
+import { hostname } from '../utils/hostname';
 import { Logger } from '../utils/logger';
 import { FileRepository } from './file';
 
@@ -19,6 +20,7 @@ export enum CommitType {
 export class LocalGitRepository extends FileRepository {
 	protected _branch: string;
 	protected _git: SimpleGit;
+	protected _hostname: string;
 	protected _initMessage: string;
 	protected _version: string | undefined;
 	protected _updateMessage: string;
@@ -34,6 +36,8 @@ export class LocalGitRepository extends FileRepository {
 
 		this._initMessage = messages?.init ?? config.get<string>('gitInitMessage') ?? 'profile({{profile}}): init -- {{now|date:iso}}';
 		this._updateMessage = messages?.update ?? config.get<string>('gitUpdateMessage') ?? 'profile({{profile}}): update -- {{now|date:iso}}';
+
+		this._hostname = settings.hostname ?? hostname(config);
 	} // }}}
 
 	public override get type() { // {{{
@@ -128,10 +132,10 @@ export class LocalGitRepository extends FileRepository {
 			Logger.info('no changes, no commit');
 		}
 		else {
-			const message = format(type === CommitType.INIT ? this._initMessage : this._updateMessage, {
+			const message = formatter(type === CommitType.INIT ? this._initMessage : this._updateMessage, {
 				profile,
 				now: new Date(),
-				hostname: this._settings.hostname,
+				hostname: this._hostname,
 			});
 
 			Logger.info(`commit: ${message}`);

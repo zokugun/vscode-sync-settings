@@ -1,6 +1,7 @@
 import process from 'process';
 import { transform } from '@daiyam/jsonc-preprocessor';
 import vscode from 'vscode';
+import { hostname } from './hostname';
 
 const TYPES = {
 	version: 'version',
@@ -25,11 +26,15 @@ function os(): string {
 	}
 }
 
-export function preprocessJSONC(text: string, { profile, hostname }: { profile: string; hostname: string }): string {
+export function preprocessJSONC(text: string, settings: { profile: string; hostname?: string }): string {
+	const config = vscode.workspace.getConfiguration('syncSettings');
+	const host = settings.hostname ?? hostname(config);
+	const { profile } = settings;
+
 	const args = {
 		...process.env,
-		host: hostname,
-		hostname,
+		host,
+		hostname: host,
 		profile,
 		os: OS,
 		editor: EDITOR,

@@ -42,7 +42,7 @@ export class Settings {
 	public readonly settingsUri: Uri;
 
 	private _hash = '';
-	private _hostname: string = '';
+	private _hostname?: string;
 	private _profile: string = '';
 	private _repository: RepositorySettings = {
 		type: RepositoryType.DUMMY,
@@ -135,11 +135,14 @@ export class Settings {
 	} // }}}
 
 	public async save(): Promise<void> { // {{{
-		const settings: SettingsData = {
-			hostname: this._hostname,
-			profile: this._profile,
-			repository: this._repository,
-		};
+		const settings: SettingsData = {};
+
+		if(this._hostname ?? true) {
+			settings.hostname = this._hostname;
+		}
+
+		settings.profile = this._profile;
+		settings.repository = this._repository;
 
 		const data = yaml.stringify(settings);
 
