@@ -35,6 +35,7 @@ interface ProfileSettings {
 }
 
 interface ProfileSyncSettings {
+	additionalFiles?: string[];
 	keybindingsPerPlatform?: boolean;
 	ignoredExtensions?: string[];
 	ignoredSettings?: string[];
@@ -82,6 +83,10 @@ export class FileRepository extends Repository {
 		const data = yaml.stringify({ extends: originalProfile });
 
 		await fse.outputFile(profilePath, data, 'utf-8');
+	} // }}}
+
+	public getProfileAdditionalFilesPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'additionals');
 	} // }}}
 
 	public getProfileDataPath(profile: string = this.profile): string { // {{{
@@ -198,6 +203,8 @@ export class FileRepository extends Repository {
 			}
 		}
 
+		await this.restoreAdditionalFiles(ancestorProfile);
+
 		Logger.info('restore done');
 
 		if(restart) {
@@ -240,6 +247,8 @@ export class FileRepository extends Repository {
 			if(resources.includes(Resource.Settings)) {
 				await this.serializeUserSettings(syncSettings, userDataPath);
 			}
+
+			await this.serializeAdditionalFiles(syncSettings);
 		}
 
 		await this.saveProfileSyncSettings(syncSettings);
@@ -614,6 +623,35 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	protected async restoreAdditionalFiles(ancestorProfile: string): Promise<void> { // {{{
+		const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
+
+		const additionalFiles = syncSettings.additionalFiles ?? [];
+		if(additionalFiles.length === 0) {
+			return;
+		}
+
+		Logger.info('restore additional files');
+
+		const dataPath = this.getProfileAdditionalFilesPath(ancestorProfile);
+
+		for(let file of additionalFiles) {
+			file = file.replace(/\\/g, '/');
+
+			let src = file;
+			if(file.startsWith('~/')) {
+				src = path.join(os.homedir(), file.slice(2));
+			}
+			else if(file.startsWith('~globalStorage/')) {
+				src = path.join(this._settings.globalStorageUri.fsPath, '..', file.slice(15));
+			}
+
+			const dst = path.join(dataPath, file.replace(/\//g, '-'));
+
+			await fse.copyFile(dst, src);
+		}
+	} // }}}
+
 	protected async restoreExtensions(syncSettings: ProfileSyncSettings): Promise<boolean> { // {{{
 		Logger.info('restore extensions');
 
@@ -822,7 +860,7 @@ export class FileRepository extends Repository {
 			ancestors = await this.loadProfileSyncSettings(profile.extends);
 		}
 
-		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources']) {
+		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources', 'additionalFiles']) {
 			const data = config.inspect(property);
 
 			if(data && typeof data.globalValue !== 'undefined') {
@@ -864,6 +902,35 @@ export class FileRepository extends Repository {
 				encoding: 'utf-8',
 				mode: 0o600,
 			});
+		}
+	} // }}}
+
+	protected async serializeAdditionalFiles(config: WorkspaceConfiguration): Promise<void> { // {{{
+		const additionalFiles = config.get<string[]>('additionalFiles') ?? [];
+		if(additionalFiles.length === 0) {
+			return;
+		}
+
+		Logger.info('serialize additional files');
+
+		const dataPath = this.getProfileAdditionalFilesPath();
+
+		await fse.emptyDir(dataPath);
+
+		for(let file of additionalFiles) {
+			file = file.replace(/\\/g, '/');
+
+			let src = file;
+			if(file.startsWith('~/')) {
+				src = path.join(os.homedir(), file.slice(2));
+			}
+			else if(file.startsWith('~globalStorage/')) {
+				src = path.join(this._settings.globalStorageUri.fsPath, '..', file.slice(15));
+			}
+
+			const dst = path.join(dataPath, file.replace(/\//g, '-'));
+
+			await fse.copyFile(src, dst);
 		}
 	} // }}}
 

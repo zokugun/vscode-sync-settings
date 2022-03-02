@@ -160,6 +160,20 @@
 		"configuration": {
 			"title": "Sync Settings configuration",
 			"properties": {
+				"syncSettings.additionalFiles": {
+					"type": "array",
+					"markdownDescription": "List of additional files to synchronize at the same time as the resources",
+					"items": [
+						{
+							"type": "string"
+						}
+					],
+					"default": [],
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.confirmSync": {
 					"type": "boolean",
 					"description": "Ask for confirmation before synchronizing",
