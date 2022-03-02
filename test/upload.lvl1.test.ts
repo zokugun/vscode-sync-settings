@@ -20,7 +20,7 @@ describe('upload.lvl1', () => {
 		vscode.reset();
 
 		vol.fromJSON({
-			'/extension/settings.yml': settingsFxt.yml.level1,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.level1,
 			'/repository/profiles/level1/profile.yml': profilesFxt.yml.level1,
 		});
 

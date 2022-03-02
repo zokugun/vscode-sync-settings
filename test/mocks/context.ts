@@ -8,5 +8,5 @@ export const context: ExtensionContext = {
 		id: 'zokugun.sync-settings',
 	} as any,
 	subscriptions: [],
-	globalStorageUri: Uri.file('/extension'),
+	globalStorageUri: Uri.file('/globalStorage/extension'),
 } as any;

@@ -4,9 +4,12 @@ import { fromCallback as u } from 'universalify';
 
 const fs = {
 	access: u(mfs.access),
+	chmod: u(mfs.chmod),
+	close: u(mfs.close),
 	copyFile: u(mfs.copyFile),
 	createReadStream: mfs.createReadStream,
 	createWriteStream: mfs.createWriteStream,
+	futimes: u(mfs.futimes),
 	lstat: u(mfs.lstat),
 	mkdir: u(mfs.mkdir),
 	open: u(mfs.open),

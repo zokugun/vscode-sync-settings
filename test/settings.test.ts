@@ -15,7 +15,7 @@ describe('settings', () => {
 
 	it('get', async () => { // {{{
 		vol.fromJSON({
-			'/extension/settings.yml': settingsFxt.yml.default,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.default,
 		});
 
 		await Settings.load(context);

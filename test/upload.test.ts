@@ -17,7 +17,7 @@ describe('upload', () => {
 		vscode.reset();
 
 		vol.fromJSON({
-			'/extension/settings.yml': settingsFxt.yml.default,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.default,
 		});
 
 		await RepositoryFactory.reset();
@@ -186,6 +186,71 @@ describe('upload', () => {
 			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop2.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop3.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+	});
+
+	describe('additionals', () => {
+		it('globalStorage', async () => { // {{{
+			vol.fromJSON({
+				'/globalStorage/alefragnani.project-manager/projects.json': keybindingsFxt.json.gotoline,
+			});
+
+			vscode.setSettings({
+				'syncSettings.additionalFiles': [
+					'~globalStorage/alefragnani.project-manager/projects.json',
+				],
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+		}); // }}}
+
+		it('home', async () => { // {{{
+			vol.fromJSON({
+				'/home/projects.json': keybindingsFxt.json.gotoline,
+			});
+
+			vscode.setSettings({
+				'syncSettings.additionalFiles': [
+					'~/projects.json',
+				],
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+		}); // }}}
+
+		it('both', async () => { // {{{
+			vol.fromJSON({
+				'/globalStorage/alefragnani.project-manager/projects.json': keybindingsFxt.json.gotoline,
+				'/home/projects.json': keybindingsFxt.json.gotoline,
+			});
+
+			vscode.setSettings({
+				'syncSettings.additionalFiles': [
+					'~globalStorage/alefragnani.project-manager/projects.json',
+					'~/projects.json',
+				],
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 	});
 });

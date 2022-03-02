@@ -648,7 +648,9 @@ export class FileRepository extends Repository {
 
 			const dst = path.join(dataPath, file.replace(/\//g, '-'));
 
-			await fse.copyFile(dst, src);
+			await fse.copy(dst, src, {
+				preserveTimestamps: true,
+			});
 		}
 	} // }}}
 
@@ -819,7 +821,9 @@ export class FileRepository extends Repository {
 				continue;
 			}
 
-			await fse.copyFile(snippetPath, path.join(snippetsPath, name));
+			await fse.copy(snippetPath, path.join(snippetsPath, name), {
+				preserveTimestamps: true,
+			});
 		}
 	} // }}}
 
@@ -930,7 +934,9 @@ export class FileRepository extends Repository {
 
 			const dst = path.join(dataPath, file.replace(/\//g, '-'));
 
-			await fse.copyFile(src, dst);
+			await fse.copy(src, dst, {
+				preserveTimestamps: true,
+			});
 		}
 	} // }}}
 
@@ -1054,7 +1060,9 @@ export class FileRepository extends Repository {
 				const src = path.join(snippetsPath, file);
 				const dst = path.join(dataPath, file);
 
-				await fse.copyFile(src, dst);
+				await fse.copy(src, dst, {
+					preserveTimestamps: true,
+				});
 			}
 		}
 		else {

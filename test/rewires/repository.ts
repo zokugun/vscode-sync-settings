@@ -1,3 +1,4 @@
+import os from 'os';
 import path from 'path';
 import rewiremock from 'rewiremock';
 import { fs } from '../mocks/fs';
@@ -18,6 +19,11 @@ rewiremock(path.join('..', 'utils', 'get-extension-data-uri')).with({
 
 rewiremock(path.join('..', 'utils', 'get-user-data-path')).with({
 	getUserDataPath: () => '/user',
+});
+
+rewiremock('os').with({
+	...os,
+	homedir: () => '/home',
 });
 
 rewiremock.enable();

@@ -32,7 +32,7 @@ describe('webdav.check', () => {
 
 	it('empty', async () => { // {{{
 		await reset({
-			'/extension/settings.yml': settingsFxt.yml.webdav,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.webdav,
 			'/webdav': null,
 		});
 
@@ -44,7 +44,7 @@ describe('webdav.check', () => {
 
 	it('valid', async () => { // {{{
 		await reset({
-			'/extension/settings.yml': settingsFxt.yml.webdav,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.webdav,
 			'/webdav/.vsx': 'zokugun.sync-settings',
 		});
 
@@ -56,7 +56,7 @@ describe('webdav.check', () => {
 
 	it('unvalid', async () => { // {{{
 		await reset({
-			'/extension/settings.yml': settingsFxt.yml.webdav,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.webdav,
 			'/webdav/extensions.yml': extensionsFxt.yml.empty,
 		});
 

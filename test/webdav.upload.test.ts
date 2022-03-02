@@ -24,7 +24,7 @@ describe('webdav.upload', () => {
 		vscode.reset();
 
 		vol.fromJSON({
-			'/extension/settings.yml': settingsFxt.yml.webdav,
+			'/globalStorage/extension/settings.yml': settingsFxt.yml.webdav,
 			'/webdav': null,
 		});
 
