@@ -53,6 +53,23 @@ interface UIStateDiff {
 
 const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
+function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] { // {{{
+	const result: ExtensionId[] = [];
+
+	if(Array.isArray(items) && items.length > 0) {
+		for(const item of items) {
+			if(typeof item === 'string') {
+				result.push({ id: item, uuid: NIL_UUID });
+			}
+			else if(typeof item === 'object' && typeof item.id === 'string') {
+				result.push(item);
+			}
+		}
+	}
+
+	return result;
+} // }}}
+
 export class FileRepository extends Repository {
 	protected _rootPath: string;
 
@@ -423,11 +440,18 @@ export class FileRepository extends Repository {
 			}
 
 			const data = await fse.readFile(dataPath, 'utf-8');
-			const raw = yaml.parse(data) as { disabled: Array<string | { id: string; uuid: string }>; enabled: Array<string | { id: string; uuid: string }> };
+			const raw = yaml.parse(data) as { disabled: Array<string | ExtensionId>; enabled: Array<string | ExtensionId> };
+
+			if(!raw || typeof raw !== 'object') {
+				return {
+					disabled: [],
+					enabled: [],
+				};
+			}
 
 			return {
-				disabled: (raw.disabled.length > 0 && typeof raw.disabled[0] === 'string' ? raw.disabled.map((id) => ({ id, uuid: NIL_UUID })) : raw.disabled) as ExtensionId[],
-				enabled: (raw.enabled.length > 0 && typeof raw.enabled[0] === 'string' ? raw.enabled.map((id) => ({ id, uuid: NIL_UUID })) : raw.enabled) as ExtensionId[],
+				disabled: parseExtensionList(raw.disabled),
+				enabled: parseExtensionList(raw.enabled),
 			};
 		}
 
@@ -444,10 +468,15 @@ export class FileRepository extends Repository {
 			enabled: Array<string | ExtensionId>;
 			uninstall?: Array<string | ExtensionId>;
 		};
-		const extensions = {
-			disabled: (raw.disabled.length > 0 && typeof raw.disabled[0] === 'string' ? raw.disabled.map((id) => ({ id, uuid: NIL_UUID })) : raw.disabled) as ExtensionId[],
-			enabled: (raw.enabled.length > 0 && typeof raw.enabled[0] === 'string' ? raw.enabled.map((id) => ({ id, uuid: NIL_UUID })) : raw.enabled) as ExtensionId[],
-			uninstall: !raw.uninstall ? undefined : (raw.uninstall.length > 0 && typeof raw.uninstall[0] === 'string' ? raw.disabled.map((id) => ({ id, uuid: NIL_UUID })) : raw.uninstall) as ExtensionId[],
+
+		const extensions = !raw || typeof raw !== 'object' ? {
+			disabled: [],
+			enabled: [],
+			uninstall: undefined,
+		} : {
+			disabled: parseExtensionList(raw.disabled),
+			enabled: parseExtensionList(raw.enabled),
+			uninstall: !raw.uninstall ? undefined : parseExtensionList(raw.uninstall),
 		};
 
 		const ancestors = await this.listProfileExtensions(settings.extends);
