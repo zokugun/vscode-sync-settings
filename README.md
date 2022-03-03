@@ -152,6 +152,18 @@ You can configure what and how to synchronize with properties in your regular se
 - `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
 - `"syncSettings.keybindingsPerPlatform": true`
 
+External Files
+--------------
+
+Additionally, you can sync external files with the following property in your regular settings (`settings.json`):
+
+```
+"syncSettings.additionalFiles": [
+    "~globalStorage/alefragnani.project-manager/projects.json",
+    "~/vscode_projects.json",
+]
+```
+
 Profiles
 --------
 
