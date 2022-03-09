@@ -1077,6 +1077,10 @@ export class FileRepository extends Repository {
 		for(let file of additionalFiles) {
 			file = file.replace(/\\/g, '/');
 
+			if(file.endsWith('/zokugun.sync-settings/settings.yml')) {
+				throw new Error('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
+			}
+
 			let src = file;
 			if(file.startsWith('~/')) {
 				src = path.join(os.homedir(), file.slice(2));

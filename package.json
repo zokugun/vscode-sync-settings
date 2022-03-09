@@ -67,6 +67,7 @@
 		"@types/vscode": "^1.23.0",
 		"@vercel/ncc": "^0.31.1",
 		"chai": "^4.3.6",
+		"chai-as-promised": "^7.1.1",
 		"commitizen": "^4.2.4",
 		"eslint-plugin-chai-friendly": "^0.7.2",
 		"fixpack": "^4.0.0",

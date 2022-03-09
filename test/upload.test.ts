@@ -1,9 +1,12 @@
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { vol } from 'memfs';
 import { context } from './mocks/context';
 import * as vscode from './mocks/vscode';
 import { RepositoryFactory, Settings } from './rewires/repository';
 import { fixtures } from './utils/fixtures';
+
+chai.use(chaiAsPromised);
 
 describe('upload', () => {
 	const extensionsFxt = fixtures('extensions');
@@ -252,6 +255,20 @@ describe('upload', () => {
 
 			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
 			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+		}); // }}}
+
+		it('settings.yml', async () => { // {{{
+			vscode.setSettings({
+				'syncSettings.additionalFiles': [
+					'~globalStorage/zokugun.sync-settings/settings.yml',
+				],
+			});
+
+			const repository = await RepositoryFactory.get();
+
+			// @ts-expect-error
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			await expect(repository.upload()).to.be.rejectedWith('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
 		}); // }}}
 	});
 
