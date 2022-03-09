@@ -299,7 +299,7 @@ export class FileRepository extends Repository {
 		await this.serializeProfile();
 	} // }}}
 
-	protected applyExtensionsDiff({ disabled, enabled }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
+	protected applyExtensionsDiff({ disabled, enabled, builtin }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
 		for(const ext of diff.disabled) {
 			const index = enabled.findIndex((item) => item.id === ext.id);
 			if(index !== -1) {
@@ -337,7 +337,38 @@ export class FileRepository extends Repository {
 			}
 		}
 
+		if(builtin) {
+			builtin.disabled = builtin.disabled ?? [];
+			builtin.enabled = builtin.enabled ?? [];
+
+			for(const id of diff.builtin!.disabled!) {
+				const index = builtin.enabled.indexOf(id);
+				if(index !== -1) {
+					builtin.enabled.splice(index, 1);
+				}
+
+				if(!builtin.disabled.includes(id)) {
+					builtin.disabled.push(id);
+				}
+			}
+
+			for(const id of diff.builtin!.enabled!) {
+				const index = builtin.disabled.indexOf(id);
+				if(index !== -1) {
+					builtin.disabled.splice(index, 1);
+				}
+
+				if(!builtin.enabled.includes(id)) {
+					builtin.enabled.push(id);
+				}
+			}
+		}
+		else {
+			builtin = diff.builtin;
+		}
+
 		return {
+			builtin,
 			disabled,
 			enabled,
 		};
@@ -458,7 +489,13 @@ export class FileRepository extends Repository {
 			}
 
 			const data = await fse.readFile(dataPath, 'utf-8');
-			const raw = yaml.parse(data) as { disabled: Array<string | ExtensionId>; enabled: Array<string | ExtensionId> };
+			const raw = yaml.parse(data) as {
+				builtin?: {
+					disabled?: string[];
+				};
+				disabled: Array<string | ExtensionId>;
+				enabled: Array<string | ExtensionId>;
+			};
 
 			if(!raw || typeof raw !== 'object') {
 				return {
@@ -468,6 +505,7 @@ export class FileRepository extends Repository {
 			}
 
 			return {
+				builtin: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? { disabled: raw.builtin.disabled.filter((value) => typeof value === 'string') } : undefined,
 				disabled: parseExtensionList(raw.disabled),
 				enabled: parseExtensionList(raw.enabled),
 			};
@@ -482,6 +520,10 @@ export class FileRepository extends Repository {
 
 		const data = await fse.readFile(dataPath, 'utf-8');
 		const raw = yaml.parse(data) as {
+			builtin?: {
+				disabled?: string[];
+				enabled?: string[];
+			};
 			disabled: Array<string | ExtensionId>;
 			enabled: Array<string | ExtensionId>;
 			uninstall?: Array<string | ExtensionId>;
@@ -492,6 +534,10 @@ export class FileRepository extends Repository {
 			enabled: [],
 			uninstall: undefined,
 		} : {
+			builtin: {
+				disabled: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? raw.builtin.disabled.filter((value) => typeof value === 'string') : [],
+				enabled: raw.builtin?.enabled && Array.isArray(raw.builtin.enabled) ? raw.builtin.enabled.filter((value) => typeof value === 'string') : [],
+			},
 			disabled: parseExtensionList(raw.disabled),
 			enabled: parseExtensionList(raw.enabled),
 			uninstall: !raw.uninstall ? undefined : parseExtensionList(raw.uninstall),
@@ -722,7 +768,7 @@ export class FileRepository extends Repository {
 			installed[id] = true;
 		}
 
-		const { disabled, enabled, uninstall } = await this.listProfileExtensions();
+		const { builtin, disabled, enabled, uninstall } = await this.listProfileExtensions();
 
 		if(await this.canManageExtensions()) {
 			for(const { id } of disabled) {
@@ -750,6 +796,30 @@ export class FileRepository extends Repository {
 			for(const id in installed) {
 				if(installed[id]) {
 					failures = !(await uninstallExtension(id)) || failures;
+				}
+			}
+
+			const currentlyDisabledBuiltin = [];
+
+			if(editor.builtin?.disabled) {
+				for(const id of editor.builtin.disabled) {
+					currentlyDisabledBuiltin[id] = true;
+				}
+			}
+
+			if(builtin?.disabled) {
+				for(const id of builtin.disabled) {
+					if(!currentlyDisabledBuiltin[id]) {
+						failures = !(await disableExtension(id)) || failures;
+					}
+
+					currentlyDisabledBuiltin[id] = false;
+				}
+			}
+
+			for(const [id, enable] of Object.entries(currentlyDisabledBuiltin)) {
+				if(enable) {
+					failures = !(await enableExtension(id)) || failures;
 				}
 			}
 		}
@@ -782,9 +852,15 @@ export class FileRepository extends Repository {
 				}
 			}
 
-			if(disabled.length > 0) {
+			const toDisable: any[] = [...disabled];
+
+			if(builtin?.disabled) {
+				toDisable.push(...builtin.disabled.map((id) => ({ id })));
+			}
+
+			if(toDisable.length > 0) {
 				await writeStateDB(getUserDataPath(this._settings), 'INSERT OR REPLACE INTO ItemTable (key, value) VALUES (\'extensionsIdentifiers/disabled\', $value)', {
-					$value: JSON.stringify(disabled),
+					$value: JSON.stringify(toDisable),
 				});
 			}
 		}
@@ -1035,20 +1111,33 @@ export class FileRepository extends Repository {
 			const disabled = arrayDiff(editor.disabled.map(({ id }) => id), profile.disabled.map(({ id }) => id)).map((id) => ids[id]);
 			const enabled = arrayDiff(editor.enabled.map(({ id }) => id), profile.enabled.map(({ id }) => id)).map((id) => ids[id]);
 			const uninstall = arrayDiff([...profile.disabled, ...profile.enabled].map(({ id }) => id), [...editor.disabled, ...editor.enabled].map(({ id }) => id)).map((id) => ids[id]);
+			const builtinDisabled = editor.builtin?.disabled ? (profile.builtin?.disabled ? arrayDiff(editor.builtin.disabled, profile.builtin.disabled) : editor.builtin.disabled) : [];
+			const builtinEnabled = profile.builtin?.disabled && editor.builtin?.disabled ? arrayDiff(profile.builtin.disabled, editor.builtin.disabled) : [];
+
+			const output: Record<string, any> = {
+				disabled,
+				enabled,
+			};
 
 			if(uninstall.length > 0) {
-				data = yaml.stringify({
-					disabled,
-					enabled,
-					uninstall,
-				});
+				output.uninstall = uninstall;
 			}
-			else {
-				data = yaml.stringify({
-					disabled,
-					enabled,
-				});
+
+			if(builtinDisabled.length > 0 || builtinEnabled.length > 0) {
+				const builtin: Record<string, any> = {};
+
+				if(builtinDisabled.length > 0) {
+					builtin.disabled = builtinDisabled;
+				}
+
+				if(builtinEnabled.length > 0) {
+					builtin.enabled = builtinEnabled;
+				}
+
+				output.builtin = builtin;
 			}
+
+			data = yaml.stringify(output);
 		}
 		else {
 			data = yaml.stringify(editor);
@@ -1209,7 +1298,7 @@ export class FileRepository extends Repository {
 
 		const extensions = await this.listProfileExtensions();
 
-		if(extensions.disabled.length > 0 && !(await this.canManageExtensions())) {
+		if((extensions.disabled.length > 0 || extensions.builtin) && !(await this.canManageExtensions())) {
 			return true;
 		}
 

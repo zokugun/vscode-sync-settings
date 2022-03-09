@@ -12,6 +12,10 @@ export interface ExtensionId {
 	uuid: string;
 }
 export interface ExtensionList {
+	builtin?: {
+		disabled?: string[];
+		enabled?: string[];
+	};
 	disabled: ExtensionId[];
 	enabled: ExtensionId[];
 	uninstall?: ExtensionId[];
@@ -77,6 +81,11 @@ export abstract class Repository {
 	} // }}}
 
 	protected async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
+		const builtin: {
+			disabled: string[];
+		} = {
+			disabled: [],
+		};
 		const disabled: Array<{ id: string; uuid: string }> = [];
 		const enabled: Array<{ id: string; uuid: string }> = [];
 
@@ -86,14 +95,16 @@ export abstract class Repository {
 			const id = extension.id;
 			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
 
-			if(!packageJSON || packageJSON.isBuiltin || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id)) {
+			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id)) {
 				continue;
 			}
 
-			enabled.push({
-				id,
-				uuid: packageJSON.uuid,
-			});
+			if(!packageJSON.isBuiltin) {
+				enabled.push({
+					id,
+					uuid: packageJSON.uuid,
+				});
+			}
 
 			ids[id] = true;
 		}
@@ -132,7 +143,26 @@ export abstract class Repository {
 			}
 		}
 
-		return { disabled, enabled };
+		const builtinDataPath = path.join(vscode.env.appRoot, 'extensions');
+		const builtinExtensions = await globby('*/package.json', {
+			cwd: builtinDataPath,
+		});
+
+		for(const packagePath of builtinExtensions) {
+			const pkg = await fse.readJSON(path.join(builtinDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
+			const id = `${pkg.publisher}.${pkg.name}`;
+
+			if(!ids[id]) {
+				builtin.disabled.push(id);
+			}
+		}
+
+		if(builtin.disabled.length > 0) {
+			return { builtin, disabled, enabled };
+		}
+		else {
+			return { disabled, enabled };
+		}
 	} // }}}
 
 	protected async listEditorSnippets(userDataPath: string): Promise<string[]> { // {{{

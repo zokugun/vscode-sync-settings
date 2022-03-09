@@ -163,6 +163,7 @@ const $vscode = {
 	},
 	env: {
 		appName: 'vscode',
+		appRoot: '/app',
 	},
 	extensions: {
 		all: [] as Extension[],
