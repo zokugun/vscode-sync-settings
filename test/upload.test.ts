@@ -6,6 +6,7 @@ import { RepositoryFactory, Settings } from './rewires/repository';
 import { fixtures } from './utils/fixtures';
 
 describe('upload', () => {
+	const extensionsFxt = fixtures('extensions');
 	const keybindingsFxt = fixtures('keybindings');
 	const profilesFxt = fixtures('profiles');
 	const settingsFxt = fixtures('settings');
@@ -251,6 +252,181 @@ describe('upload', () => {
 
 			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
 			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+		}); // }}}
+	});
+
+	describe('filters', () => {
+		it('none', async () => { // {{{
+			const settings = {
+				'syncSettings.keybindingsPerPlatform': false,
+				'ext1.prop1': 0,
+			};
+
+			vscode.setExtensions({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
+			vscode.setKeybindings(keybindingsFxt.json.gotoline);
+			vscode.setSettings(settings);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			}));
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('extensions - clean', async () => { // {{{
+			const settings = {
+				'syncSettings.keybindingsPerPlatform': false,
+				'syncSettings.resources': [
+					'keybindings',
+					'settings',
+					'snippets',
+				],
+				'ext1.prop1': 0,
+			};
+
+			vscode.setExtensions({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
+			vscode.setKeybindings(keybindingsFxt.json.gotoline);
+			vscode.setSettings(settings);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/main/data/extensions.yml')).to.be.false;
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('extensions - dirty', async () => { // {{{
+			const settings = {
+				'syncSettings.keybindingsPerPlatform': false,
+				'syncSettings.resources': [
+					'keybindings',
+					'settings',
+					'snippets',
+				],
+				'ext1.prop1': 0,
+			};
+
+			vol.fromJSON({
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
+			});
+
+			vscode.setExtensions({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
+			vscode.setKeybindings(keybindingsFxt.json.gotoline);
+			vscode.setSettings(settings);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.existsSync('/repository/profiles/main/data/extensions.yml')).to.be.false;
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('keybindings - clean', async () => { // {{{
+			const settings = {
+				'syncSettings.keybindingsPerPlatform': false,
+				'syncSettings.resources': [
+					'extensions',
+					'settings',
+					'snippets',
+				],
+				'ext1.prop1': 0,
+			};
+
+			vscode.setExtensions({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
+			vscode.setKeybindings(keybindingsFxt.json.gotoline);
+			vscode.setSettings(settings);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			}));
+			expect(vol.existsSync('/repository/profiles/main/data/keybindings.json')).to.be.false;
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		}); // }}}
+
+		it('keybindings - dirty', async () => { // {{{
+			const settings = {
+				'syncSettings.keybindingsPerPlatform': false,
+				'syncSettings.resources': [
+					'extensions',
+					'settings',
+					'snippets',
+				],
+				'ext1.prop1': 0,
+			};
+
+			vol.fromJSON({
+				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/main/data/keybindings-macos.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/main/data/keybindings-linux.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/main/data/keybindings-windows.json': keybindingsFxt.json.gotoline,
+			});
+
+			vscode.setExtensions({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			});
+			vscode.setKeybindings(keybindingsFxt.json.gotoline);
+			vscode.setSettings(settings);
+			vscode.addSnippet('loop', snippetsFxt.json.loop);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				disabled: ['pub1.ext3', 'pub3.ext1'],
+				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+			}));
+			expect(vol.existsSync('/repository/profiles/main/data/keybindings.json')).to.be.false;
+			expect(vol.existsSync('/repository/profiles/main/data/keybindings-macos.json')).to.be.false;
+			expect(vol.existsSync('/repository/profiles/main/data/keybindings-linux.json')).to.be.false;
+			expect(vol.existsSync('/repository/profiles/main/data/keybindings-windows.json')).to.be.false;
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 	});
 });

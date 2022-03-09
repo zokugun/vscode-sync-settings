@@ -246,23 +246,41 @@ export class FileRepository extends Repository {
 		const profileDataPath = this.getProfileDataPath();
 		await fse.ensureDir(profileDataPath);
 
-		const extensions = resources.includes(Resource.Extensions) ? await this.serializeExtensions(profileSettings, syncSettings) : undefined;
+		let extensions: ExtensionList | undefined;
+		if(resources.includes(Resource.Extensions)) {
+			extensions = await this.serializeExtensions(profileSettings, syncSettings);
+		}
+		else {
+			await this.scrubExtensions();
+		}
 
 		if(resources.includes(Resource.Snippets)) {
 			await this.serializeSnippets(profileSettings, userDataPath);
 		}
+		else {
+			await this.scrubSnippets();
+		}
 
 		if(resources.includes(Resource.UIState)) {
 			await this.serializeUIState(profileSettings, userDataPath, extensions);
+		}
+		else {
+			await this.scrubUIState();
 		}
 
 		if(!profileSettings.extends) {
 			if(resources.includes(Resource.Keybindings)) {
 				await this.serializeKeybindings(syncSettings, userDataPath);
 			}
+			else {
+				await this.scrubKeybindings();
+			}
 
 			if(resources.includes(Resource.Settings)) {
 				await this.serializeUserSettings(syncSettings, userDataPath);
+			}
+			else {
+				await this.scrubUserSettings();
 			}
 
 			await this.serializeAdditionalFiles(syncSettings);
@@ -938,15 +956,45 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	protected async scrubExtensions(): Promise<void> { // {{{
+		await fse.remove(this.getProfileExtensionsPath());
+	} // }}}
+
+	protected async scrubKeybindings(): Promise<void> { // {{{
+		const dataPath = this.getProfileDataPath();
+
+		const files = await globby('keybindings*.json', {
+			cwd: dataPath,
+			followSymbolicLinks: false,
+		});
+
+		for(const file of files) {
+			await fse.remove(path.join(dataPath, file));
+		}
+	} // }}}
+
+	protected async scrubSnippets(): Promise<void> { // {{{
+		await fse.remove(this.getProfileSnippetsPath());
+	} // }}}
+
+	protected async scrubUIState(): Promise<void> { // {{{
+		await fse.remove(this.getProfileUIStatePath());
+		await fse.remove(this.getDiffUIStatePath());
+	} // }}}
+
+	protected async scrubUserSettings(): Promise<void> { // {{{
+		await fse.remove(this.getProfileUserSettingsPath());
+	} // }}}
+
 	protected async serializeAdditionalFiles(config: WorkspaceConfiguration): Promise<void> { // {{{
+		const dataPath = this.getProfileAdditionalFilesPath();
+
 		const additionalFiles = config.get<string[]>('additionalFiles') ?? [];
 		if(additionalFiles.length === 0) {
-			return;
+			return fse.remove(dataPath);
 		}
 
 		Logger.info('serialize additional files');
-
-		const dataPath = this.getProfileAdditionalFilesPath();
 
 		await fse.emptyDir(dataPath);
 
