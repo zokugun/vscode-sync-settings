@@ -31,7 +31,8 @@ Configuration
 
 The repository is configured with the following file:
 
-##### **`settings.yml`**
+##### `settings.yml`
+
 ```yaml
 # current machine's name, optional; it can be used to filter settings or in the commit message
 hostname: ""
@@ -71,20 +72,11 @@ repository:
   path: ~/Development/settings
   # branch to sync on, optional (set to `master` by default)
   branch: master
-  # commit messages used when initializing or updating a profile, optional
-  messages:
-    # commit message used when initializing a new profile, optional (set to `profile({{profile}}): init -- {{now|date:iso}}` by default)
-    init: 'profile({{profile}}): init -- {{now|date:iso}}'
-    # commit message used when updating a profile, optional (set to `profile({{profile}}): update -- {{now|date:iso}}` by default)
-    update: 'profile({{profile}}): update -- {{now|date:iso}}'
-    # more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
 ```
 
-[More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
-
-The commit messages can also be configured with the settings `syncSettings.gitInitMessage` and `syncSettings.gitUpdateMessage`.
-
 If not initialized, the git repository will be automatically initialized.
+
+[How to personalize the commit messages](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
 
 #### remote git
 
@@ -96,21 +88,12 @@ repository:
   url: git@github.com:username/settings.git
   # branch to sync on, optional (set to `master` by default)
   branch: master
-  # commit messages used when initializing or updating a profile, optional
-  messages:
-    # commit message used when initializing a new profile, optional (set to `profile({{profile}}): init -- {{now|date:iso}}` by default)
-    init: 'profile({{profile}}): init -- {{now|date:iso}}'
-    # commit message used when updating a profile, optional (set to `profile({{profile}}): update -- {{now|date:iso}}` by default)
-    update: 'profile({{profile}}): update -- {{now|date:iso}}'
-    # more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
 ```
-
-[More about commit messages here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
-
-The commit messages can also be configured with the settings `syncSettings.gitInitMessage` and `syncSettings.gitUpdateMessage`.
 
 No authentifications are stored.<br/>
 But the `git` command on your system will need to be able to read/write on the remote repository.
+
+[How to personalize the commit messages](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
 
 #### rsync
 
@@ -157,12 +140,18 @@ External Files
 
 Additionally, you can sync external files with the following property in your regular settings (`settings.json`):
 
-```
+```json
 "syncSettings.additionalFiles": [
     "~globalStorage/alefragnani.project-manager/projects.json",
     "~/vscode_projects.json",
 ]
 ```
+
+#### `settings.yml`
+
+When trying the synchronize the `settings.yml` of the extension, an error will be thrown.
+
+There is no need to synchronize that file since it contains only the needed and required informations to effectuate a synchronization, from the first one to the last.
 
 Profiles
 --------
