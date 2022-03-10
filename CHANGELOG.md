@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.10.0 | 2022-03-10
+- add support for builtin extensions
+- remove old files of newly excluded resources
+- don't allow to synchronize `settings.yml`
+
 ## v0.9.0 | 2022-03-03
 - add `syncSettings.additionalFiles` setting to synchronize external files
 - validate data in `extensions.yml`
