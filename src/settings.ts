@@ -54,14 +54,6 @@ export class Settings {
 		this.settingsUri = settingsUri;
 	} // }}}
 
-	public static get(): Settings { // {{{
-		if($instance) {
-			return $instance;
-		}
-
-		throw new Error('The settings are not initialized');
-	} // }}}
-
 	public get hostname() { // {{{
 		return this._hostname;
 	} // }}}
@@ -72,6 +64,14 @@ export class Settings {
 
 	public get repository() { // {{{
 		return this._repository;
+	} // }}}
+
+	public static get(): Settings { // {{{
+		if($instance) {
+			return $instance;
+		}
+
+		throw new Error('The settings are not initialized');
 	} // }}}
 
 	public static async load(context: ExtensionContext): Promise<Settings> { // {{{

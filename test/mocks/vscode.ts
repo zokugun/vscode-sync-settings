@@ -20,11 +20,11 @@ let $manageExtensions = true;
 const $outputLines: string[] = [];
 
 const $outputChannel = {
-	appendLine: (value: string) => {
+	appendLine(value: string) {
 		$outputLines.push(value);
 	},
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	show: () => {},
+	show() {},
 };
 
 // eslint-disable-next-line import/no-mutable-exports
@@ -40,7 +40,7 @@ let $settings: Record<string, any> = {};
 
 const $vscode = {
 	commands: {
-		getCommands: () => {
+		getCommands() {
 			if($manageExtensions) {
 				return [
 					'workbench.action.reloadWindow',
@@ -58,7 +58,7 @@ const $vscode = {
 				];
 			}
 		},
-		executeCommand: (command: string, ...args: any[]) => { // {{{
+		executeCommand(command: string, ...args: any[]) { // {{{
 			$executedCommands.push(command);
 
 			if(command === 'workbench.extensions.disableExtension') {
@@ -177,9 +177,11 @@ const $vscode = {
 		showWarningMessage: (): undefined => undefined,
 		showErrorMessage: (): undefined => undefined,
 		showInformationMessage: (): undefined => undefined,
-		showQuickPick: async (): Promise<void> => Promise.resolve(),
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		async showQuickPick(): Promise<void> {},
 		createOutputChannel: (): Partial<OutputChannel> => $outputChannel,
-		withProgress: async (): Promise<void> => Promise.resolve(),
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		async withProgress(): Promise<void> {},
 	},
 	workspace: {
 		getConfiguration: (group: string) => ({
@@ -212,7 +214,6 @@ function ext2yml({ disabled, enabled, uninstall }: { disabled: string[]; enabled
 	};
 
 	if(uninstall) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		data.uninstall = uninstall.map((id) => ({
 			id,
 			uuid: '00000000-0000-0000-0000-000000000000',

@@ -18,7 +18,7 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 			const date = properties[match[1]] as Date;
 
 			if(!match[3]) {
-				result += date;
+				result += String(date);
 			}
 			else if(match[3] === 'iso') {
 				result += date.toISOString();
@@ -49,7 +49,7 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 			}
 		}
 		else {
-			result += properties[match[1]];
+			result += String(properties[match[1]]);
 		}
 
 		index = match.index + match[0].length;

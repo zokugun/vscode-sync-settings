@@ -35,7 +35,9 @@ import { RepositoryFactory } from '../../src/repository-factory';
 
 rewiremock.disable();
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
 	RepositoryFactory,
 	Settings,
 };
+/* eslint-enable unicorn/prefer-export-from */

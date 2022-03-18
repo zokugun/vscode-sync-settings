@@ -13,17 +13,17 @@ export function insertProperties(text: string, properties: string): string {
 	let level = -1;
 
 	const visitor = {
-		onArrayBegin: () => {
+		onArrayBegin() {
 			++level;
 		},
-		onArrayEnd: () => {
+		onArrayEnd() {
 			--level;
 			separated = false;
 		},
-		onObjectBegin: () => {
+		onObjectBegin() {
 			++level;
 		},
-		onObjectEnd: (offset: number) => {
+		onObjectEnd(offset: number) {
 			if(level === 0) {
 				endOffset = offset;
 			}
@@ -33,10 +33,10 @@ export function insertProperties(text: string, properties: string): string {
 
 			--level;
 		},
-		onObjectProperty: () => {
+		onObjectProperty() {
 			separated = false;
 		},
-		onSeparator: () => {
+		onSeparator() {
 			separated = true;
 		},
 	};

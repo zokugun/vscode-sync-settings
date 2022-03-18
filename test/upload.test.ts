@@ -266,7 +266,7 @@ describe('upload', () => {
 
 			const repository = await RepositoryFactory.get();
 
-			// @ts-expect-error
+			// @ts-expect-error rejectedWith has been added by `chai-as-promised`
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			await expect(repository.upload()).to.be.rejectedWith('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
 		}); // }}}

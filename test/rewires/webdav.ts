@@ -18,7 +18,7 @@ class MemFileSystem extends ws.PhysicalFileSystem {
 
 		const stream = fs.createReadStream(realPath);
 
-		// @ts-expect-error
+		// @ts-expect-error no error, set to null
 		callback(null, stream);
 	}
 
@@ -27,12 +27,14 @@ class MemFileSystem extends ws.PhysicalFileSystem {
 
 		const stream = fs.createWriteStream(realPath);
 
-		// @ts-expect-error
+		// @ts-expect-error no error, set to null
 		callback(null, stream);
 	}
 }
 
+/* eslint-disable unicorn/prefer-export-from */
 export {
 	ws,
 	MemFileSystem,
 };
+/* eslint-enable unicorn/prefer-export-from */

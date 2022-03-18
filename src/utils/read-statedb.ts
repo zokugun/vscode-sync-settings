@@ -4,12 +4,12 @@ import initSqlJs, { QueryExecResult } from 'sql.js';
 import { exists } from './exists';
 
 export async function readStateDB(userDataPath: string, query: string, args?: Record<string, any>): Promise<QueryExecResult | undefined> {
-	const SQL = await initSqlJs();
+	const sql = await initSqlJs();
 	const dbPath = path.join(userDataPath, 'globalStorage', 'state.vscdb');
 
 	if(await exists(dbPath)) {
 		const buffer = await fse.readFile(dbPath);
-		const db = new SQL.Database(buffer);
+		const db = new sql.Database(buffer);
 
 		try {
 			const result = db.exec(query, args);

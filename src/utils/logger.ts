@@ -2,6 +2,7 @@ import vscode, { window } from 'vscode';
 
 const channel = window.createOutputChannel('Sync Settings');
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export const Logger = {
 	error(...args: any[]): void {
 		channel.appendLine(`[error] ${args.join(' ')}`);

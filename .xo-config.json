@@ -17,6 +17,7 @@
 		}
 	],
 	"rules": {
+		"@typescript-eslint/ban-types": "off",
 		"@typescript-eslint/brace-style": [
 			"error",
 			"stroustrup"
@@ -44,6 +45,38 @@
 				}
 			}
 		],
+		"@typescript-eslint/member-ordering": [
+			"error",
+			{
+				"default": [
+					"field",
+					"constructor",
+					"get",
+					"set",
+					"method"
+				]
+			}
+		],
+		"@typescript-eslint/naming-convention": [
+			"error",
+			{
+				"selector": "variable",
+				"modifiers": [
+					"const",
+					"global"
+				],
+				"format": [
+					"camelCase",
+					"UPPER_CASE"
+				]
+			},
+			{
+				"selector": "variable",
+				"format": [
+					"camelCase"
+				]
+			}
+		],
 		"@typescript-eslint/no-confusing-void-expression": "off",
 		"@typescript-eslint/no-dynamic-delete": "off",
 		"@typescript-eslint/no-inferrable-types": "off",
@@ -59,6 +92,10 @@
 		"capitalized-comments": "off",
 		"complexity": "off",
 		"default-case": "off",
+		"import/extensions": [
+			"error",
+			"never"
+		],
 		"import/order": [
 			"error",
 			{
@@ -95,6 +132,8 @@
 		],
 		"unicorn/empty-brace-spaces": "off",
 		"unicorn/no-array-callback-reference": "off",
+		"unicorn/no-object-as-default-parameter": "off",
+		"unicorn/prefer-json-parse-buffer": "off",
 		"unicorn/prefer-module": "off",
 		"unicorn/prefer-node-protocol": "off",
 		"unicorn/prefer-switch": "off",

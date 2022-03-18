@@ -37,7 +37,7 @@ export class WebDAVRepository extends FileRepository {
 	constructor(settings: Settings) { // {{{
 		super(settings, TemporaryRepository.getPath(settings));
 
-		// @ts-expect-error
+		// @ts-expect-error ignoreTLSErrors can be an option
 		const { type, url, ignoreTLSErrors, ...options } = settings.repository;
 
 		this._url = url!;
@@ -102,15 +102,15 @@ export class WebDAVRepository extends FileRepository {
 			await this.validate();
 		}
 		catch (error: unknown) {
-			// @ts-expect-error
+			// @ts-expect-error checking error code
 			if(error?.code === 'ECONNREFUSED') {
 				Logger.error(`The connection to "${this._url}" is refused.`);
 			}
-			// @ts-expect-error
+			// @ts-expect-error checking error status
 			else if(error?.status === 401) {
 				Logger.error(`The connection to "${this._url}" isn't authorized.`);
 			}
-			// @ts-expect-error
+			// @ts-expect-error checking error status
 			else if(error?.status === 404) {
 				Logger.error(`The url "${this._url}" can't be found.`);
 			}
@@ -151,7 +151,7 @@ export class WebDAVRepository extends FileRepository {
 
 	protected configureTLS(): void { // {{{
 		if(this._ignoreTLSErrors) {
-			// @ts-expect-error
+			// @ts-expect-error NODE_TLS_REJECT_UNAUTHORIZED is accepting 0 or 1
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 		}
 	} // }}}
@@ -275,7 +275,7 @@ export class WebDAVRepository extends FileRepository {
 
 	protected restoreTLS(): void { // {{{
 		if(this._ignoreTLSErrors) {
-			// @ts-expect-error
+			// @ts-expect-error NODE_TLS_REJECT_UNAUTHORIZED is accepting 0 or 1
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = 1;
 		}
 	} // }}}

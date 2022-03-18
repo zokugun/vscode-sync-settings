@@ -14,5 +14,6 @@ import { Settings } from '../../src/settings';
 rewiremock.disable();
 
 export {
+	// eslint-disable-next-line unicorn/prefer-export-from
 	Settings,
 };

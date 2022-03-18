@@ -42,7 +42,7 @@ const fs = {
 	},
 };
 
-// @ts-expect-error
+// @ts-expect-error set implementation to memfs
 fs.realpath.native = mfs.realpath;
 
 export {

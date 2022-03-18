@@ -1,13 +1,13 @@
 artifacts:
   - name: "@daiyam/artifact-base"
-    version: 0.3.0
+    version: 0.4.0
   - name: "@daiyam/artifact-lang-ts"
-    version: 0.2.3
+    version: 0.3.2
   - name: "@daiyam/artifact-test-mocha-ts"
-    version: 0.2.0
+    version: 0.3.0
   - name: "@daiyam/artifact-vsx-ts"
-    version: 0.4.1
+    version: 0.4.5
   - name: "@daiyam/artifact-vsx-zokugun"
     version: 0.2.0
   - name: "@daiyam/artifact-vsx-bundle-ncc"
-    version: 0.1.0
+    version: 0.2.0

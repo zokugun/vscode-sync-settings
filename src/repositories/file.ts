@@ -1195,7 +1195,7 @@ export class FileRepository extends Repository {
 			const removed: any[] = [];
 
 			if(editor.length > 0) {
-				for(const file of [...editor]) {
+				for(const file of Array.from(editor)) {
 					const data = await fse.readFile(path.join(snippetsPath, file), 'utf-8');
 					const hash = hasher.copy().update(data).digest('hex');
 
@@ -1226,7 +1226,7 @@ export class FileRepository extends Repository {
 		if(editor.length > 0) {
 			await fse.emptyDir(dataPath);
 
-			for(const file of editor) {
+			for(const file of Array.from(editor)) {
 				const src = path.join(snippetsPath, file);
 				const dst = path.join(dataPath, file);
 

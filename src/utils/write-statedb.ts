@@ -4,10 +4,10 @@ import fse from 'fs-extra';
 import initSqlJs from 'sql.js';
 
 export async function writeStateDB(userDataPath: string, query: string, args?: Record<string, any>): Promise<void> {
-	const SQL = await initSqlJs();
+	const sql = await initSqlJs();
 	const dbPath = path.join(userDataPath, 'globalStorage', 'state.vscdb');
 	const buffer = await fse.readFile(dbPath);
-	const db = new SQL.Database(buffer);
+	const db = new sql.Database(buffer);
 
 	try {
 		db.exec(query, args);

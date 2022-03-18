@@ -11,34 +11,34 @@ export function removeProperties(text: string, properties: string[]): string {
 	let match = false;
 
 	const visitor = {
-		onArrayBegin: (offset: number, length: number) => {
+		onArrayBegin(offset: number, length: number) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
 			++level;
 		},
-		onArrayEnd: () => {
+		onArrayEnd() {
 			--level;
 		},
-		onLiteralValue: (_: any, offset: number, length: number) => {
+		onLiteralValue(_: any, offset: number, length: number) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 		},
-		onObjectBegin: (offset: number, length: number) => {
+		onObjectBegin(offset: number, length: number) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
 			++level;
 		},
-		onObjectProperty: (name: string, offset: number, length: number) => {
+		onObjectProperty(name: string, offset: number, length: number) {
 			if(level === 0 && properties.includes(name)) {
 				const until = offset + length;
 
 				let c;
-				while((c = text.charCodeAt(offset - 1)) === 9 || c === 32) {
+				while((c = text.codePointAt(offset - 1)) === 9 || c === 32) {
 					--offset;
 				}
 
@@ -47,21 +47,21 @@ export function removeProperties(text: string, properties: string[]): string {
 				match = true;
 			}
 		},
-		onObjectEnd: () => {
+		onObjectEnd() {
 			--level;
 		},
-		onSeparator: (character: string, offset: number, length: number) => {
+		onSeparator(character: string, offset: number, length: number) {
 			if(level === 0 && match && character === ',') {
 				let until = offset + length - 1;
 
 				let c;
-				while((c = text.charCodeAt(until + 1)) === 9 || c === 32 || c === 10 || c === 13) {
+				while((c = text.codePointAt(until + 1)) === 9 || c === 32 || c === 10 || c === 13) {
 					++until;
 
 					if(c === 10) {
 						break;
 					}
-					else if(c === 13 && text.charCodeAt(until + 1) === 10) {
+					else if(c === 13 && text.codePointAt(until + 1) === 10) {
 						++until;
 					}
 				}
