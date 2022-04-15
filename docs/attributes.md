@@ -31,14 +31,17 @@ When downloaded, the `settings.json` is processed to enable/uncommented all line
 Variables
 ---------
 
-| Variable   | Description                                                                               |
-| ---------- | ----------------------------------------------------------------------------------------- |
-| `hostname` | The hostname found in `settings.yml`                                                      |
-| `profile`  | The profile used to sync                                                                  |
-| `os`       | `linux`, `mac` or `windows`                                                               |
-| `editor`   | `visual studio code`, `vscodium`, `mrcode` or the lowercased `nameLong` in `product.json` |
-| `version`  | the version of the editor                                                                 |
-| `<ENV>`    | all env variables are directly available, like `EDITOR` => `#if(EDITOR="vi")`             |
+| Variable        | Description                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `editor`        | `visual studio code`, `vscodium`, `mrcode` or the lowercased `nameLong` in `product.json`                                       |
+| `editorStorage` | the directory where the extensions are stored (ex: `~/.vscode`)                                                                 |
+| `globalStorage` | the directory where the extensions are storing their global states (ex: `~/Library/ApplicationSupport/Code/User/globalStorage`) |
+| `hostname`      | the hostname found in `settings.yml`                                                                                            |
+| `profile`       | the profile used to sync                                                                                                        |
+| `os`            | `linux`, `mac` or `windows`                                                                                                     |
+| `userStorage`   | the home directory of the user                                                                                                  |
+| `version`       | the version of the editor                                                                                                       |
+| `<ENV>`         | all env variables are directly available, like `EDITOR` => `#if(EDITOR="vi")`                                                   |
 
 Blocks
 ------

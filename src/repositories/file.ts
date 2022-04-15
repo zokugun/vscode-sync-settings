@@ -17,6 +17,7 @@ import { disableExtension } from '../utils/disable-extension';
 import { enableExtension } from '../utils/enable-extension';
 import { exists } from '../utils/exists';
 import { extractProperties } from '../utils/extract-properties';
+import { getEditorStorage } from '../utils/get-editor-storage';
 import { getExtensionDataUri } from '../utils/get-extension-data-uri';
 import { getUserDataPath } from '../utils/get-user-data-path';
 import { insertProperties } from '../utils/insert-properties';
@@ -372,6 +373,21 @@ export class FileRepository extends Repository {
 			disabled,
 			enabled,
 		};
+	} // }}}
+
+	protected async expandPath(file: string): Promise<string> { // {{{
+		if(file.startsWith('~/')) {
+			return path.join(os.homedir(), file.slice(2));
+		}
+		else if(file.startsWith('~editorStorage/')) {
+			return path.join(await getEditorStorage(), file.slice(15));
+		}
+		else if(file.startsWith('~globalStorage/')) {
+			return path.join(this._settings.globalStorageUri.fsPath, '..', file.slice(15));
+		}
+		else {
+			return file;
+		}
 	} // }}}
 
 	protected async getAncestorProfile(profile: string): Promise<string> { // {{{
@@ -731,14 +747,7 @@ export class FileRepository extends Repository {
 		for(let file of additionalFiles) {
 			file = file.replace(/\\/g, '/');
 
-			let src = file;
-			if(file.startsWith('~/')) {
-				src = path.join(os.homedir(), file.slice(2));
-			}
-			else if(file.startsWith('~globalStorage/')) {
-				src = path.join(this._settings.globalStorageUri.fsPath, '..', file.slice(15));
-			}
-
+			const src = await this.expandPath(file);
 			const dst = path.join(dataPath, file.replace(/\//g, '-'));
 
 			await fse.copy(dst, src, {
@@ -886,7 +895,7 @@ export class FileRepository extends Repository {
 		let data = await this.getProfileKeybindings(ancestorProfile, keybindingsPerPlatform);
 
 		if(data) {
-			data = preprocessJSONC(data, this._settings);
+			data = await preprocessJSONC(data, this._settings);
 		}
 		else {
 			data = '[]';
@@ -912,7 +921,7 @@ export class FileRepository extends Repository {
 		let data = await this.getProfileUserSettings(ancestorProfile);
 
 		if(data) {
-			data = preprocessJSONC(data, this._settings);
+			data = await preprocessJSONC(data, this._settings);
 		}
 		else {
 			data = '{}';
@@ -1081,14 +1090,7 @@ export class FileRepository extends Repository {
 				throw new Error('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
 			}
 
-			let src = file;
-			if(file.startsWith('~/')) {
-				src = path.join(os.homedir(), file.slice(2));
-			}
-			else if(file.startsWith('~globalStorage/')) {
-				src = path.join(this._settings.globalStorageUri.fsPath, '..', file.slice(15));
-			}
-
+			const src = await this.expandPath(file);
 			const dst = path.join(dataPath, file.replace(/\//g, '-'));
 
 			await fse.copy(src, dst, {

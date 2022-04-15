@@ -36,7 +36,7 @@
 		"watch:test": "tsc-watch -p test"
 	},
 	"dependencies": {
-		"@daiyam/jsonc-preprocessor": "0.1.0",
+		"@daiyam/jsonc-preprocessor": "^0.2.2",
 		"camelcase": "^6.2.0",
 		"detect-newline": "^3.1.0",
 		"fast-equals": "^2.0.3",
@@ -45,7 +45,7 @@
 		"jsonc-parser": "^3.0.0",
 		"rsync": "^0.6.1",
 		"semver": "^7.3.5",
-		"simple-git": "^3.3.0",
+		"simple-git": "^3.6.0",
 		"sql.js": "^1.6.1",
 		"untildify": "^4.0.0",
 		"webdav": "^4.8.0",

@@ -9,8 +9,8 @@ rewiremock(path.join('fs', 'promises')).with(fs.promises);
 rewiremock('vscode').with(vscode);
 rewiremock('process').with(process);
 
-rewiremock(path.join('utils', 'get-extension-data-path')).with({
-	getExtensionDataPath: async () => '/.vscode/extensions',
+rewiremock(path.join('.', 'get-editor-storage')).with({
+	getEditorStorage: async () => '/.vscode',
 });
 
 rewiremock(path.join('..', 'utils', 'get-extension-data-uri')).with({

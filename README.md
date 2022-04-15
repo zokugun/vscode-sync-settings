@@ -147,6 +147,11 @@ Additionally, you can sync external files with the following property in your re
 ]
 ```
 
+The paths can start with special prefixes:
+- `~/`: the user home (as usual)
+- `~editorStorage`: the directory where the extensions are stored (ex: `~/.vscode`)
+- `~globalStorage`: the directory where the extensions are storing their global states (ex: `~/Library/ApplicationSupport/Code/User/globalStorage`)
+
 #### `settings.yml`
 
 When trying the synchronize the `settings.yml` of the extension, an error will be thrown.

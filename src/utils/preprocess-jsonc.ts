@@ -1,20 +1,24 @@
+import os from 'os';
+import path from 'path';
 import process from 'process';
 import { transform } from '@daiyam/jsonc-preprocessor';
 import vscode from 'vscode';
+import { Settings } from '../settings';
+import { getEditorStorage } from './get-editor-storage';
 import { hostname } from './hostname';
 
 const TYPES = {
 	version: 'version',
 };
 
-const EDITOR = editor();
-const OS = os();
+const EDITOR = getCurrentEditor();
+const OS = getCurrentOs();
 
-function editor(): string {
+function getCurrentEditor(): string {
 	return vscode.env.appName.toLocaleLowerCase();
 }
 
-function os(): string {
+function getCurrentOs(): string {
 	if(process.platform === 'win32') {
 		return 'windows';
 	}
@@ -26,18 +30,21 @@ function os(): string {
 	}
 }
 
-export function preprocessJSONC(text: string, settings: { profile: string; hostname?: string }): string {
+export async function preprocessJSONC(text: string, settings: Settings): Promise<string> {
 	const config = vscode.workspace.getConfiguration('syncSettings');
 	const host = settings.hostname ?? hostname(config);
 	const { profile } = settings;
 
 	const args = {
 		...process.env,
+		editor: EDITOR,
+		editorStorage: await getEditorStorage(),
+		globalStorage: path.join(settings.globalStorageUri.fsPath, '..'),
 		host,
 		hostname: host,
 		profile,
 		os: OS,
-		editor: EDITOR,
+		userStorage: os.homedir(),
 		version: vscode.version,
 	};
 
