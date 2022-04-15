@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.0 | 2022-04-15
+- add JSONC preprocessing rules: `rewrite-enable`, `rewrite-disable` and `rewrite-next-line`
+- add JSONC attibute variables: `editorStorage`, `globalStorage` and `userStorage`
+- add `~editorStorage` special path to `syncSettings.additionalFiles` setting
+- revert to a default uuid if missing in an extension
+
 ## v0.10.0 | 2022-03-10
 - add support for builtin extensions
 - remove old files of newly excluded resources
