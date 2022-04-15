@@ -6,6 +6,7 @@ import { RepositoryType } from './repository-type';
 import { Settings } from './settings';
 import { exists } from './utils/exists';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
+import { NIL_UUID } from './utils/nil-uuid';
 
 export interface ExtensionId {
 	id: string;
@@ -138,7 +139,7 @@ export abstract class Repository {
 			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id)) {
 				disabled.push({
 					id,
-					uuid: pkg.__metadata.id,
+					uuid: pkg.__metadata?.id ?? NIL_UUID,
 				});
 			}
 		}

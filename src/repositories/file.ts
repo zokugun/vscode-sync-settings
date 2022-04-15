@@ -24,6 +24,7 @@ import { insertProperties } from '../utils/insert-properties';
 import { installExtension } from '../utils/install-extension';
 import { isEmpty } from '../utils/is-empty';
 import { Logger } from '../utils/logger';
+import { NIL_UUID } from '../utils/nil-uuid';
 import { preprocessJSONC } from '../utils/preprocess-jsonc';
 import { readStateDB } from '../utils/read-statedb';
 import { removeProperties } from '../utils/remove-properties';
@@ -51,8 +52,6 @@ interface UIStateDiff {
 	modified: Record<string, unknown>;
 	removed: string[];
 }
-
-const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
 function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] { // {{{
 	const result: ExtensionId[] = [];
