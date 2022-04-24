@@ -46,6 +46,8 @@ async function showWhatsNewMessage(version: string) { // {{{
 } // }}}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+	context.globalState.setKeysForSync([VERSION_KEY]);
+
 	const previousVersion = context.globalState.get<string>(VERSION_KEY);
 	const currentVersion = pkg.version;
 
