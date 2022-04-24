@@ -4,6 +4,7 @@ import { createProfile } from './commands/create-profile';
 import { download } from './commands/download';
 import { openProfileDirectory } from './commands/open-profile-directory';
 import { openProfileSettings } from './commands/open-profile-settings';
+import { openRepositoryDirectory } from './commands/open-repository-directory';
 import { openSettings } from './commands/open-settings';
 import { reset } from './commands/reset';
 import { switchProfile } from './commands/switch-profile';
@@ -80,8 +81,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	disposables.push(
 		vscode.commands.registerCommand('syncSettings.createProfile', createProfile),
 		vscode.commands.registerCommand('syncSettings.download', download),
-		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
 		vscode.commands.registerCommand('syncSettings.openProfileDirectory', openProfileDirectory),
+		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
+		vscode.commands.registerCommand('syncSettings.openRepositoryDirectory', openRepositoryDirectory),
 		vscode.commands.registerCommand('syncSettings.openSettings', openSettings),
 		vscode.commands.registerCommand('syncSettings.reset', reset),
 		vscode.commands.registerCommand('syncSettings.switchProfile', switchProfile),

@@ -198,4 +198,6 @@ export abstract class Repository {
 	public abstract upload(): Promise<void>;
 
 	public abstract getProfileSettingsPath(profile?: string): string;
+
+	public abstract getRepositoryPath(): string;
 }

@@ -142,6 +142,10 @@ export class FileRepository extends Repository {
 		return path.join(this._rootPath, 'profiles', profile, 'data', 'settings.json');
 	} // }}}
 
+	public override getRepositoryPath(): string { // {{{
+		return this._rootPath;
+	} // }}}
+
 	public override async initialize(): Promise<void> { // {{{
 		const profilePath = path.join(this._rootPath, 'profiles', this._profile);
 

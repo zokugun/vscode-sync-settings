@@ -17,6 +17,10 @@ export class DummyRepository extends Repository {
 		return '';
 	} // }}}
 
+	public override getRepositoryPath(): string { // {{{
+		return '';
+	} // }}}
+
 	public override async initialize(): Promise<void> { // {{{
 	} // }}}
 

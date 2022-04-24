@@ -92,6 +92,7 @@
 		"onCommand:syncSettings.download",
 		"onCommand:syncSettings.openProfileDirectory",
 		"onCommand:syncSettings.openProfileSettings",
+		"onCommand:syncSettings.openRepositoryDirectory",
 		"onCommand:syncSettings.openSettings",
 		"onCommand:syncSettings.reset",
 		"onCommand:syncSettings.switchProfile",
@@ -129,6 +130,11 @@
 			{
 				"command": "syncSettings.openProfileSettings",
 				"title": "Open the profile settings",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.openRepositoryDirectory",
+				"title": "Reveal the repository in the file explorer",
 				"category": "Sync Settings"
 			},
 			{
