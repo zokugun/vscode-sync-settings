@@ -6,6 +6,7 @@ import { comment } from '@daiyam/jsonc-preprocessor';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
 import globby from 'globby';
+import { SqlValue } from 'sql.js';
 import untildify from 'untildify';
 import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
@@ -461,7 +462,7 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, any>> { // {{{
+	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, SqlValue>> { // {{{
 		if(!extensions) {
 			extensions = await this.listEditorExtensions([]) ?? { disabled: [], enabled: [] };
 		}
@@ -471,12 +472,12 @@ export class FileRepository extends Repository {
 			...extensions.enabled.map(({ id }) => id),
 		];
 
-		const data = await readStateDB(userDataPath, `SELECT key, value FROM ItemTable WHERE key IN ('${keys.join('\', \'')}') OR key LIKE 'workbench.%'`);
+		const data = await readStateDB(userDataPath, `SELECT key, value FROM ItemTable WHERE key IN ('${keys.join('\', \'')}') OR key LIKE 'workbench.%' ORDER BY key COLLATE NOCASE ASC`);
 		if(!data) {
 			return {};
 		}
 
-		const properties: Record<string, any> = {};
+		const properties: Record<string, SqlValue> = {};
 		const extDataPath = await getExtensionDataUri();
 		const homeDirectory = os.homedir();
 
