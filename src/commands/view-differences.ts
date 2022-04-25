@@ -7,6 +7,22 @@ import { Resource } from '../repository';
 import { RepositoryFactory } from '../repository-factory';
 import { Settings } from '../settings';
 
+async function copyProfile(profile: string | null, originalDir: string, temporaryDir: string, repository: FileRepository): Promise<void> { // {{{
+	if(profile === null) {
+		profile = repository.profile;
+
+		await fse.copy(path.join(originalDir, profile, 'profile.yml'), path.join(temporaryDir, profile, 'profile.yml'));
+	}
+
+	const settings = await repository.loadProfileSettings(profile);
+
+	if(settings.extends) {
+		await fse.copy(path.join(originalDir, settings.extends), path.join(temporaryDir, settings.extends));
+
+		return copyProfile(settings.extends, originalDir, temporaryDir, repository);
+	}
+} // }}}
+
 async function hasDifferences(uriA: Uri, uriB: Uri): Promise<boolean> { // {{{
 	let contentA;
 	let contentB;
@@ -58,7 +74,10 @@ export async function viewDifferences(): Promise<void> {
 		const settings = Settings.get();
 		const newRepository = new FileRepository(settings, temporaryDir);
 
-		await newRepository.initialize();
+		await newRepository.setProfile(oldRepository.profile);
+
+		await copyProfile(null, path.join(settings.globalStorageUri.fsPath, 'repository', 'profiles'), path.join(temporaryDir, 'profiles'), newRepository);
+
 		await newRepository.upload();
 
 		const config = vscode.workspace.getConfiguration('syncSettings');

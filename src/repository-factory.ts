@@ -63,7 +63,7 @@ export namespace RepositoryFactory {
 		return $instance!;
 	} // }}}
 
-	export async function isDummy(): Promise<boolean> {
+	export async function isDummy(): Promise<boolean> { // {{{
 		const repository = await get();
 
 		if(repository instanceof DummyRepository) {
@@ -74,7 +74,7 @@ export namespace RepositoryFactory {
 		else {
 			return false;
 		}
-	}
+	} // }}}
 
 	export async function reload(): Promise<boolean> { // {{{
 		const settings = Settings.get();
