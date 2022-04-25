@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12.0 | 2022-04-25
+- add command to open the repository's local copy
+- sort `ui-state.yml` by its keys
+- correctly show differences of extended profile
+
 ## v0.11.0 | 2022-04-15
 - add JSONC preprocessing rules: `rewrite-enable`, `rewrite-disable` and `rewrite-next-line`
 - add JSONC attibute variables: `editorStorage`, `globalStorage` and `userStorage`
