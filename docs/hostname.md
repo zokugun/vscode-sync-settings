@@ -5,7 +5,7 @@ The hostname can be used to filter settings or in the commit message.
 
 It can be configured in the extension's `settings.yml` or generated based on the `syncSettings.hostname` setting.
 
-**`settings.yml`**
+In **`settings.yml`**
 --------------
 
 ```yaml
@@ -15,12 +15,16 @@ hostname: ""
 
 That property needs to be deleted to be able to use the `syncSettings.hostname` setting.
 
-`syncSettings.hostname` Setting
--------------------------------
+In **`settings.json`**
+----------------------
+
+```json
+"syncSettings.hostname": "{{hostname}}"
+```
 
 The hostname are generated using a very basic formatter.
 
-A basic example is `Hello {{name}}!` which will give `Hello all!` when the `name` variable is set to `all`.
+A basic example is `Hello {{name}}!` which will result to `Hello all!` when the `name` variable equals `all`.
 
 ### Available Variables
 

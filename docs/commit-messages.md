@@ -38,16 +38,50 @@ Format
 
 Commit messages are generated using a very basic formatter.
 
-A basic example is `Hello {{name}}!` which will give `Hello all!` when the `name` variable is set to `all`.
+A basic example is `Hello {{name}}!` which will result to `Hello all!` when the `name` variable equals `all`.
 
 Available Variables
 -------------------
 
-| Name       | Description                                       |
-| ---------- | ------------------------------------------------- |
-| `hostname` | the `hostname` property defined in `settings.yml` |
-| `profile`  | the `profile` property defined in `settings.yml`  |
-| `now`      | the current date                                  |
+<table>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>
+
+`hostname`
+</td>
+<td>
+
+- the `hostname` property from `settings.yml`
+- if empty, the `syncSettings.hostname` property in `settings.json`
+</td>
+</tr>
+<tr>
+<td>
+
+`profile`
+</td>
+<td>
+
+the `profile` property from `settings.yml`
+</td>
+</tr>
+<tr>
+<td>
+
+`now`
+</td>
+<td>
+
+the current date
+</td>
+</tr>
+</table>
+
+[How to configure the `hostname` property](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hostname.md)
 
 Date Formatter
 --------------
