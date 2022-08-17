@@ -3,7 +3,7 @@
 ## v0.12.0 | 2022-04-25
 - add command to open the repository's local copy
 - sort `ui-state.yml` by its keys
-- correctly show differences of extended profile
+- fix showing the differences of an extended profile
 
 ## v0.11.0 | 2022-04-15
 - add JSONC preprocessing rules: `rewrite-enable`, `rewrite-disable` and `rewrite-next-line`
