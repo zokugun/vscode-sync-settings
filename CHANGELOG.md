@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.1 | 2022-08-17
+- fix `hostname` variable in git messages
+- improve documentation about the `hostname` properties
+
 ## v0.12.0 | 2022-04-25
 - add command to open the repository's local copy
 - sort `ui-state.yml` by its keys
