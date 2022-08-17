@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.12.2 | 2022-08-17
+- use specific version of `jsonc-parser` so `ncc` can bundle the extension without issue
+
 ## v0.12.1 | 2022-08-17
 - fix `hostname` variable in git messages
 - improve documentation about the `hostname` properties
