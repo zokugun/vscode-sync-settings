@@ -23,6 +23,7 @@
 	"main": "./lib/index.js",
 	"scripts": {
 		"bundle": "ncc build out/extension --out lib --external sql.js",
+		"clean": "rm -rf lib out .test",
 		"commit": "cz",
 		"compile": "tsc -p src",
 		"lint": "xo",
@@ -41,8 +42,8 @@
 		"detect-newline": "^3.1.0",
 		"fast-equals": "^2.0.3",
 		"fs-extra": "^10.0.1",
-		"globby": "^11.0.4",
-		"jsonc-parser": "^3.0.0",
+		"globby": "^11.1.0",
+		"jsonc-parser": "3.0.0",
 		"rsync": "^0.6.1",
 		"semver": "^7.3.5",
 		"simple-git": "^3.6.0",
