@@ -137,9 +137,12 @@ export class Settings {
 	public async save(): Promise<void> { // {{{
 		const settings: SettingsData = {};
 
-		if(this._hostname ?? true) {
+		if(typeof this._hostname === 'string') {
 			settings.hostname = this._hostname;
 		}
+
+		settings.profile = this._profile;
+		settings.repository = this._repository;
 
 		settings.profile = this._profile;
 		settings.repository = this._repository;
@@ -176,7 +179,7 @@ export class Settings {
 		}
 
 		if(data.repository) {
-			this._hostname = data.hostname ?? '';
+			this._hostname = data.hostname;
 			this._profile = data.profile ?? '';
 			this._repository = data.repository;
 		}
