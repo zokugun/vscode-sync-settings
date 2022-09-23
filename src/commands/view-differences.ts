@@ -11,7 +11,11 @@ async function copyProfile(profile: string | null, originalDir: string, temporar
 	if(profile === null) {
 		profile = repository.profile;
 
-		await fse.copy(path.join(originalDir, profile, 'profile.yml'), path.join(temporaryDir, profile, 'profile.yml'));
+		const profilePath = path.join(originalDir, profile, 'profile.yml');
+
+		if(fse.existsSync(profilePath)) {
+			await fse.copy(profilePath, path.join(temporaryDir, profile, 'profile.yml'));
+		}
 	}
 
 	const settings = await repository.loadProfileSettings(profile);
