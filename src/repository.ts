@@ -30,6 +30,13 @@ export enum Resource {
 	UIState = 'uiState',
 }
 
+export enum Hook {
+	PreDownload = 'pre-download',
+	PostDownload = 'post-download',
+	PreUpload = 'pre-upload',
+	PostUpload = 'post-upload',
+}
+
 export abstract class Repository {
 	protected _profile = '';
 	protected _initialized = false;
@@ -185,19 +192,21 @@ export abstract class Repository {
 
 	public abstract extendProfileTo(originalProfile: string, newProfile: string): Promise<void>;
 
+	public abstract getProfileSettingsPath(profile?: string): string;
+
+	public abstract getRepositoryPath(): string;
+
 	public abstract initialize(): Promise<void>;
 
 	public abstract listProfiles(): Promise<string[]>;
 
 	public abstract restoreProfile(): Promise<void>;
 
+	public abstract runHook(type: Hook): Promise<void>;
+
 	public abstract serializeProfile(): Promise<void>;
 
 	public abstract terminate(): Promise<void>;
 
 	public abstract upload(): Promise<void>;
-
-	public abstract getProfileSettingsPath(profile?: string): string;
-
-	public abstract getRepositoryPath(): string;
 }

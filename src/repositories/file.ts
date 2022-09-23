@@ -10,7 +10,7 @@ import { SqlValue } from 'sql.js';
 import untildify from 'untildify';
 import vscode, { WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
-import { ExtensionId, ExtensionList, Repository, Resource } from '../repository';
+import { ExtensionId, ExtensionList, Hook, Repository, Resource } from '../repository';
 import { RepositoryType } from '../repository-type';
 import { Settings } from '../settings';
 import { arrayDiff } from '../utils/array-diff';
@@ -72,12 +72,23 @@ function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] {
 } // }}}
 
 export class FileRepository extends Repository {
+	protected _hooks: Record<Hook, string[]>;
 	protected _rootPath: string;
 
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings);
 
 		this._rootPath = untildify(rootPath ?? settings.repository.path!);
+
+		const hooksCfg = vscode.workspace.getConfiguration('syncSettings.hooks');
+		const hooksStg = settings.repository.hooks ?? {};
+
+		this._hooks = {
+			[Hook.PreDownload]: [hooksStg[Hook.PreDownload] ?? hooksCfg.get('preDownload') ?? []].flat(),
+			[Hook.PostDownload]: [hooksStg[Hook.PostDownload] ?? hooksCfg.get('postDownload') ?? []].flat(),
+			[Hook.PreUpload]: [hooksStg[Hook.PreUpload] ?? hooksCfg.get('preUpload') ?? []].flat(),
+			[Hook.PostUpload]: [hooksStg[Hook.PostUpload] ?? hooksCfg.get('postUpload') ?? []].flat(),
+		};
 	} // }}}
 
 	public override get type() { // {{{
@@ -234,6 +245,18 @@ export class FileRepository extends Repository {
 		}
 		else if(reloadWindow) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
+		}
+	} // }}}
+
+	public override async runHook(hook: Hook): Promise<void> { // {{{
+		const commands = this._hooks[hook];
+
+		if(commands.length > 0) {
+			const terminal = Settings.terminal;
+
+			for(const command of commands) {
+				terminal.sendText(command, true);
+			}
 		}
 	} // }}}
 

@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import fse from 'fs-extra';
-import { ExtensionContext, Uri } from 'vscode';
+import { ExtensionContext, Terminal, Uri, window } from 'vscode';
 import yaml from 'yaml';
 import { RepositoryType } from './repository-type';
 import { exists } from './utils/exists';
@@ -9,6 +9,7 @@ import { Logger } from './utils/logger';
 const $hasher = createHash('SHA1');
 
 let $instance: Settings | undefined;
+let $terminal: Terminal | undefined;
 
 function defaults() { // {{{
 	return {
@@ -23,6 +24,12 @@ function defaults() { // {{{
 
 export interface RepositorySettings {
 	branch?: string;
+	hooks?: {
+		preDownload?: string | string[];
+		postDownload?: string | string[];
+		preUpload?: string | string[];
+		postUpload?: string | string[];
+	};
 	messages?: Record<string, string>;
 	path?: string;
 	shell?: string;
@@ -52,6 +59,14 @@ export class Settings {
 		this.extensionId = id;
 		this.globalStorageUri = globalStorageUri;
 		this.settingsUri = settingsUri;
+	} // }}}
+
+	public static get terminal(): Terminal { // {{{
+		if(!$terminal) {
+			$terminal = window.createTerminal('Sync Settings');
+		}
+
+		return $terminal;
 	} // }}}
 
 	public get hostname() { // {{{

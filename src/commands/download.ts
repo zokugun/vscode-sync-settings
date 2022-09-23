@@ -1,4 +1,5 @@
 import vscode, { window } from 'vscode';
+import { Hook } from '../repository';
 import { RepositoryFactory } from '../repository-factory';
 import { Logger } from '../utils/logger';
 
@@ -33,7 +34,11 @@ export async function download(): Promise<void> {
 	try {
 		const repository = await RepositoryFactory.get();
 
+		await repository.runHook(Hook.PreDownload);
+
 		await repository.download();
+
+		await repository.runHook(Hook.PostDownload);
 
 		if(showFinishAlert) {
 			await window.showInformationMessage('Your settings have been downloaded (repository -> user)');

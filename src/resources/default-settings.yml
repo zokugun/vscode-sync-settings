@@ -15,6 +15,7 @@ repository:
 #   type: file
 #   # path of the local directory to sync with, required
 #   path: ~/Development/settings
+#   # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md
 
 
 # # sync on local git
@@ -25,6 +26,8 @@ repository:
 #   # branch to sync on, optional (set to `master` by default)
 #   branch: master
 #   # how to personalize the commit messages at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
+#   # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md
+
 
 # # sync on remote git
 # repository:
@@ -34,6 +37,7 @@ repository:
 #   # branch to sync on, optional (set to `master` by default)
 #   branch: master
 #   # how to personalize the commit messages at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md
+#   # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md
 
 
 # # sync on remote directory with rsync
@@ -43,6 +47,7 @@ repository:
 #   url: server:~/settings
 #   # shell used by rsync, optional (set to `ssh` by default)
 #   shell: ssh
+#   # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md
 
 
 # # sync on remote directory with webdav
@@ -55,3 +60,4 @@ repository:
 #   # the password, optional
 #   password: pa$$w0rd!
 #   # all options available at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md
+#   # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md

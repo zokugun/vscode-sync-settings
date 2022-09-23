@@ -208,6 +208,50 @@
 						"sync"
 					]
 				},
+				"syncSettings.hooks.preDownload": {
+					"type": [
+						"string",
+						"array"
+					],
+					"description": "Commands to be executed before a download",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.hooks.postDownload": {
+					"type": [
+						"string",
+						"array"
+					],
+					"description": "Commands to be executed after a download",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.hooks.preUpload": {
+					"type": [
+						"string",
+						"array"
+					],
+					"description": "Commands to be executed before an upload",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.hooks.postUpload": {
+					"type": [
+						"string",
+						"array"
+					],
+					"description": "Commands to be executed after an upload",
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.hostname": {
 					"type": "string",
 					"description": "Hostname generator",

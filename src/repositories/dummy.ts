@@ -1,4 +1,4 @@
-import { Repository } from '../repository';
+import { Hook, Repository } from '../repository';
 import { RepositoryType } from '../repository-type';
 
 export class DummyRepository extends Repository {
@@ -29,6 +29,9 @@ export class DummyRepository extends Repository {
 	} // }}}
 
 	public override async restoreProfile(): Promise<void> { // {{{
+	} // }}}
+
+	public override async runHook(_hook: Hook): Promise<void> { // {{{
 	} // }}}
 
 	public override async serializeProfile(): Promise<void> { // {{{

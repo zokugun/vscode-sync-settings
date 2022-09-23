@@ -218,6 +218,15 @@ When the `settings.json` is downloaded, depending on the OS, the setting `editor
 
 [More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/attributes.md)
 
+Hooks
+-----
+
+Hooks allow you to run commands in an integrated terminal ***before*** and ***after*** the following events:
+- `download`
+- `upload`
+
+[More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md)
+
 Donations
 ---------
 
