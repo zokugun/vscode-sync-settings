@@ -81,7 +81,7 @@ export class FileRepository extends Repository {
 		this._rootPath = untildify(rootPath ?? settings.repository.path!);
 
 		const hooksCfg = vscode.workspace.getConfiguration('syncSettings.hooks');
-		const hooksStg = settings.repository.hooks ?? {};
+		const hooksStg = settings.hooks ?? {};
 
 		this._hooks = {
 			[Hook.PreDownload]: [hooksStg[Hook.PreDownload] ?? hooksCfg.get('preDownload') ?? []].flat(),

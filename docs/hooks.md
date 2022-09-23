@@ -19,10 +19,9 @@ Recommanded, shareable between hosts.
 ### `settings.yaml` (Extension)
 
 ```yaml
-repository:
-  hooks:
-    pre-download: (string | string[])
-    post-download: (string | string[])
-    pre-upload: (string | string[])
-    post-upload: (string | string[])
+hooks:
+  pre-download: (string | string[])
+  post-download: (string | string[])
+  pre-upload: (string | string[])
+  post-upload: (string | string[])
 ```

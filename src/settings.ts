@@ -22,14 +22,15 @@ function defaults() { // {{{
 	};
 } // }}}
 
+export interface Hooks {
+	preDownload?: string | string[];
+	postDownload?: string | string[];
+	preUpload?: string | string[];
+	postUpload?: string | string[];
+}
+
 export interface RepositorySettings {
 	branch?: string;
-	hooks?: {
-		preDownload?: string | string[];
-		postDownload?: string | string[];
-		preUpload?: string | string[];
-		postUpload?: string | string[];
-	};
 	messages?: Record<string, string>;
 	path?: string;
 	shell?: string;
@@ -38,6 +39,7 @@ export interface RepositorySettings {
 }
 
 interface SettingsData {
+	hooks?: Hooks;
 	hostname?: string;
 	profile?: string;
 	repository?: RepositorySettings;
@@ -49,6 +51,7 @@ export class Settings {
 	public readonly settingsUri: Uri;
 
 	private _hash = '';
+	private _hooks: Hooks = {};
 	private _hostname?: string;
 	private _profile: string = '';
 	private _repository: RepositorySettings = {
@@ -67,6 +70,10 @@ export class Settings {
 		}
 
 		return $terminal;
+	} // }}}
+
+	public get hooks() { // {{{
+		return this._hooks;
 	} // }}}
 
 	public get hostname() { // {{{
@@ -152,6 +159,10 @@ export class Settings {
 	public async save(): Promise<void> { // {{{
 		const settings: SettingsData = {};
 
+		if(Object.keys(this._hooks).length > 0) {
+			settings.hooks = this._hooks;
+		}
+
 		if(typeof this._hostname === 'string') {
 			settings.hostname = this._hostname;
 		}
@@ -194,11 +205,13 @@ export class Settings {
 		}
 
 		if(data.repository) {
+			this._hooks = data.hooks ?? {};
 			this._hostname = data.hostname;
 			this._profile = data.profile ?? '';
 			this._repository = data.repository;
 		}
 		else {
+			this._hooks = data.hooks ?? {};
 			this._hostname = '';
 			this._profile = '';
 			this._repository = {
