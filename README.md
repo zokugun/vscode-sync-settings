@@ -158,6 +158,13 @@ When trying the synchronize the `settings.yml` of the extension, an error will b
 
 There is no need to synchronize that file since it contains only the needed and required informations to effectuate a synchronization, from the first one to the last.
 
+Saved Extensions
+----------------
+
+When installing an extension, if a matching `.vsix` is present in the `data/extensions` directory of the profile, that `.vsix` will installed instead of the one found in the marketplace.
+
+You can find the `data/extensions` directory by executing the command `> Sync Settings: Reveal the profile in the file explorer`.
+
 Profiles
 --------
 
@@ -182,6 +189,7 @@ Commands
 - `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
 - `> Sync Settings: Download (repository -> user)`: download/copy the resources from the repository to the user
 - `> Sync Settings: View differences between actual and saved settings`: display differences between the actual settings and the saved ones
+- `> Sync Settings: List the missing extensions`: display the list of missing extensions
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
 - `> Sync Settings: Open the profile settings`: open the settings for configuring the profile

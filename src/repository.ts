@@ -52,43 +52,7 @@ export abstract class Repository {
 		return this._profile;
 	} // }}}
 
-	public async setProfile(profile: string): Promise<void> { // {{{
-		this._profile = profile;
-
-		await this.initialize();
-	} // }}}
-
-	protected async canManageExtensions(): Promise<boolean> { // {{{
-		const commands = await vscode.commands.getCommands();
-
-		return commands.some((command) => command === 'workbench.extensions.disableExtension' || command === 'workbench.extensions.enableExtension');
-	} // }}}
-
-	protected checkInitialized(): void { // {{{
-		if(!this._initialized) {
-			throw new Error('The repository wasn\'t successfully initialized so the current operation can\'t continue. Please check the previous error.');
-		}
-	} // }}}
-
-	protected getIgnoredSettings(config: WorkspaceConfiguration): string[] { // {{{
-		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
-
-		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
-	} // }}}
-
-	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'keybindings.json');
-	} // }}}
-
-	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'snippets');
-	} // }}}
-
-	protected getEditorUserSettingsPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'settings.json');
-	} // }}}
-
-	protected async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
+	public async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
 		const builtin: {
 			disabled: string[];
 		} = {
@@ -173,6 +137,42 @@ export abstract class Repository {
 		}
 	} // }}}
 
+	public async setProfile(profile: string): Promise<void> { // {{{
+		this._profile = profile;
+
+		await this.initialize();
+	} // }}}
+
+	protected async canManageExtensions(): Promise<boolean> { // {{{
+		const commands = await vscode.commands.getCommands();
+
+		return commands.some((command) => command === 'workbench.extensions.disableExtension' || command === 'workbench.extensions.enableExtension');
+	} // }}}
+
+	protected checkInitialized(): void { // {{{
+		if(!this._initialized) {
+			throw new Error('The repository wasn\'t successfully initialized so the current operation can\'t continue. Please check the previous error.');
+		}
+	} // }}}
+
+	protected getIgnoredSettings(config: WorkspaceConfiguration): string[] { // {{{
+		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
+
+		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
+	} // }}}
+
+	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'keybindings.json');
+	} // }}}
+
+	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'snippets');
+	} // }}}
+
+	protected getEditorUserSettingsPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'settings.json');
+	} // }}}
+
 	protected async listEditorSnippets(userDataPath: string): Promise<string[]> { // {{{
 		const editorPath = this.getEditorSnippetsPath(userDataPath);
 		if(await exists(editorPath)) {
@@ -199,6 +199,8 @@ export abstract class Repository {
 	public abstract initialize(): Promise<void>;
 
 	public abstract listProfiles(): Promise<string[]>;
+
+	public abstract listProfileExtensions(profile?: string): Promise<ExtensionList>;
 
 	public abstract restoreProfile(): Promise<void>;
 

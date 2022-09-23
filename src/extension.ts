@@ -2,6 +2,7 @@ import vscode from 'vscode';
 import pkg from '../package.json';
 import { createProfile } from './commands/create-profile';
 import { download } from './commands/download';
+import { listMissingExtensions } from './commands/list-missing-extensions';
 import { openProfileDirectory } from './commands/open-profile-directory';
 import { openProfileSettings } from './commands/open-profile-settings';
 import { openRepositoryDirectory } from './commands/open-repository-directory';
@@ -83,6 +84,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	disposables.push(
 		vscode.commands.registerCommand('syncSettings.createProfile', createProfile),
 		vscode.commands.registerCommand('syncSettings.download', download),
+		vscode.commands.registerCommand('syncSettings.listMissingExtensions', listMissingExtensions),
 		vscode.commands.registerCommand('syncSettings.openProfileDirectory', openProfileDirectory),
 		vscode.commands.registerCommand('syncSettings.openProfileSettings', openProfileSettings),
 		vscode.commands.registerCommand('syncSettings.openRepositoryDirectory', openRepositoryDirectory),

@@ -38,6 +38,7 @@
 	},
 	"dependencies": {
 		"@daiyam/jsonc-preprocessor": "^0.2.2",
+		"array-differ": "^4.0.0",
 		"camelcase": "^6.2.0",
 		"detect-newline": "^3.1.0",
 		"fast-equals": "^2.0.3",
@@ -121,6 +122,11 @@
 			{
 				"command": "syncSettings.download",
 				"title": "Download (repository -> user)",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.listMissingExtensions",
+				"title": "List the missing extensions",
 				"category": "Sync Settings"
 			},
 			{

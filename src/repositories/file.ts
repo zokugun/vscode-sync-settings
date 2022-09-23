@@ -175,6 +175,78 @@ export class FileRepository extends Repository {
 		});
 	} // }}}
 
+	public override async listProfileExtensions(profile: string = this.profile): Promise<ExtensionList> { // {{{
+		const settings = await this.loadProfileSettings(profile);
+		let dataPath = this.getProfileExtensionsPath(profile);
+
+		if(!settings.extends) {
+			if(!await exists(dataPath)) {
+				dataPath = this.getProfileExtensionsOldPath(profile);
+				if(!await exists(dataPath)) {
+					return { disabled: [], enabled: [] };
+				}
+			}
+
+			const data = await fse.readFile(dataPath, 'utf-8');
+			const raw = yaml.parse(data) as {
+				builtin?: {
+					disabled?: string[];
+				};
+				disabled: Array<string | ExtensionId>;
+				enabled: Array<string | ExtensionId>;
+			};
+
+			if(!raw || typeof raw !== 'object') {
+				return {
+					disabled: [],
+					enabled: [],
+				};
+			}
+
+			return {
+				builtin: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? { disabled: raw.builtin.disabled.filter((value) => typeof value === 'string') } : undefined,
+				disabled: parseExtensionList(raw.disabled),
+				enabled: parseExtensionList(raw.enabled),
+			};
+		}
+
+		if(!await exists(dataPath)) {
+			dataPath = this.getProfileExtensionsOldPath(profile);
+			if(!await exists(dataPath)) {
+				return this.listProfileExtensions(settings.extends);
+			}
+		}
+
+		const data = await fse.readFile(dataPath, 'utf-8');
+		const raw = yaml.parse(data) as {
+			builtin?: {
+				disabled?: string[];
+				enabled?: string[];
+			};
+			disabled: Array<string | ExtensionId>;
+			enabled: Array<string | ExtensionId>;
+			uninstall?: Array<string | ExtensionId>;
+		};
+
+		const extensions = !raw || typeof raw !== 'object' ? {
+			disabled: [],
+			enabled: [],
+			uninstall: undefined,
+		} : {
+			builtin: {
+				disabled: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? raw.builtin.disabled.filter((value) => typeof value === 'string') : [],
+				enabled: raw.builtin?.enabled && Array.isArray(raw.builtin.enabled) ? raw.builtin.enabled.filter((value) => typeof value === 'string') : [],
+			},
+			disabled: parseExtensionList(raw.disabled),
+			enabled: parseExtensionList(raw.enabled),
+			uninstall: !raw.uninstall ? undefined : parseExtensionList(raw.uninstall),
+		};
+
+		const ancestors = await this.listProfileExtensions(settings.extends);
+
+		return this.applyExtensionsDiff(ancestors, extensions);
+	} // }}}
+
 	public async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
 		const path = this.getProfileSettingsPath(profile);
 
@@ -519,78 +591,6 @@ export class FileRepository extends Repository {
 		return properties;
 	} // }}}
 
-	protected async listProfileExtensions(profile: string = this.profile): Promise<ExtensionList> { // {{{
-		const settings = await this.loadProfileSettings(profile);
-		let dataPath = this.getProfileExtensionsPath(profile);
-
-		if(!settings.extends) {
-			if(!await exists(dataPath)) {
-				dataPath = this.getProfileExtensionsOldPath(profile);
-				if(!await exists(dataPath)) {
-					return { disabled: [], enabled: [] };
-				}
-			}
-
-			const data = await fse.readFile(dataPath, 'utf-8');
-			const raw = yaml.parse(data) as {
-				builtin?: {
-					disabled?: string[];
-				};
-				disabled: Array<string | ExtensionId>;
-				enabled: Array<string | ExtensionId>;
-			};
-
-			if(!raw || typeof raw !== 'object') {
-				return {
-					disabled: [],
-					enabled: [],
-				};
-			}
-
-			return {
-				builtin: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? { disabled: raw.builtin.disabled.filter((value) => typeof value === 'string') } : undefined,
-				disabled: parseExtensionList(raw.disabled),
-				enabled: parseExtensionList(raw.enabled),
-			};
-		}
-
-		if(!await exists(dataPath)) {
-			dataPath = this.getProfileExtensionsOldPath(profile);
-			if(!await exists(dataPath)) {
-				return this.listProfileExtensions(settings.extends);
-			}
-		}
-
-		const data = await fse.readFile(dataPath, 'utf-8');
-		const raw = yaml.parse(data) as {
-			builtin?: {
-				disabled?: string[];
-				enabled?: string[];
-			};
-			disabled: Array<string | ExtensionId>;
-			enabled: Array<string | ExtensionId>;
-			uninstall?: Array<string | ExtensionId>;
-		};
-
-		const extensions = !raw || typeof raw !== 'object' ? {
-			disabled: [],
-			enabled: [],
-			uninstall: undefined,
-		} : {
-			builtin: {
-				disabled: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? raw.builtin.disabled.filter((value) => typeof value === 'string') : [],
-				enabled: raw.builtin?.enabled && Array.isArray(raw.builtin.enabled) ? raw.builtin.enabled.filter((value) => typeof value === 'string') : [],
-			},
-			disabled: parseExtensionList(raw.disabled),
-			enabled: parseExtensionList(raw.enabled),
-			uninstall: !raw.uninstall ? undefined : parseExtensionList(raw.uninstall),
-		};
-
-		const ancestors = await this.listProfileExtensions(settings.extends);
-
-		return this.applyExtensionsDiff(ancestors, extensions);
-	} // }}}
-
 	protected async listProfileSnippetHashes(profile: string = this.profile): Promise<Record<string, string>> { // {{{
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileSnippetsPath(profile);
@@ -712,6 +712,33 @@ export class FileRepository extends Repository {
 		return properties;
 	} // }}}
 
+	protected async listSavedExtensions(profile: string = this.profile, extensions: Record<string, vscode.Uri> = {}): Promise<Record<string, vscode.Uri>> { // {{{
+		const dataPath = path.join(this._rootPath, 'profiles', profile, 'data', 'extensions');
+
+		if(fse.existsSync(dataPath)) {
+			const files = await globby('*.vsix', {
+				cwd: dataPath,
+				followSymbolicLinks: false,
+			});
+
+			for(const file of files) {
+				const match = /^(.*?)-(?:\d+\.){3}vsix$/.exec(file);
+
+				if(match) {
+					extensions[match[1]] = vscode.Uri.file(path.join(dataPath, file));
+				}
+			}
+		}
+
+		const settings = await this.loadProfileSettings(profile);
+
+		if(settings.extends) {
+			return this.listSavedExtensions(settings.extends, extensions);
+		}
+
+		return extensions;
+	} // }}}
+
 	protected async loadProfileSyncSettings(profile: string = this.profile): Promise<ProfileSyncSettings> { // {{{
 		let path = this.getProfileSyncSettingsPath(profile);
 
@@ -789,6 +816,7 @@ export class FileRepository extends Repository {
 		let failures = false;
 
 		const editor = await this.listEditorExtensions(syncSettings.ignoredExtensions ?? []);
+		const saved = await this.listSavedExtensions();
 
 		const installed: Record<string, boolean> = {};
 
@@ -809,7 +837,7 @@ export class FileRepository extends Repository {
 		if(await this.canManageExtensions()) {
 			for(const { id } of disabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id) && await disableExtension(id)) || failures;
+					failures = !(await installExtension(id, saved) && await disableExtension(id)) || failures;
 				}
 				else if(currentlyEnabled[id]) {
 					failures = !(await disableExtension(id)) || failures;
@@ -820,7 +848,7 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id)) || failures;
+					failures = !(await installExtension(id, saved)) || failures;
 				}
 				else if(currentlyDisabled[id]) {
 					failures = !(await enableExtension(id)) || failures;
@@ -862,7 +890,7 @@ export class FileRepository extends Repository {
 		else {
 			for(const { id } of disabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id)) || failures;
+					failures = !(await installExtension(id, saved)) || failures;
 				}
 				else if(currentlyDisabled[id]) {
 					installed[id] = false;
@@ -873,10 +901,10 @@ export class FileRepository extends Repository {
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id)) || failures;
+					failures = !(await installExtension(id, saved)) || failures;
 				}
 				else if(currentlyDisabled[id]) {
-					failures = !(await uninstallExtension(id) && await installExtension(id)) || failures;
+					failures = !(await uninstallExtension(id) && await installExtension(id, saved)) || failures;
 				}
 
 				installed[id] = false;

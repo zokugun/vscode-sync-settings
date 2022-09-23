@@ -1,4 +1,4 @@
-import { Hook, Repository } from '../repository';
+import { ExtensionList, Hook, Repository } from '../repository';
 import { RepositoryType } from '../repository-type';
 
 export class DummyRepository extends Repository {
@@ -26,6 +26,13 @@ export class DummyRepository extends Repository {
 
 	public override async listProfiles(): Promise<string[]> { // {{{
 		return [];
+	} // }}}
+
+	public override async listProfileExtensions(_profile?: string): Promise<ExtensionList> { // {{{
+		return {
+			enabled: [],
+			disabled: [],
+		};
 	} // }}}
 
 	public override async restoreProfile(): Promise<void> { // {{{

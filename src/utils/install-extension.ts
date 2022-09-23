@@ -1,11 +1,18 @@
 import vscode from 'vscode';
 import { Logger } from './logger';
 
-export async function installExtension(id: string): Promise<boolean> {
-	Logger.info('install:', id);
-
+export async function installExtension(id: string, saved: Record<string, vscode.Uri>): Promise<boolean> {
 	try {
-		await vscode.commands.executeCommand('workbench.extensions.installExtension', id);
+		if(saved[id]) {
+			Logger.info('install:', saved[id]);
+
+			await vscode.commands.executeCommand('workbench.extensions.installExtension', saved[id]);
+		}
+		else {
+			Logger.info('install:', id);
+
+			await vscode.commands.executeCommand('workbench.extensions.installExtension', id);
+		}
 
 		return true;
 	}
