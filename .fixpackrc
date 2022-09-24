@@ -23,6 +23,7 @@
 		"activationEvents",
 		"capabilities",
 		"contributes",
+		"extensionKind",
 		"icon",
 		"galleryBanner",
 		"categories",

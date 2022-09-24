@@ -1,9 +1,10 @@
 import { createHash } from 'crypto';
 import fse from 'fs-extra';
-import { ExtensionContext, Terminal, Uri, window } from 'vscode';
+import { ExtensionContext, ExtensionKind, Terminal, Uri, window } from 'vscode';
 import yaml from 'yaml';
 import { RepositoryType } from './repository-type';
 import { exists } from './utils/exists';
+import { getEditorStorage } from './utils/get-editor-storage';
 import { Logger } from './utils/logger';
 
 const $hasher = createHash('SHA1');
@@ -48,6 +49,7 @@ interface SettingsData {
 export class Settings {
 	public readonly extensionId: string;
 	public readonly globalStorageUri: Uri;
+	public readonly remote: boolean;
 	public readonly settingsUri: Uri;
 
 	private _hash = '';
@@ -58,10 +60,11 @@ export class Settings {
 		type: RepositoryType.DUMMY,
 	};
 
-	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri) { // {{{
+	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri, remote: boolean) { // {{{
 		this.extensionId = id;
 		this.globalStorageUri = globalStorageUri;
 		this.settingsUri = settingsUri;
+		this.remote = remote;
 	} // }}}
 
 	public static get terminal(): Terminal { // {{{
@@ -99,7 +102,7 @@ export class Settings {
 	public static async load(context: ExtensionContext): Promise<Settings> { // {{{
 		const settingsPath = Uri.joinPath(context.globalStorageUri, 'settings.yml');
 
-		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath);
+		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, context.extension.extensionKind === ExtensionKind.Workspace);
 
 		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf-8') : null;
 
@@ -131,6 +134,8 @@ export class Settings {
 				await $instance.save();
 			}
 		}
+
+		void getEditorStorage(context);
 
 		return $instance;
 	} // }}}

@@ -2,11 +2,11 @@ Sync Settings
 =============
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/zokugun.sync-settings.svg)](https://marketplace.visualstudio.com/items?itemName=zokugun.sync-settings)
-[![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/zokugun.sync-settings.svg)](https://marketplace.visualstudio.com/items?itemName=zokugun.sync-settings)
-[![License](https://img.shields.io/badge/donate-ko--fi-green)](https://ko-fi.com/daiyam)
-[![License](https://img.shields.io/badge/donate-liberapay-green)](https://liberapay.com/daiyam/donate)
-[![License](https://img.shields.io/badge/donate-paypal-green)](https://paypal.me/daiyam99)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/zokugun.sync-settings?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=zokugun.sync-settings)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/zokugun/sync-settings?label=Open%20VSX)](https://open-vsx.org/extension/zokugun/sync-settings)
+[![Ko-fi](https://img.shields.io/badge/donate-ko--fi-green)](https://ko-fi.com/daiyam)
+[![Liberapay](https://img.shields.io/badge/donate-liberapay-green)](https://liberapay.com/daiyam/donate)
+[![Paypal](https://img.shields.io/badge/donate-paypal-green)](https://paypal.me/daiyam99)
 
 With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can synchronize your settings/resources across multiple devices.<br />
 You can also switch between profiles with their own settings/resources.
@@ -234,6 +234,13 @@ Hooks allow you to run commands in an integrated terminal ***before*** and ***af
 - `upload`
 
 [More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md)
+
+Remote
+------
+
+Remote mode is supported but the synchronization will be limited to only extensions.
+
+[More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/remote.md)
 
 Donations
 ---------

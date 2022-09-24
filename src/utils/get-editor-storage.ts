@@ -4,13 +4,22 @@ import path from 'path';
 import process from 'process';
 import vscode from 'vscode';
 
-export async function getEditorStorage(): Promise<string> {
-	if(process.env.VSCODE_PORTABLE) {
-		return process.env.VSCODE_PORTABLE;
-	}
-	else {
-		const product = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { dataFolderName: string };
+let $path: string = '';
 
-		return path.join(os.homedir(), product.dataFolderName);
+export async function getEditorStorage(context?: vscode.ExtensionContext): Promise<string> {
+	if(!$path) {
+		if(process.env.VSCODE_PORTABLE) {
+			$path = process.env.VSCODE_PORTABLE;
+		}
+		else if(context?.extensionMode === vscode.ExtensionMode.Production) {
+			$path = path.normalize(path.join(context.extensionPath, '..', '..'));
+		}
+		else {
+			const product = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { dataFolderName: string };
+
+			$path = path.join(os.homedir(), product.dataFolderName);
+		}
 	}
+
+	return $path;
 }

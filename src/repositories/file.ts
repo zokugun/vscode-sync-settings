@@ -270,53 +270,63 @@ export class FileRepository extends Repository {
 		const userDataPath = getUserDataPath(this._settings);
 		const ancestorProfile = await this.getAncestorProfile(this.profile);
 		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.UIState];
-		const restart = await this.shouldRestartApp(resources, userDataPath);
 
-		if(restart) {
-			const result = await vscode.window.showInformationMessage(
-				'The editor will be restarted after applying the profile. Do you want to continue?',
-				{
-					modal: true,
-				},
-				'Yes',
-			);
-
-			if(!result) {
-				return;
+		if(this._settings.remote) {
+			if(resources.includes(Resource.Extensions)) {
+				void await this.restoreExtensions(syncSettings);
 			}
+
+			Logger.info('restore done');
 		}
+		else {
+			const restart = await this.shouldRestartApp(resources, userDataPath);
 
-		let reloadWindow = false;
+			if(restart) {
+				const result = await vscode.window.showInformationMessage(
+					'The editor will be restarted after applying the profile. Do you want to continue?',
+					{
+						modal: true,
+					},
+					'Yes',
+				);
 
-		for(const resource of resources) {
-			switch(resource) {
-				case Resource.Extensions:
-					reloadWindow = await this.restoreExtensions(syncSettings);
-					break;
-				case Resource.Keybindings:
-					await this.restoreKeybindings(ancestorProfile, userDataPath);
-					break;
-				case Resource.Settings:
-					await this.restoreUserSettings(ancestorProfile, userDataPath);
-					break;
-				case Resource.Snippets:
-					await this.restoreSnippets(userDataPath);
-					break;
-				case Resource.UIState:
-					await this.restoreUIState(userDataPath);
-					break;
+				if(!result) {
+					return;
+				}
 			}
-		}
 
-		await this.restoreAdditionalFiles(ancestorProfile);
+			let reloadWindow = false;
 
-		Logger.info('restore done');
+			for(const resource of resources) {
+				switch(resource) {
+					case Resource.Extensions:
+						reloadWindow = await this.restoreExtensions(syncSettings);
+						break;
+					case Resource.Keybindings:
+						await this.restoreKeybindings(ancestorProfile, userDataPath);
+						break;
+					case Resource.Settings:
+						await this.restoreUserSettings(ancestorProfile, userDataPath);
+						break;
+					case Resource.Snippets:
+						await this.restoreSnippets(userDataPath);
+						break;
+					case Resource.UIState:
+						await this.restoreUIState(userDataPath);
+						break;
+				}
+			}
 
-		if(restart) {
-			await restartApp();
-		}
-		else if(reloadWindow) {
-			await vscode.commands.executeCommand('workbench.action.reloadWindow');
+			await this.restoreAdditionalFiles(ancestorProfile);
+
+			Logger.info('restore done');
+
+			if(restart) {
+				await restartApp();
+			}
+			else if(reloadWindow) {
+				await vscode.commands.executeCommand('workbench.action.reloadWindow');
+			}
 		}
 	} // }}}
 
@@ -354,39 +364,41 @@ export class FileRepository extends Repository {
 			await this.scrubExtensions();
 		}
 
-		if(resources.includes(Resource.Snippets)) {
-			await this.serializeSnippets(profileSettings, userDataPath);
-		}
-		else {
-			await this.scrubSnippets();
-		}
-
-		if(resources.includes(Resource.UIState)) {
-			await this.serializeUIState(profileSettings, userDataPath, extensions);
-		}
-		else {
-			await this.scrubUIState();
-		}
-
-		if(!profileSettings.extends) {
-			if(resources.includes(Resource.Keybindings)) {
-				await this.serializeKeybindings(syncSettings, userDataPath);
+		if(this._settings.remote) {
+			if(resources.includes(Resource.Snippets)) {
+				await this.serializeSnippets(profileSettings, userDataPath);
 			}
 			else {
-				await this.scrubKeybindings();
+				await this.scrubSnippets();
 			}
 
-			if(resources.includes(Resource.Settings)) {
-				await this.serializeUserSettings(syncSettings, userDataPath);
+			if(resources.includes(Resource.UIState)) {
+				await this.serializeUIState(profileSettings, userDataPath, extensions);
 			}
 			else {
-				await this.scrubUserSettings();
+				await this.scrubUIState();
 			}
 
-			await this.serializeAdditionalFiles(syncSettings);
-		}
+			if(!profileSettings.extends) {
+				if(resources.includes(Resource.Keybindings)) {
+					await this.serializeKeybindings(syncSettings, userDataPath);
+				}
+				else {
+					await this.scrubKeybindings();
+				}
 
-		await this.saveProfileSyncSettings(syncSettings);
+				if(resources.includes(Resource.Settings)) {
+					await this.serializeUserSettings(syncSettings, userDataPath);
+				}
+				else {
+					await this.scrubUserSettings();
+				}
+
+				await this.serializeAdditionalFiles(syncSettings);
+			}
+
+			await this.saveProfileSyncSettings(syncSettings);
+		}
 
 		Logger.info('serialize done');
 	} // }}}
@@ -817,6 +829,7 @@ export class FileRepository extends Repository {
 
 		const editor = await this.listEditorExtensions(syncSettings.ignoredExtensions ?? []);
 		const saved = await this.listSavedExtensions();
+		const local = !this._settings.remote;
 
 		const installed: Record<string, boolean> = {};
 
@@ -835,22 +848,24 @@ export class FileRepository extends Repository {
 		const { builtin, disabled, enabled, uninstall } = await this.listProfileExtensions();
 
 		if(await this.canManageExtensions()) {
-			for(const { id } of disabled) {
-				if(!installed[id]) {
-					failures = !(await installExtension(id, saved) && await disableExtension(id)) || failures;
-				}
-				else if(currentlyEnabled[id]) {
-					failures = !(await disableExtension(id)) || failures;
-				}
+			if(local) {
+				for(const { id } of disabled) {
+					if(!installed[id]) {
+						failures = !(await installExtension(id, saved) && await disableExtension(id)) || failures;
+					}
+					else if(currentlyEnabled[id]) {
+						failures = !(await disableExtension(id)) || failures;
+					}
 
-				installed[id] = false;
+					installed[id] = false;
+				}
 			}
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
 					failures = !(await installExtension(id, saved)) || failures;
 				}
-				else if(currentlyDisabled[id]) {
+				else if(local && currentlyDisabled[id]) {
 					failures = !(await enableExtension(id)) || failures;
 				}
 
@@ -873,7 +888,7 @@ export class FileRepository extends Repository {
 
 			if(builtin?.disabled) {
 				for(const id of builtin.disabled) {
-					if(!currentlyDisabledBuiltin[id]) {
+					if(local && !currentlyDisabledBuiltin[id]) {
 						failures = !(await disableExtension(id)) || failures;
 					}
 
@@ -888,22 +903,24 @@ export class FileRepository extends Repository {
 			}
 		}
 		else {
-			for(const { id } of disabled) {
-				if(!installed[id]) {
-					failures = !(await installExtension(id, saved)) || failures;
-				}
-				else if(currentlyDisabled[id]) {
+			if(local) {
+				for(const { id } of disabled) {
+					if(!installed[id]) {
+						failures = !(await installExtension(id, saved)) || failures;
+					}
+					else if(currentlyDisabled[id]) {
+						installed[id] = false;
+					}
+
 					installed[id] = false;
 				}
-
-				installed[id] = false;
 			}
 
 			for(const { id } of enabled) {
 				if(!installed[id]) {
 					failures = !(await installExtension(id, saved)) || failures;
 				}
-				else if(currentlyDisabled[id]) {
+				else if(local && currentlyDisabled[id]) {
 					failures = !(await uninstallExtension(id) && await installExtension(id, saved)) || failures;
 				}
 
@@ -916,16 +933,18 @@ export class FileRepository extends Repository {
 				}
 			}
 
-			const toDisable: any[] = [...disabled];
+			if(local) {
+				const toDisable: any[] = [...disabled];
 
-			if(builtin?.disabled) {
-				toDisable.push(...builtin.disabled.map((id) => ({ id })));
-			}
+				if(builtin?.disabled) {
+					toDisable.push(...builtin.disabled.map((id) => ({ id })));
+				}
 
-			if(toDisable.length > 0) {
-				await writeStateDB(getUserDataPath(this._settings), 'INSERT OR REPLACE INTO ItemTable (key, value) VALUES (\'extensionsIdentifiers/disabled\', $value)', {
-					$value: JSON.stringify(toDisable),
-				});
+				if(toDisable.length > 0) {
+					await writeStateDB(getUserDataPath(this._settings), 'INSERT OR REPLACE INTO ItemTable (key, value) VALUES (\'extensionsIdentifiers/disabled\', $value)', {
+						$value: JSON.stringify(toDisable),
+					});
+				}
 			}
 		}
 

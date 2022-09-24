@@ -394,6 +394,10 @@
 			}
 		}
 	},
+	"extensionKind": [
+		"ui",
+		"workspace"
+	],
 	"icon": "icon.png",
 	"galleryBanner": {
 		"color": "#003357",
