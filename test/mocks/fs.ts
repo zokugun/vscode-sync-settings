@@ -9,6 +9,7 @@ const fs = {
 	copyFile: u(mfs.copyFile),
 	createReadStream: mfs.createReadStream,
 	createWriteStream: mfs.createWriteStream,
+	existsSync: mfs.existsSync,
 	futimes: u(mfs.futimes),
 	lstat: u(mfs.lstat),
 	mkdir: u(mfs.mkdir),

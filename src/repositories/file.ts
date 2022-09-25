@@ -364,7 +364,7 @@ export class FileRepository extends Repository {
 			await this.scrubExtensions();
 		}
 
-		if(this._settings.remote) {
+		if(!this._settings.remote) {
 			if(resources.includes(Resource.Snippets)) {
 				await this.serializeSnippets(profileSettings, userDataPath);
 			}

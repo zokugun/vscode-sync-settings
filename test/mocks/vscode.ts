@@ -165,6 +165,10 @@ const $vscode = {
 		appName: 'vscode',
 		appRoot: '/app',
 	},
+	ExtensionKind: {
+		UI: 1,
+		Workspace: 2,
+	},
 	extensions: {
 		all: [] as Extension[],
 	},
