@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.0 | 2022-09-25
+- install extensions found the `data/extensions` directory of the profile
+- add hooks to run commands before/after a download or an upload
+- add support for remote but limited to only extensions
+- fix error due to missing `profile.yml` when showing the differences
+
 ## v0.12.2 | 2022-08-17
 - use specific version of `jsonc-parser` so `ncc` can bundle the extension without issue
 
