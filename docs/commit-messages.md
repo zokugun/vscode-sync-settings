@@ -14,7 +14,7 @@ It's recommended to configure your personnalized commit messages in the `setting
 }
 ```
 
-Recommanded, shareable between hosts.
+Recommended, shareable between hosts.
 
 ### `settings.yaml` (Extension)
 
