@@ -97,6 +97,7 @@
 		"onCommand:syncSettings.openRepositoryDirectory",
 		"onCommand:syncSettings.openSettings",
 		"onCommand:syncSettings.reset",
+		"onCommand:syncSettings.review",
 		"onCommand:syncSettings.switchProfile",
 		"onCommand:syncSettings.upload",
 		"onCommand:syncSettings.viewDifferences"
@@ -152,6 +153,11 @@
 			{
 				"command": "syncSettings.reset",
 				"title": "Remove all settings and extensions",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.review",
+				"title": "Prompt if a difference between actual and saved settings is been found",
 				"category": "Sync Settings"
 			},
 			{

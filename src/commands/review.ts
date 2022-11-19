@@ -8,8 +8,9 @@ import { RepositoryFactory } from '../repository-factory';
 import { Settings } from '../settings';
 import { copyProfile } from '../utils/copy-profile';
 import { hasDifferences } from '../utils/has-differences';
+import { upload } from './upload';
 
-export async function viewDifferences(): Promise<void> {
+export async function review(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {
 		return;
 	}
@@ -38,38 +39,39 @@ export async function viewDifferences(): Promise<void> {
 		const oldExtensionsUri = Uri.file(oldRepository.getProfileExtensionsPath());
 		const newExtensionsUri = Uri.file(newRepository.getProfileExtensionsPath());
 		if(await hasDifferences(oldExtensionsUri, newExtensionsUri)) {
-			await vscode.commands.executeCommand('vscode.diff', oldExtensionsUri, newExtensionsUri, 'extensions.yml', { preview: false });
-
 			identical = false;
 		}
 
-		if(!profileSettings.extends) {
+		if(identical && !profileSettings.extends) {
 			if(resources.includes(Resource.Settings)) {
 				const oldUri = Uri.file(oldRepository.getProfileUserSettingsPath());
 				const newUri = Uri.file(newRepository.getProfileUserSettingsPath());
 				if(await hasDifferences(oldUri, newUri)) {
-					await vscode.commands.executeCommand('vscode.diff', oldUri, newUri, 'settings.json', { preview: false });
-
 					identical = false;
 				}
 			}
 
-			if(resources.includes(Resource.Keybindings)) {
+			if(identical && resources.includes(Resource.Keybindings)) {
 				const oldUri = Uri.file(oldRepository.getProfileKeybindingsPath(oldRepository.profile, keybindingsPerPlatform));
 				const newUri = Uri.file(newRepository.getProfileKeybindingsPath(newRepository.profile, keybindingsPerPlatform));
 				if(await hasDifferences(oldUri, newUri)) {
-					await vscode.commands.executeCommand('vscode.diff', oldUri, newUri, 'keybindings.json', { preview: false });
-
 					identical = false;
 				}
 			}
 		}
 
-		if(identical) {
-			await vscode.window.showInformationMessage('There is no differences.', { modal: true });
+		if(!identical) {
+			const result = await vscode.window.showInformationMessage(
+				'Your settings have been modified since the last save. Do you want to sync your settings?',
+				{
+					modal: true,
+				},
+				'Yes',
+			);
+
+			if(result === 'Yes') {
+				return upload();
+			}
 		}
-	}
-	else {
-		await vscode.window.showInformationMessage('No differences can be shown since the repository isn\'t defined.', { modal: true });
 	}
 }
