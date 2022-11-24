@@ -12,6 +12,7 @@ import { review } from './commands/review';
 import { switchProfile } from './commands/switch-profile';
 import { upload } from './commands/upload';
 import { viewDifferences } from './commands/view-differences';
+import { setupCrons } from './crons';
 import { RepositoryFactory } from './repository-factory';
 import { Settings } from './settings';
 import { ThrottledDelayer } from './utils/async';
@@ -110,6 +111,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 				Logger.error(error);
 			}
 		});
+	});
+
+	await setupCrons();
+
+	vscode.workspace.onDidChangeConfiguration(async (event) => {
+		if(event.affectsConfiguration('syncSettings.crons')) {
+			await setupCrons();
+		}
 	});
 
 	context.subscriptions.push(...disposables);

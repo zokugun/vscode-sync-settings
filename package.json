@@ -87,6 +87,9 @@
 		"webdav-server": "^2.6.2",
 		"xo": "^0.48.0"
 	},
+	"extensionDependencies": [
+		"zokugun.cron-tasks"
+	],
 	"activationEvents": [
 		"onStartupFinished",
 		"onCommand:syncSettings.createProfile",
@@ -177,11 +180,11 @@
 			}
 		],
 		"configuration": {
-			"title": "Sync Settings configuration",
+			"title": "Sync Settings",
 			"properties": {
 				"syncSettings.additionalFiles": {
 					"type": "array",
-					"markdownDescription": "List of additional files to synchronize at the same time as the resources",
+					"description": "List of additional files to synchronize at the same time as the resources",
 					"items": [
 						{
 							"type": "string"
@@ -201,6 +204,32 @@
 					"tags": [
 						"sync"
 					]
+				},
+				"syncSettings.crons": {
+					"type": "object",
+					"description": "Automate some commands",
+					"default": {},
+					"scope": "application",
+					"tags": [
+						"sync"
+					],
+					"properties": {
+						"download": {
+							"type": "string",
+							"description": "Automatically download the settings at the specified time",
+							"default": ""
+						},
+						"review": {
+							"type": "string",
+							"description": "Automatically check the settings at the specified time",
+							"default": ""
+						},
+						"upload": {
+							"type": "string",
+							"description": "Automatically upload the settings at the specified time",
+							"default": ""
+						}
+					}
 				},
 				"syncSettings.gitInitMessage": {
 					"type": "string",
