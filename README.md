@@ -189,6 +189,7 @@ Commands
 - `> Sync Settings: Upload (user -> repository)`: upload/copy the resources from the user to the repository
 - `> Sync Settings: Download (repository -> user)`: download/copy the resources from the repository to the user
 - `> Sync Settings: View differences between actual and saved settings`: display differences between the actual settings and the saved ones
+- `> Sync Settings: Prompt if a difference between actual and saved settings is been found`: prompt if you want to upload your settings if any difference has been found
 - `> Sync Settings: List the missing extensions`: display the list of missing extensions
 - `> Sync Settings: Create a new profile`: create a new profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
@@ -234,6 +235,19 @@ Hooks allow you to run commands in an integrated terminal ***before*** and ***af
 - `upload`
 
 [More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md)
+
+Crons
+-----
+
+`syncSettings.crons` allows you to schedule the commands `download`, `review` or `upload`.
+
+```jsonc
+"syncSettings.crons": {
+    "review": "0 * * * *",      // every hour
+    "download": "0 9 * * *",    // at 9AM, every day
+    "upload": "0 17 * * *"      // at 5PM, every day
+}
+```
 
 Remote
 ------
