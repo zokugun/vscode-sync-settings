@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.0 | 2022-11-24
+- add `syncSettings.review` command: if any difference have been found, it will prompt if you would like to upload them
+- add crons to automate the tasks `download`, `review` or `upload`
+
 ## v0.13.0 | 2022-09-25
 - install extensions found the `data/extensions` directory of the profile
 - add hooks to run commands before/after a download or an upload
