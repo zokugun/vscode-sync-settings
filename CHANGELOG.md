@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.0 | 2022-12-25
+- integrate [VSIX Manager](https://github.com/zokugun/vscode-vsix-manager)
+- correctly find binary due to new "tunnel" binary
+
 ## v0.14.0 | 2022-11-24
 - add `syncSettings.review` command: if any difference have been found, it will prompt if you would like to upload them
 - add crons to automate the tasks `download`, `review` or `upload`
