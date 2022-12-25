@@ -7,6 +7,7 @@ import { Settings } from './settings';
 import { exists } from './utils/exists';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
 import { NIL_UUID } from './utils/nil-uuid';
+import { listManagedExtensions } from './utils/vsix-manager';
 
 export interface ExtensionId {
 	id: string;
@@ -37,10 +38,6 @@ export enum Hook {
 	PostUpload = 'post-upload',
 }
 
-type VSIXManager = {
-	listManagedExtensions(): Promise<string[]>;
-};
-
 export abstract class Repository {
 	protected _profile = '';
 	protected _initialized = false;
@@ -56,9 +53,8 @@ export abstract class Repository {
 		return this._profile;
 	} // }}}
 
-	public async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
-		const vsixManager = vscode.extensions.getExtension<VSIXManager>('zokugun.vsix-manager');
-		const managedExtensions = await vsixManager?.exports.listManagedExtensions() ?? [];
+	public async listEditorExtensions(ignoredExtensions: string[], ignoreManagedExtensions: boolean = true): Promise<ExtensionList> { // {{{
+		const managedExtensions = ignoreManagedExtensions ? [] : await listManagedExtensions();
 
 		const builtin: {
 			disabled: string[];

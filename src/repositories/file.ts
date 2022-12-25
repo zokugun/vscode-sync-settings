@@ -31,6 +31,7 @@ import { readStateDB } from '../utils/read-statedb';
 import { removeProperties } from '../utils/remove-properties';
 import { restartApp } from '../utils/restart-app';
 import { uninstallExtension } from '../utils/uninstall-extension';
+import { getVSIXManager } from '../utils/vsix-manager';
 import { writeStateDB } from '../utils/write-statedb';
 
 interface ProfileSettings {
@@ -297,24 +298,29 @@ export class FileRepository extends Repository {
 
 			let reloadWindow = false;
 
-			for(const resource of resources) {
-				switch(resource) {
-					case Resource.Extensions:
-						reloadWindow = await this.restoreExtensions(syncSettings);
-						break;
-					case Resource.Keybindings:
-						await this.restoreKeybindings(ancestorProfile, userDataPath);
-						break;
-					case Resource.Settings:
-						await this.restoreUserSettings(ancestorProfile, userDataPath);
-						break;
-					case Resource.Snippets:
-						await this.restoreSnippets(userDataPath);
-						break;
-					case Resource.UIState:
-						await this.restoreUIState(userDataPath);
-						break;
+			if(resources.includes(Resource.Settings)) {
+				await this.restoreUserSettings(ancestorProfile, userDataPath);
+			}
+
+			if(resources.includes(Resource.Keybindings)) {
+				await this.restoreKeybindings(ancestorProfile, userDataPath);
+			}
+
+			if(resources.includes(Resource.Snippets)) {
+				await this.restoreSnippets(userDataPath);
+			}
+
+			if(resources.includes(Resource.Extensions)) {
+				reloadWindow = await this.restoreExtensions(syncSettings);
+
+				const vsixManager = getVSIXManager();
+				if(vsixManager) {
+					await vsixManager.installExtensions(true);
 				}
+			}
+
+			if(resources.includes(Resource.UIState)) {
+				await this.restoreUIState(userDataPath);
 			}
 
 			await this.restoreAdditionalFiles(ancestorProfile);
@@ -571,7 +577,7 @@ export class FileRepository extends Repository {
 
 	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, SqlValue>> { // {{{
 		if(!extensions) {
-			extensions = await this.listEditorExtensions([]) ?? { disabled: [], enabled: [] };
+			extensions = await this.listEditorExtensions([], false) ?? { disabled: [], enabled: [] };
 		}
 
 		const keys = [
