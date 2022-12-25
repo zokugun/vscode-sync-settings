@@ -37,6 +37,10 @@ export enum Hook {
 	PostUpload = 'post-upload',
 }
 
+type VSIXManager = {
+	listManagedExtensions(): Promise<string[]>;
+};
+
 export abstract class Repository {
 	protected _profile = '';
 	protected _initialized = false;
@@ -53,6 +57,9 @@ export abstract class Repository {
 	} // }}}
 
 	public async listEditorExtensions(ignoredExtensions: string[]): Promise<ExtensionList> { // {{{
+		const vsixManager = vscode.extensions.getExtension<VSIXManager>('zokugun.vsix-manager');
+		const managedExtensions = await vsixManager?.exports.listManagedExtensions() ?? [];
+
 		const builtin: {
 			disabled: string[];
 		} = {
@@ -67,7 +74,7 @@ export abstract class Repository {
 			const id = extension.id;
 			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
 
-			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id)) {
+			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || managedExtensions.includes(id)) {
 				continue;
 			}
 
@@ -107,7 +114,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id)) {
+			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !managedExtensions.includes(id)) {
 				disabled.push({
 					id,
 					uuid: pkg.__metadata?.id ?? NIL_UUID,

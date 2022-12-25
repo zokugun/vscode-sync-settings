@@ -47,7 +47,7 @@
 		"jsonc-parser": "^3.2.0",
 		"rsync": "^0.6.1",
 		"semver": "^7.3.5",
-		"simple-git": "^3.6.0",
+		"simple-git": "^3.15.0",
 		"sql.js": "^1.6.1",
 		"untildify": "^4.0.0",
 		"webdav": "^4.8.0",
@@ -208,11 +208,6 @@
 				"syncSettings.crons": {
 					"type": "object",
 					"description": "Automate some commands",
-					"default": {},
-					"scope": "application",
-					"tags": [
-						"sync"
-					],
 					"properties": {
 						"download": {
 							"type": "string",
@@ -229,7 +224,12 @@
 							"description": "Automatically upload the settings at the specified time",
 							"default": ""
 						}
-					}
+					},
+					"default": {},
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
 				},
 				"syncSettings.gitInitMessage": {
 					"type": "string",
