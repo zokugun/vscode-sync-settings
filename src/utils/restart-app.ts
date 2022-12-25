@@ -24,6 +24,15 @@ async function getAppBinary(appHomeDir: string): Promise<string> {
 	if(files.length === 1) {
 		return path.join(appHomeDir, files[0]);
 	}
+	else if(files.length === 2) {
+		if(files[0].includes('-tunnel')) {
+			return files[1];
+		}
+
+		if(files[1].includes('-tunnel')) {
+			return files[0];
+		}
+	}
 
 	throw new Error('Can determine binary path');
 }
