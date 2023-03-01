@@ -54,7 +54,7 @@ export abstract class Repository {
 	} // }}}
 
 	public async listEditorExtensions(ignoredExtensions: string[], ignoreManagedExtensions: boolean = true): Promise<ExtensionList> { // {{{
-		const managedExtensions = ignoreManagedExtensions ? [] : await listManagedExtensions();
+		const managedExtensions = ignoreManagedExtensions ? await listManagedExtensions() : [];
 
 		const builtin: {
 			disabled: string[];
