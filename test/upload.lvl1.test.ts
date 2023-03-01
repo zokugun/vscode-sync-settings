@@ -299,6 +299,44 @@ describe('upload.lvl1', () => {
 				}));
 			}); // }}}
 		});
+
+		describe('managed-by-vsix-manager', () => {
+			const extensionName = 'pub1.ext1';
+
+			it('unmanaged', async () => { // {{{
+				vscode.setExtensions({
+					enabled: [extensionName],
+					disabled: [],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+					disabled: [],
+					enabled: [extensionName],
+				}));
+			}); // }}}
+
+			it('managed', async () => { // {{{
+				vscode.setExtensions({
+					enabled: [extensionName],
+					disabled: [],
+				});
+
+				vscode.setManagedExtensions([extensionName]);
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+					disabled: [],
+					enabled: [],
+				}));
+			}); // }}}
+		});
 	});
 
 	describe('keybindings', () => {
