@@ -17,6 +17,7 @@ interface Extension {
 const $executedCommands: string[] = [];
 const $extensions: string[] = [];
 let $manageExtensions = true;
+const $managedExtensions: string[] = [];
 const $outputLines: string[] = [];
 
 const $outputChannel = {
@@ -175,8 +176,8 @@ const $vscode = {
 			if(name === 'zokugun.vsix-manager') {
 				return {
 					exports: {
-						listManagedExtensions(): string[] {
-							return [];
+						listManagedExtensions() {
+							return $managedExtensions;
 						},
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						installExtensions() {},
@@ -317,6 +318,10 @@ function setManageExtensions(manage: boolean): void { // {{{
 	$manageExtensions = manage;
 } // }}}
 
+function setManagedExtensions(managedExtensions: string[]): void { // {{{
+	$managedExtensions.push(...managedExtensions);
+} // }}}
+
 function setPlatform(platform: string): void { // {{{
 	$platform = platform;
 } // }}}
@@ -369,6 +374,7 @@ export {
 	setExtensions,
 	setKeybindings,
 	setManageExtensions,
+	setManagedExtensions,
 	setPlatform,
 	setSettings,
 };
