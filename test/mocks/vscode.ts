@@ -171,6 +171,22 @@ const $vscode = {
 	},
 	extensions: {
 		all: [] as Extension[],
+		getExtension(name: string) {
+			if(name === 'zokugun.vsix-manager') {
+				return {
+					exports: {
+						listManagedExtensions(): string[] {
+							return [];
+						},
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						installExtensions() {},
+					},
+				};
+			}
+			else {
+				return null;
+			}
+		},
 	},
 	ProgressLocation: {
 		Notification: 0,
