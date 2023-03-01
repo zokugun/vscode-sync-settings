@@ -297,7 +297,7 @@ function setKeybindings(data: string | any[]): void { // {{{
 	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf-8' });
 } // }}}
 
-function setManagedExtensions(manage: boolean): void { // {{{
+function setManageExtensions(manage: boolean): void { // {{{
 	$manageExtensions = manage;
 } // }}}
 
@@ -352,7 +352,7 @@ export {
 	getExtensions,
 	setExtensions,
 	setKeybindings,
-	setManagedExtensions,
+	setManageExtensions,
 	setPlatform,
 	setSettings,
 };

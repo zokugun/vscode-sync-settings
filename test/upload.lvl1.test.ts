@@ -266,11 +266,11 @@ describe('upload.lvl1', () => {
 
 		describe('unmanaged', () => {
 			before(() => { // {{{
-				vscode.setManagedExtensions(false);
+				vscode.setManageExtensions(false);
 			});
 
 			after(() => { // {{{
-				vscode.setManagedExtensions(true);
+				vscode.setManageExtensions(true);
 			});
 
 			it('disabled', async () => { // {{{
