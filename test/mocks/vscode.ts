@@ -355,6 +355,7 @@ function setSettings(data: any | string, { profile, hostname }: { profile: strin
 export function reset(): void { // {{{
 	$executedCommands.length = 0;
 	$extensions.length = 0;
+	$managedExtensions.length = 0;
 	$outputLines.length = 0;
 	$platform = 'linux';
 	$settings = {};
