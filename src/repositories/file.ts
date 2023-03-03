@@ -577,7 +577,7 @@ export class FileRepository extends Repository {
 
 	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, SqlValue>> { // {{{
 		if(!extensions) {
-			extensions = await this.listEditorExtensions([], false) ?? { disabled: [], enabled: [] };
+			extensions = await this.listEditorExtensions([], true) ?? { disabled: [], enabled: [] };
 		}
 
 		const keys = [

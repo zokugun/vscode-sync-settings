@@ -15,7 +15,7 @@ export function getVSIXManager(): VSIXManager | undefined {
 	}
 }
 
-export async function listManagedExtensions(): Promise<string[]> {
+export async function listVSIXExtensions(): Promise<string[]> {
 	const vsixManager = getVSIXManager();
 
 	return await vsixManager?.listManagedExtensions() ?? [];

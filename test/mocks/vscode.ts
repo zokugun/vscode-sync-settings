@@ -17,6 +17,7 @@ interface Extension {
 const $executedCommands: string[] = [];
 const $extensions: string[] = [];
 let $manageExtensions = true;
+const $managedExtensions: string[] = [];
 const $outputLines: string[] = [];
 
 const $outputChannel = {
@@ -171,6 +172,22 @@ const $vscode = {
 	},
 	extensions: {
 		all: [] as Extension[],
+		getExtension(name: string) {
+			if(name === 'zokugun.vsix-manager') {
+				return {
+					exports: {
+						listManagedExtensions() {
+							return $managedExtensions;
+						},
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						installExtensions() {},
+					},
+				};
+			}
+			else {
+				return null;
+			}
+		},
 	},
 	ProgressLocation: {
 		Notification: 0,
@@ -297,8 +314,12 @@ function setKeybindings(data: string | any[]): void { // {{{
 	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf-8' });
 } // }}}
 
-function setManagedExtensions(manage: boolean): void { // {{{
+function setManageExtensions(manage: boolean): void { // {{{
 	$manageExtensions = manage;
+} // }}}
+
+function setManagedExtensions(managedExtensions: string[]): void { // {{{
+	$managedExtensions.push(...managedExtensions);
 } // }}}
 
 function setPlatform(platform: string): void { // {{{
@@ -334,6 +355,7 @@ function setSettings(data: any | string, { profile, hostname }: { profile: strin
 export function reset(): void { // {{{
 	$executedCommands.length = 0;
 	$extensions.length = 0;
+	$managedExtensions.length = 0;
 	$outputLines.length = 0;
 	$platform = 'linux';
 	$settings = {};
@@ -352,6 +374,7 @@ export {
 	getExtensions,
 	setExtensions,
 	setKeybindings,
+	setManageExtensions,
 	setManagedExtensions,
 	setPlatform,
 	setSettings,

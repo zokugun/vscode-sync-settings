@@ -7,7 +7,7 @@ import { Settings } from './settings';
 import { exists } from './utils/exists';
 import { getExtensionDataPath } from './utils/get-extension-data-path';
 import { NIL_UUID } from './utils/nil-uuid';
-import { listManagedExtensions } from './utils/vsix-manager';
+import { listVSIXExtensions } from './utils/vsix-manager';
 
 export interface ExtensionId {
 	id: string;
@@ -53,8 +53,8 @@ export abstract class Repository {
 		return this._profile;
 	} // }}}
 
-	public async listEditorExtensions(ignoredExtensions: string[], ignoreManagedExtensions: boolean = true): Promise<ExtensionList> { // {{{
-		const managedExtensions = ignoreManagedExtensions ? [] : await listManagedExtensions();
+	public async listEditorExtensions(ignoredExtensions: string[], allInstalledExtensions: boolean = false): Promise<ExtensionList> { // {{{
+		const extensionsFromVSIXManager = allInstalledExtensions ? [] : await listVSIXExtensions();
 
 		const builtin: {
 			disabled: string[];
@@ -70,7 +70,7 @@ export abstract class Repository {
 			const id = extension.id;
 			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
 
-			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || managedExtensions.includes(id)) {
+			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || extensionsFromVSIXManager.includes(id)) {
 				continue;
 			}
 
@@ -110,7 +110,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !managedExtensions.includes(id)) {
+			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !extensionsFromVSIXManager.includes(id)) {
 				disabled.push({
 					id,
 					uuid: pkg.__metadata?.id ?? NIL_UUID,

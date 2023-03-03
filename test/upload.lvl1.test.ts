@@ -265,14 +265,6 @@ describe('upload.lvl1', () => {
 		});
 
 		describe('unmanaged', () => {
-			before(() => { // {{{
-				vscode.setManagedExtensions(false);
-			});
-
-			after(() => { // {{{
-				vscode.setManagedExtensions(true);
-			});
-
 			it('disabled', async () => { // {{{
 				vol.fromJSON({
 					'/repository/profiles/main/data/extensions.yml': vscode.ext2yml({
