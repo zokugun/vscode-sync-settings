@@ -446,4 +446,52 @@ describe('upload', () => {
 			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 	});
+
+	describe('vsix-manager', () => {
+		before(() => { // {{{
+			vscode.setManageExtensions(false);
+		});
+
+		after(() => { // {{{
+			vscode.setManageExtensions(true);
+		});
+
+		describe('upload', () => {
+			const extensionName = 'pub1.ext1';
+
+			it('unmanaged', async () => { // {{{
+				vscode.setExtensions({
+					enabled: [extensionName],
+					disabled: [],
+				});
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+					disabled: [],
+					enabled: [extensionName],
+				}));
+			}); // }}}
+
+			it('managed', async () => { // {{{
+				vscode.setExtensions({
+					enabled: [extensionName],
+					disabled: [],
+				});
+
+				vscode.setManagedExtensions([extensionName]);
+
+				const repository = await RepositoryFactory.get();
+
+				await repository.upload();
+
+				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+					disabled: [],
+					enabled: [],
+				}));
+			}); // }}}
+		});
+	});
 });
