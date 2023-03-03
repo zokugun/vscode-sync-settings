@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.15.1 | 2023-03-03
+- fix management of extensions from VSIX Manager, thanks to **@manuth**
+
 ## v0.15.0 | 2022-12-25
 - integrate [VSIX Manager](https://github.com/zokugun/vscode-vsix-manager)
 - correctly find binary due to new "tunnel" binary
