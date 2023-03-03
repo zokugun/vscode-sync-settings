@@ -448,14 +448,6 @@ describe('upload', () => {
 	});
 
 	describe('vsix-manager', () => {
-		before(() => { // {{{
-			vscode.setManageExtensions(false);
-		});
-
-		after(() => { // {{{
-			vscode.setManageExtensions(true);
-		});
-
 		describe('upload', () => {
 			const extensionName = 'pub1.ext1';
 
