@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.15.2 | 2023-03-12
+- correctly find binary due to "wsl" binary
+
 ## v0.15.1 | 2023-03-03
 - fix management of extensions from VSIX Manager, thanks to **@manuth**
 
