@@ -19,18 +19,25 @@ export async function restartApp(): Promise<void> {
 }
 
 async function getAppBinary(appHomeDir: string): Promise<string> {
-	const files = await fse.readdir(appHomeDir);
+	let files = await fse.readdir(appHomeDir);
 
 	if(files.length === 1) {
 		return path.join(appHomeDir, files[0]);
 	}
-	else if(files.length === 2) {
-		if(files[0].includes('-tunnel')) {
-			return files[1];
-		}
 
-		if(files[1].includes('-tunnel')) {
-			return files[0];
+	// remove tunnel
+	files = files.filter((file) => !file.includes('-tunnel'));
+
+	if(files.length === 1) {
+		return path.join(appHomeDir, files[0]);
+	}
+
+	if(process.platform === 'win32') {
+		// select *.cmd
+		files = files.filter((file) => file.endsWith('.cmd'));
+
+		if(files.length === 1) {
+			return path.join(appHomeDir, files[0]);
 		}
 	}
 
