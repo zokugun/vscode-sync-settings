@@ -98,7 +98,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			const match = /^(.*?)-\d+\.\d+\.\d+$/.exec(name);
+			const match = /^(.*?)-\d+\.\d+\.\d+(?:-|$)/.exec(name);
 			if(!match) {
 				continue;
 			}
