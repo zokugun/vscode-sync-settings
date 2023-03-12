@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.15.3 | 2023-03-12
+- fix detection of an extension when its directory's name includes a target platform
+
 ## v0.15.2 | 2023-03-12
 - correctly find binary due to "wsl" binary
 
