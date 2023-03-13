@@ -3,9 +3,11 @@ Hooks
 
 The commands of a hook are executed in an integrated terminal of the editor.
 
+By default, the terminal will work in the repository or its local copy if remote.
+
 ### `settings.json` (VSCode)
 
-```json
+```jsonc
 {
     "syncSettings.hooks.preDownload": (string | string[]),
     "syncSettings.hooks.postDownload": (string | string[]),

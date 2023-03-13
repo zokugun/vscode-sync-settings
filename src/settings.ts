@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import fse from 'fs-extra';
-import { ExtensionContext, ExtensionKind, Terminal, Uri, window } from 'vscode';
+import { ExtensionContext, ExtensionKind, Terminal, TerminalOptions, Uri, window } from 'vscode';
 import yaml from 'yaml';
 import { RepositoryType } from './repository-type';
 import { exists } from './utils/exists';
@@ -67,14 +67,6 @@ export class Settings {
 		this.remote = remote;
 	} // }}}
 
-	public static get terminal(): Terminal { // {{{
-		if(!$terminal) {
-			$terminal = window.createTerminal('Sync Settings');
-		}
-
-		return $terminal;
-	} // }}}
-
 	public get hooks() { // {{{
 		return this._hooks;
 	} // }}}
@@ -138,6 +130,37 @@ export class Settings {
 		void getEditorStorage(context);
 
 		return $instance;
+	} // }}}
+
+	public static async getTerminal(workingDirectory: string): Promise<Terminal> { // {{{
+		if(!$terminal) {
+			$terminal = window.createTerminal({
+				name: 'Sync Settings',
+				cwd: workingDirectory,
+			});
+		}
+		else if(($terminal.creationOptions as TerminalOptions).cwd !== workingDirectory) {
+			$terminal.dispose();
+
+			$terminal = window.createTerminal({
+				name: 'Sync Settings',
+				cwd: workingDirectory,
+			});
+		}
+		else {
+			await $terminal.processId.then((processId) => {
+				if(!processId) {
+					$terminal = window.createTerminal({
+						name: 'Sync Settings',
+						cwd: workingDirectory,
+					});
+				}
+			});
+		}
+
+		$terminal.show(false);
+
+		return $terminal;
 	} // }}}
 
 	public async reload(): Promise<boolean> { // {{{

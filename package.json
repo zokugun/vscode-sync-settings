@@ -27,6 +27,7 @@
 		"commit": "cz",
 		"compile": "tsc -p src",
 		"lint": "xo",
+		"package": "rm -f *.vsix && vsce package",
 		"prepare": "husky install; fixpack || true",
 		"release": "release-it",
 		"test": "tsc -p test && mocha",

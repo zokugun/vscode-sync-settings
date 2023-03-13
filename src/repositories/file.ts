@@ -340,7 +340,7 @@ export class FileRepository extends Repository {
 		const commands = this._hooks[hook];
 
 		if(commands.length > 0) {
-			const terminal = Settings.terminal;
+			const terminal = await Settings.getTerminal(this._rootPath);
 
 			for(const command of commands) {
 				terminal.sendText(command, true);
