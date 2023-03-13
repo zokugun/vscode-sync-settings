@@ -191,6 +191,8 @@ export abstract class Repository {
 
 	public abstract download(): Promise<void>;
 
+	public abstract deleteProfile(profile: string): Promise<void>;
+
 	public abstract duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void>;
 
 	public abstract extendProfileTo(originalProfile: string, newProfile: string): Promise<void>;

@@ -4,6 +4,9 @@ import { RepositoryType } from '../repository-type';
 export class DummyRepository extends Repository {
 	public override readonly type = RepositoryType.DUMMY;
 
+	public override async deleteProfile(_profile: string): Promise<void> { // {{{
+	} // }}}
+
 	public override async download(): Promise<void> { // {{{
 	} // }}}
 

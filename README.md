@@ -192,6 +192,7 @@ Commands
 - `> Sync Settings: Prompt if a difference between actual and saved settings is been found`: prompt if you want to upload your settings if any difference has been found
 - `> Sync Settings: List the missing extensions`: display the list of missing extensions
 - `> Sync Settings: Create a new profile`: create a new profile
+- `> Sync Settings: Delete a profile`: delete a profile
 - `> Sync Settings: Switch to profile`: switch to the selected profile
 - `> Sync Settings: Open the profile settings`: open the settings for configuring the profile
 - `> Sync Settings: Reveal the profile in the file explorer`: open the profile's local copy in the file explorer

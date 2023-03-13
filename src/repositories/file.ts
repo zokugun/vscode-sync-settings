@@ -96,6 +96,12 @@ export class FileRepository extends Repository {
 		return RepositoryType.FILE;
 	} // }}}
 
+	public override async deleteProfile(profile: string): Promise<void> { // {{{
+		this.checkInitialized();
+
+		await fse.remove(path.join(this._rootPath, 'profiles', profile));
+	} // }}}
+
 	public override async download(): Promise<void> { // {{{
 		await this.restoreProfile();
 	} // }}}
