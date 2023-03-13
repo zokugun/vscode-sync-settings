@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.4 | 2023-03-13
+- fix the location of where the hooks are executed (in the local repository)
+- add missing `syncSettings.deleteProfile` command
+
 ## v0.15.3 | 2023-03-12
 - fix detection of an extension when its directory's name includes a target platform
 
