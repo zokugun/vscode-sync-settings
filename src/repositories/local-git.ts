@@ -61,7 +61,7 @@ export class LocalGitRepository extends FileRepository {
 
 	public override async initialize(): Promise<void> { // {{{
 		if(!await this.pull()) {
-			return Logger.error('can not pull git repository');
+			return Logger.error('The git repository can not be pulled');
 		}
 
 		const profilePath = path.join(this._rootPath, 'profiles', this._profile);
