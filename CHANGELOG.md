@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.5 | 2023-03-14
+- filter out empty hooks so the terminal isn't shown (it's now transient)
+- catch errors on remote git so they can be shown in the output
+
 ## v0.15.4 | 2023-03-13
 - fix the location of where the hooks are executed (in the local repository)
 - add missing `syncSettings.deleteProfile` command
