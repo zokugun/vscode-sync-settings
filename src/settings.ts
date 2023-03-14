@@ -137,6 +137,7 @@ export class Settings {
 			$terminal = window.createTerminal({
 				name: 'Sync Settings',
 				cwd: workingDirectory,
+				isTransient: true,
 			});
 		}
 		else if(($terminal.creationOptions as TerminalOptions).cwd !== workingDirectory) {
@@ -145,6 +146,7 @@ export class Settings {
 			$terminal = window.createTerminal({
 				name: 'Sync Settings',
 				cwd: workingDirectory,
+				isTransient: true,
 			});
 		}
 		else {
@@ -153,6 +155,7 @@ export class Settings {
 					$terminal = window.createTerminal({
 						name: 'Sync Settings',
 						cwd: workingDirectory,
+						isTransient: true,
 					});
 				}
 			});

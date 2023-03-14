@@ -72,6 +72,50 @@ function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] {
 	return result;
 } // }}}
 
+function parseHook(fromYaml?: string | string[], fromJson?: string | string[]): string[] { // {{{
+	const result: string[] = [];
+
+	if(fromYaml) {
+		if(Array.isArray(fromYaml)) {
+			for(let cmd of fromYaml) {
+				cmd = cmd.trim();
+
+				if(cmd.length > 0) {
+					result.push(cmd);
+				}
+			}
+		}
+		else {
+			fromYaml = fromYaml.trim();
+
+			if(fromYaml.length > 0) {
+				result.push(fromYaml);
+			}
+		}
+	}
+
+	if(result.length === 0 && fromJson) {
+		if(Array.isArray(fromJson)) {
+			for(let cmd of fromJson) {
+				cmd = cmd.trim();
+
+				if(cmd.length > 0) {
+					result.push(cmd);
+				}
+			}
+		}
+		else {
+			fromYaml = fromJson.trim();
+
+			if(fromJson.length > 0) {
+				result.push(fromJson);
+			}
+		}
+	}
+
+	return result;
+} // }}}
+
 export class FileRepository extends Repository {
 	protected _hooks: Record<Hook, string[]>;
 	protected _rootPath: string;
@@ -85,10 +129,10 @@ export class FileRepository extends Repository {
 		const hooksStg = settings.hooks ?? {};
 
 		this._hooks = {
-			[Hook.PreDownload]: [hooksStg[Hook.PreDownload] ?? hooksCfg.get('preDownload') ?? []].flat(),
-			[Hook.PostDownload]: [hooksStg[Hook.PostDownload] ?? hooksCfg.get('postDownload') ?? []].flat(),
-			[Hook.PreUpload]: [hooksStg[Hook.PreUpload] ?? hooksCfg.get('preUpload') ?? []].flat(),
-			[Hook.PostUpload]: [hooksStg[Hook.PostUpload] ?? hooksCfg.get('postUpload') ?? []].flat(),
+			[Hook.PreDownload]: parseHook(hooksStg[Hook.PreDownload], hooksCfg.get('preDownload')),
+			[Hook.PostDownload]: parseHook(hooksStg[Hook.PostDownload], hooksCfg.get('postDownload')),
+			[Hook.PreUpload]: parseHook(hooksStg[Hook.PreUpload], hooksCfg.get('preUpload')),
+			[Hook.PostUpload]: parseHook(hooksStg[Hook.PostUpload], hooksCfg.get('postUpload')),
 		};
 	} // }}}
 
