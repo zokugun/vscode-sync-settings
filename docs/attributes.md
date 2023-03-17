@@ -92,9 +92,10 @@ Condition
 
 ```
 condition = expression ("," expression)*
-expression = identifier operator values
+expression = (unary-operator identifier) | (identifier operator values)
 identifier = \w+
 operator = "=" | "!=" | "<" | "<=" | ">" | ">="
+unary-operator = "?" | "!?"
 values = value ("|" value)*
 ```
 
