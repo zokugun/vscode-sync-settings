@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.16.0 | 2023-03-17
+- add existential operators (`?`, `!?`) to JSONC attributes
+- improve error management
+
 ## v0.15.5 | 2023-03-14
 - filter out empty hooks so the terminal isn't shown (it's now transient)
 - catch errors on remote git so they can be shown in the output
