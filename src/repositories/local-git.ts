@@ -56,7 +56,7 @@ export class LocalGitRepository extends FileRepository {
 			await fs.writeFile(gitkeepPath, '', 'utf-8');
 		}
 
-		return this.push(CommitType.INIT, newProfile);
+		await this.push(CommitType.INIT, newProfile);
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
