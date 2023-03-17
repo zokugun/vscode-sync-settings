@@ -189,7 +189,7 @@ export abstract class Repository {
 		}
 	} // }}}
 
-	public abstract download(): Promise<void>;
+	public abstract download(): Promise<boolean>;
 
 	public abstract deleteProfile(profile: string): Promise<void>;
 
@@ -207,7 +207,7 @@ export abstract class Repository {
 
 	public abstract listProfileExtensions(profile?: string): Promise<ExtensionList>;
 
-	public abstract restoreProfile(): Promise<void>;
+	public abstract restoreProfile(): Promise<boolean>;
 
 	public abstract runHook(type: Hook): Promise<void>;
 
@@ -215,5 +215,5 @@ export abstract class Repository {
 
 	public abstract terminate(): Promise<void>;
 
-	public abstract upload(): Promise<void>;
+	public abstract upload(): Promise<boolean>;
 }

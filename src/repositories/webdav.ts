@@ -49,7 +49,7 @@ export class WebDAVRepository extends FileRepository {
 		return RepositoryType.WEBDAV;
 	} // }}}
 
-	public override async download(): Promise<void> { // {{{
+	public override async download(): Promise<boolean> { // {{{
 		this.checkInitialized();
 
 		try {
@@ -61,7 +61,7 @@ export class WebDAVRepository extends FileRepository {
 			this.restoreTLS();
 		}
 
-		await super.download();
+		return super.download();
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -134,7 +134,7 @@ export class WebDAVRepository extends FileRepository {
 		await TemporaryRepository.terminate(this._settings);
 	} // }}}
 
-	public override async upload(): Promise<void> { // {{{
+	public override async upload(): Promise<boolean> { // {{{
 		this.checkInitialized();
 
 		await super.upload();
@@ -147,6 +147,8 @@ export class WebDAVRepository extends FileRepository {
 		finally {
 			this.restoreTLS();
 		}
+
+		return true;
 	} // }}}
 
 	protected configureTLS(): void { // {{{

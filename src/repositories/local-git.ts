@@ -78,10 +78,10 @@ export class LocalGitRepository extends FileRepository {
 		this._initialized = true;
 	} // }}}
 
-	public override async upload(): Promise<void> { // {{{
+	public override async upload(): Promise<boolean> { // {{{
 		await super.upload();
 
-		await this.push(CommitType.UPDATE);
+		return this.push(CommitType.UPDATE);
 	} // }}}
 
 	protected async getVersion(): Promise<string> { // {{{
@@ -123,7 +123,7 @@ export class LocalGitRepository extends FileRepository {
 		return true;
 	} // }}}
 
-	protected async push(type: CommitType, profile: string = this._profile): Promise<void> { // {{{
+	protected async push(type: CommitType, profile: string = this._profile): Promise<boolean> { // {{{
 		await this._git.add('.');
 
 		const status = await this._git.status();
@@ -142,5 +142,7 @@ export class LocalGitRepository extends FileRepository {
 
 			await this._git.commit(message);
 		}
+
+		return true;
 	} // }}}
 }

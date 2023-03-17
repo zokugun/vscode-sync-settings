@@ -7,7 +7,8 @@ export class DummyRepository extends Repository {
 	public override async deleteProfile(_profile: string): Promise<void> { // {{{
 	} // }}}
 
-	public override async download(): Promise<void> { // {{{
+	public override async download(): Promise<boolean> { // {{{
+		return true;
 	} // }}}
 
 	public override async duplicateProfileTo(_originalProfile: string, _newProfile: string): Promise<void> { // {{{
@@ -38,7 +39,8 @@ export class DummyRepository extends Repository {
 		};
 	} // }}}
 
-	public override async restoreProfile(): Promise<void> { // {{{
+	public override async restoreProfile(): Promise<boolean> { // {{{
+		return true;
 	} // }}}
 
 	public override async runHook(_hook: Hook): Promise<void> { // {{{
@@ -50,6 +52,7 @@ export class DummyRepository extends Repository {
 	public override async terminate(): Promise<void> { // {{{
 	} // }}}
 
-	public override async upload(): Promise<void> { // {{{
+	public override async upload(): Promise<boolean> { // {{{
+		return true;
 	} // }}}
 }

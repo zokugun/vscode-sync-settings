@@ -146,8 +146,8 @@ export class FileRepository extends Repository {
 		await fse.remove(path.join(this._rootPath, 'profiles', profile));
 	} // }}}
 
-	public override async download(): Promise<void> { // {{{
-		await this.restoreProfile();
+	public override async download(): Promise<boolean> { // {{{
+		return this.restoreProfile();
 	} // }}}
 
 	public override async duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void> { // {{{
@@ -312,7 +312,7 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	public override async restoreProfile(): Promise<void> { // {{{
+	public override async restoreProfile(): Promise<boolean> { // {{{
 		this.checkInitialized();
 
 		Logger.info(`restore profile "${this.profile}" from ${this._rootPath}`);
@@ -342,7 +342,7 @@ export class FileRepository extends Repository {
 				);
 
 				if(!result) {
-					return;
+					return false;
 				}
 			}
 
@@ -384,6 +384,8 @@ export class FileRepository extends Repository {
 				await vscode.commands.executeCommand('workbench.action.reloadWindow');
 			}
 		}
+
+		return true;
 	} // }}}
 
 	public override async runHook(hook: Hook): Promise<void> { // {{{
@@ -463,8 +465,10 @@ export class FileRepository extends Repository {
 		this.checkInitialized();
 	} // }}}
 
-	public override async upload(): Promise<void> { // {{{
+	public override async upload(): Promise<boolean> { // {{{
 		await this.serializeProfile();
+
+		return true;
 	} // }}}
 
 	protected applyExtensionsDiff({ disabled, enabled, builtin }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{

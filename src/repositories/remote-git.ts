@@ -19,14 +19,14 @@ export class RemoteGitRepository extends LocalGitRepository {
 		this._pushRegex = new RegExp(`${this._branch} pushes to ${this._branch} (up to date)`);
 	} // }}}
 
-	public override async download(): Promise<void> { // {{{
+	public override async download(): Promise<boolean> { // {{{
 		this.checkInitialized();
 
-		if(!await this.pull()) {
-			return Logger.error('The git repository can not be pulled');
+		if(await this.pull()) {
+			return super.download();
 		}
 
-		await super.download();
+		return false;
 	} // }}}
 
 	public override async initialize(): Promise<void> { // {{{
@@ -88,14 +88,14 @@ export class RemoteGitRepository extends LocalGitRepository {
 					const status = await this._git.remote(['show', 'origin']);
 
 					if(!status) {
-						return await this.createLocalRepository(true);
+						return this.createLocalRepository(true);
 					}
 
 					let match: RegExpMatchArray | null;
 
 					// verify origin
 					if((match = /Fetch URL: (\S*)/.exec(status)) && match[1] !== this._remoteUrl) {
-						return await this.createLocalRepository(true);
+						return this.createLocalRepository(true);
 					}
 
 					await this._git.fetch();
@@ -103,7 +103,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 					// switch branch is needed
 					const branch = await this._git.branchLocal();
 					if(branch.current !== this._branch) {
-						return await this.createLocalRepository(true);
+						return this.createLocalRepository(true);
 					}
 
 					// pull
@@ -122,11 +122,11 @@ export class RemoteGitRepository extends LocalGitRepository {
 					return true;
 				}
 				else {
-					return await this.createLocalRepository(true);
+					return this.createLocalRepository(true);
 				}
 			}
 
-			return await this.createLocalRepository(false);
+			return this.createLocalRepository(false);
 		}
 		catch (error: unknown) {
 			Logger.error(error);
@@ -135,7 +135,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 		}
 	} // }}}
 
-	protected override async push(type: CommitType, profile: string = this._profile): Promise<void> { // {{{
+	protected override async push(type: CommitType, profile: string = this._profile): Promise<boolean> { // {{{
 		try {
 			await super.push(type, profile);
 
@@ -148,9 +148,13 @@ export class RemoteGitRepository extends LocalGitRepository {
 
 				Logger.info('push done');
 			}
+
+			return true;
 		}
 		catch (error: unknown) {
 			Logger.error(error);
+
+			return false;
 		}
 	} // }}}
 }

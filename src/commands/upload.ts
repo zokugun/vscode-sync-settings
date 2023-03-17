@@ -36,12 +36,12 @@ export async function upload(): Promise<void> {
 
 		await repository.runHook(Hook.PreUpload);
 
-		await repository.upload();
+		if(await repository.upload()) {
+			await repository.runHook(Hook.PostUpload);
 
-		await repository.runHook(Hook.PostUpload);
-
-		if(showFinishAlert) {
-			await window.showInformationMessage('Your settings have been uploaded (user -> repository)');
+			if(showFinishAlert) {
+				await window.showInformationMessage('Your settings have been uploaded (user -> repository)');
+			}
 		}
 	}
 	catch (error: unknown) {

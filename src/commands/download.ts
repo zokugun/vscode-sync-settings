@@ -36,12 +36,12 @@ export async function download(): Promise<void> {
 
 		await repository.runHook(Hook.PreDownload);
 
-		await repository.download();
+		if(await repository.download()) {
+			await repository.runHook(Hook.PostDownload);
 
-		await repository.runHook(Hook.PostDownload);
-
-		if(showFinishAlert) {
-			await window.showInformationMessage('Your settings have been downloaded (repository -> user)');
+			if(showFinishAlert) {
+				await window.showInformationMessage('Your settings have been downloaded (repository -> user)');
+			}
 		}
 	}
 	catch (error: unknown) {
