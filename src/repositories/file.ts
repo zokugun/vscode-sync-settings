@@ -408,6 +408,7 @@ export class FileRepository extends Repository {
 		const resources = syncSettings.get<string[]>('resources') ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.UIState];
 
 		Logger.info('serialize to:', this._rootPath);
+		Logger.info('resources:', resources.join(', '));
 
 		const profileSettings = await this.loadProfileSettings();
 		const userDataPath = getUserDataPath(this._settings);
