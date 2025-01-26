@@ -30,6 +30,7 @@ import { preprocessJSONC } from '../utils/preprocess-jsonc';
 import { readStateDB } from '../utils/read-statedb';
 import { removeProperties } from '../utils/remove-properties';
 import { restartApp } from '../utils/restart-app';
+import { sortExtensionList } from '../utils/sort-extension-list';
 import { uninstallExtension } from '../utils/uninstall-extension';
 import { getVSIXManager } from '../utils/vsix-manager';
 import { writeStateDB } from '../utils/write-statedb';
@@ -1255,23 +1256,23 @@ export class FileRepository extends Repository {
 			const builtinEnabled = profile.builtin?.disabled && editor.builtin?.disabled ? arrayDiff(profile.builtin.disabled, editor.builtin.disabled) : [];
 
 			const output: Record<string, any> = {
-				disabled,
-				enabled,
+				disabled: sortExtensionList(disabled),
+				enabled: sortExtensionList(enabled),
 			};
 
 			if(uninstall.length > 0) {
-				output.uninstall = uninstall;
+				output.uninstall = sortExtensionList(uninstall);
 			}
 
 			if(builtinDisabled.length > 0 || builtinEnabled.length > 0) {
 				const builtin: Record<string, any> = {};
 
 				if(builtinDisabled.length > 0) {
-					builtin.disabled = builtinDisabled;
+					builtin.disabled = builtinDisabled.sort((a, b) => a.localeCompare(b));
 				}
 
 				if(builtinEnabled.length > 0) {
-					builtin.enabled = builtinEnabled;
+					builtin.enabled = builtinEnabled.sort((a, b) => a.localeCompare(b));
 				}
 
 				output.builtin = builtin;
