@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.16.1 | 2025-01-27
+- sort the extension list
+- add an extra log on serialized resources
+- remove the old path references
+
 ## v0.16.0 | 2023-03-17
 - add existential operators (`?`, `!?`) to JSONC attributes
 - improve error management
