@@ -1,6 +1,6 @@
 import { window } from 'vscode';
-import { RepositoryFactory } from '../repository-factory';
-import { Logger } from '../utils/logger';
+import { RepositoryFactory } from '../repository-factory.js';
+import { Logger } from '../utils/logger.js';
 
 export async function deleteProfile(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {

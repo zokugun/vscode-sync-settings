@@ -1,23 +1,23 @@
 import path from 'path';
 import fse from 'fs-extra';
-import initSqlJs, { QueryExecResult } from 'sql.js';
-import { exists } from './exists';
+import initSqlJs, { type QueryExecResult } from 'sql.js';
+import { exists } from './exists.js';
 
 export async function readStateDB(userDataPath: string, query: string, args?: Record<string, any>): Promise<QueryExecResult | undefined> {
 	const sql = await initSqlJs();
-	const dbPath = path.join(userDataPath, 'globalStorage', 'state.vscdb');
+	const databasePath = path.join(userDataPath, 'globalStorage', 'state.vscdb');
 
-	if(await exists(dbPath)) {
-		const buffer = await fse.readFile(dbPath);
-		const db = new sql.Database(buffer);
+	if(await exists(databasePath)) {
+		const buffer = await fse.readFile(databasePath);
+		const database = new sql.Database(buffer);
 
 		try {
-			const result = db.exec(query, args);
+			const result = database.exec(query, args);
 
 			return result[0];
 		}
 		finally {
-			db.close();
+			database.close();
 		}
 	}
 	else {

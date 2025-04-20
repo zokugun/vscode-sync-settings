@@ -5,56 +5,56 @@ import process from 'process';
 import { comment } from '@daiyam/jsonc-preprocessor';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
-import globby from 'globby';
-import { SqlValue } from 'sql.js';
+import { globby } from 'globby';
+import { type SqlValue } from 'sql.js';
 import untildify from 'untildify';
-import vscode, { WorkspaceConfiguration } from 'vscode';
+import vscode, { type WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
-import { ExtensionId, ExtensionList, Hook, Repository, Resource } from '../repository';
-import { RepositoryType } from '../repository-type';
-import { Settings } from '../settings';
-import { arrayDiff } from '../utils/array-diff';
-import { disableExtension } from '../utils/disable-extension';
-import { enableExtension } from '../utils/enable-extension';
-import { exists } from '../utils/exists';
-import { extractProperties } from '../utils/extract-properties';
-import { getEditorStorage } from '../utils/get-editor-storage';
-import { getExtensionDataUri } from '../utils/get-extension-data-uri';
-import { getUserDataPath } from '../utils/get-user-data-path';
-import { insertProperties } from '../utils/insert-properties';
-import { installExtension } from '../utils/install-extension';
-import { isEmpty } from '../utils/is-empty';
-import { Logger } from '../utils/logger';
-import { NIL_UUID } from '../utils/nil-uuid';
-import { preprocessJSONC } from '../utils/preprocess-jsonc';
-import { readStateDB } from '../utils/read-statedb';
-import { removeProperties } from '../utils/remove-properties';
-import { restartApp } from '../utils/restart-app';
-import { sortExtensionList } from '../utils/sort-extension-list';
-import { uninstallExtension } from '../utils/uninstall-extension';
-import { getVSIXManager } from '../utils/vsix-manager';
-import { writeStateDB } from '../utils/write-statedb';
+import { RepositoryType } from '../repository-type.js';
+import { type ExtensionId, type ExtensionList, Repository, Resource } from '../repository.js';
+import { Hook, Settings } from '../settings.js';
+import { arrayDiff } from '../utils/array-diff.js';
+import { disableExtension } from '../utils/disable-extension.js';
+import { enableExtension } from '../utils/enable-extension.js';
+import { exists } from '../utils/exists.js';
+import { extractProperties } from '../utils/extract-properties.js';
+import { getEditorStorage } from '../utils/get-editor-storage.js';
+import { getExtensionDataUri } from '../utils/get-extension-data-uri.js';
+import { getUserDataPath } from '../utils/get-user-data-path.js';
+import { insertProperties } from '../utils/insert-properties.js';
+import { installExtension } from '../utils/install-extension.js';
+import { isEmpty } from '../utils/is-empty.js';
+import { Logger } from '../utils/logger.js';
+import { NIL_UUID } from '../utils/nil-uuid.js';
+import { preprocessJSONC } from '../utils/preprocess-jsonc.js';
+import { readStateDB } from '../utils/read-statedb.js';
+import { removeProperties } from '../utils/remove-properties.js';
+import { restartApp } from '../utils/restart-app.js';
+import { sortExtensionList } from '../utils/sort-extension-list.js';
+import { uninstallExtension } from '../utils/uninstall-extension.js';
+import { getVSIXManager } from '../utils/vsix-manager.js';
+import { writeStateDB } from '../utils/write-statedb.js';
 
-interface ProfileSettings {
+type ProfileSettings = {
 	extends?: string;
-}
+};
 
-interface ProfileSyncSettings {
+type ProfileSyncSettings = {
 	additionalFiles?: string[];
 	keybindingsPerPlatform?: boolean;
 	ignoredExtensions?: string[];
 	ignoredSettings?: string[];
 	resources?: Resource[];
-}
+};
 
-interface SnippetsDiff {
+type SnippetsDiff = {
 	removed: string[];
-}
+};
 
-interface UIStateDiff {
+type UIStateDiff = {
 	modified: Record<string, unknown>;
 	removed: string[];
-}
+};
 
 function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] { // {{{
 	const result: ExtensionId[] = [];
@@ -163,7 +163,7 @@ export class FileRepository extends Repository {
 		const profilePath = path.join(this._rootPath, 'profiles', newProfile, 'profile.yml');
 		const data = yaml.stringify({ extends: originalProfile });
 
-		await fse.outputFile(profilePath, data, 'utf-8');
+		await fse.outputFile(profilePath, data, 'utf8');
 	} // }}}
 
 	public getProfileAdditionalFilesPath(profile: string = this.profile): string { // {{{
@@ -183,14 +183,21 @@ export class FileRepository extends Repository {
 
 		if(keybindingsPerPlatform) {
 			switch(process.platform) {
-				case 'darwin':
+				case 'darwin': {
 					return path.join(profileDataPath, `keybindings-macos${suffix}.json`);
-				case 'linux':
+				}
+
+				case 'linux': {
 					return path.join(profileDataPath, `keybindings-linux${suffix}.json`);
-				case 'win32':
+				}
+
+				case 'win32': {
 					return path.join(profileDataPath, `keybindings-windows${suffix}.json`);
-				default:
+				}
+
+				default: {
 					return path.join(profileDataPath, `keybindings${suffix}.json`);
+				}
 			}
 		}
 		else {
@@ -236,7 +243,7 @@ export class FileRepository extends Repository {
 				return { disabled: [], enabled: [] };
 			}
 
-			const data = await fse.readFile(dataPath, 'utf-8');
+			const data = await fse.readFile(dataPath, 'utf8');
 			const raw = yaml.parse(data) as {
 				builtin?: {
 					disabled?: string[];
@@ -263,7 +270,7 @@ export class FileRepository extends Repository {
 			return this.listProfileExtensions(settings.extends);
 		}
 
-		const data = await fse.readFile(dataPath, 'utf-8');
+		const data = await fse.readFile(dataPath, 'utf8');
 		const raw = yaml.parse(data) as {
 			builtin?: {
 				disabled?: string[];
@@ -285,7 +292,7 @@ export class FileRepository extends Repository {
 			},
 			disabled: parseExtensionList(raw.disabled),
 			enabled: parseExtensionList(raw.enabled),
-			uninstall: !raw.uninstall ? undefined : parseExtensionList(raw.uninstall),
+			uninstall: raw.uninstall ? parseExtensionList(raw.uninstall) : undefined,
 		};
 
 		const ancestors = await this.listProfileExtensions(settings.extends);
@@ -297,7 +304,7 @@ export class FileRepository extends Repository {
 		const path = this.getProfileSettingsPath(profile);
 
 		if(await exists(path)) {
-			const data = await fse.readFile(path, 'utf-8');
+			const data = await fse.readFile(path, 'utf8');
 			const settings = yaml.parse(data) as ProfileSettings;
 
 			return settings ?? {};
@@ -468,46 +475,46 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	protected applyExtensionsDiff({ disabled, enabled, builtin }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
-		for(const ext of diff.disabled) {
-			const index = enabled.findIndex((item) => item.id === ext.id);
+		for(const extension of diff.disabled) {
+			const index = enabled.findIndex((item) => item.id === extension.id);
 			if(index !== -1) {
 				enabled.splice(index, 1);
 			}
 
-			if(!disabled.some((item) => item.id === ext.id)) {
-				disabled.push(ext);
+			if(!disabled.some((item) => item.id === extension.id)) {
+				disabled.push(extension);
 			}
 		}
 
-		for(const ext of diff.enabled) {
-			const index = disabled.findIndex((item) => item.id === ext.id);
+		for(const extension of diff.enabled) {
+			const index = disabled.findIndex((item) => item.id === extension.id);
 			if(index !== -1) {
 				disabled.splice(index, 1);
 			}
 
-			if(!enabled.some((item) => item.id === ext.id)) {
-				enabled.push(ext);
+			if(!enabled.some((item) => item.id === extension.id)) {
+				enabled.push(extension);
 			}
 		}
 
 		if(diff.uninstall) {
 			for(const { id } of diff.uninstall) {
 				const index = disabled.findIndex((item) => item.id === id);
-				if(index !== -1) {
-					disabled.splice(index, 1);
-				}
-				else {
+				if(index === -1) {
 					const index = enabled.findIndex((item) => item.id === id);
 					if(index !== -1) {
 						enabled.splice(index, 1);
 					}
 				}
+				else {
+					disabled.splice(index, 1);
+				}
 			}
 		}
 
 		if(builtin) {
-			builtin.disabled = builtin.disabled ?? [];
-			builtin.enabled = builtin.enabled ?? [];
+			builtin.disabled ??= [];
+			builtin.enabled ??= [];
 
 			for(const id of diff.builtin!.disabled!) {
 				const index = builtin.enabled.indexOf(id);
@@ -587,7 +594,7 @@ export class FileRepository extends Repository {
 		const dataPath = this.getProfileKeybindingsPath(profile, keybindingsPerPlatform);
 
 		if(await exists(dataPath)) {
-			return fse.readFile(dataPath, 'utf-8');
+			return fse.readFile(dataPath, 'utf8');
 		}
 		else {
 			return undefined;
@@ -610,7 +617,7 @@ export class FileRepository extends Repository {
 		const dataPath = this.getProfileUserSettingsPath(profile);
 
 		if(await exists(dataPath)) {
-			return fse.readFile(dataPath, 'utf-8');
+			return fse.readFile(dataPath, 'utf8');
 		}
 		else {
 			return undefined;
@@ -618,9 +625,7 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, SqlValue>> { // {{{
-		if(!extensions) {
-			extensions = await this.listEditorExtensions([], true) ?? { disabled: [], enabled: [] };
-		}
+		extensions ||= await this.listEditorExtensions([], true) ?? { disabled: [], enabled: [] };
 
 		const keys = [
 			...extensions.disabled.map(({ id }) => id),
@@ -633,12 +638,12 @@ export class FileRepository extends Repository {
 		}
 
 		const properties: Record<string, SqlValue> = {};
-		const extDataPath = await getExtensionDataUri();
+		const extensionDataPath = await getExtensionDataUri();
 		const homeDirectory = os.homedir();
 
 		for(let [key, value] of data.values) {
 			if(typeof value === 'string') {
-				value = value.replaceAll(extDataPath, '%%EXTENSION_DATA_PATH%%');
+				value = value.replaceAll(extensionDataPath, '%%EXTENSION_DATA_PATH%%');
 
 				if(value.includes(homeDirectory)) {
 					continue;
@@ -663,7 +668,7 @@ export class FileRepository extends Repository {
 
 			const diffPath = this.getDiffSnippetsPath(profile);
 			if(await exists(diffPath)) {
-				const data = await fse.readFile(diffPath, 'utf-8');
+				const data = await fse.readFile(diffPath, 'utf8');
 				const diff = yaml.parse(data) as { remove: string[] };
 
 				for(const name of diff.remove) {
@@ -689,7 +694,7 @@ export class FileRepository extends Repository {
 		const hasher = createHash('SHA1');
 
 		for(const file of newFiles) {
-			const data = await fse.readFile(path.join(dataPath, file), 'utf-8');
+			const data = await fse.readFile(path.join(dataPath, file), 'utf8');
 			const hash = hasher.copy().update(data).digest('hex');
 
 			snippets[file] = hash;
@@ -710,7 +715,7 @@ export class FileRepository extends Repository {
 
 			const diffPath = this.getDiffSnippetsPath(profile);
 			if(await exists(diffPath)) {
-				const data = await fse.readFile(diffPath, 'utf-8');
+				const data = await fse.readFile(diffPath, 'utf8');
 				const diff = yaml.parse(data) as { removed: string[] };
 
 				for(const name of diff.removed) {
@@ -749,7 +754,7 @@ export class FileRepository extends Repository {
 				return {};
 			}
 
-			const data = await fse.readFile(dataPath, 'utf-8');
+			const data = await fse.readFile(dataPath, 'utf8');
 
 			return yaml.parse(data) as Record<string, unknown>;
 		}
@@ -813,7 +818,7 @@ export class FileRepository extends Repository {
 			}
 		}
 
-		const data = await fse.readFile(path, 'utf-8');
+		const data = await fse.readFile(path, 'utf8');
 
 		return yaml.parse(data) as ProfileSyncSettings;
 	} // }}}
@@ -821,7 +826,7 @@ export class FileRepository extends Repository {
 	protected async loadSnippetsDiff(): Promise<SnippetsDiff | undefined> { // {{{
 		const diffPath = this.getDiffSnippetsPath();
 		if(await exists(diffPath)) {
-			const data = await fse.readFile(diffPath, 'utf-8');
+			const data = await fse.readFile(diffPath, 'utf8');
 
 			return yaml.parse(data) as SnippetsDiff;
 		}
@@ -833,7 +838,7 @@ export class FileRepository extends Repository {
 	protected async loadUIStateDiff(profile: string = this.profile): Promise<UIStateDiff | undefined> { // {{{
 		const diffPath = this.getDiffUIStatePath(profile);
 		if(await exists(diffPath)) {
-			const data = await fse.readFile(diffPath, 'utf-8');
+			const data = await fse.readFile(diffPath, 'utf8');
 
 			return yaml.parse(data) as UIStateDiff;
 		}
@@ -855,12 +860,12 @@ export class FileRepository extends Repository {
 		const dataPath = this.getProfileAdditionalFilesPath(ancestorProfile);
 
 		for(let file of additionalFiles) {
-			file = file.replace(/\\/g, '/');
+			file = file.replaceAll('\\', '/');
 
-			const src = await this.expandPath(file);
-			const dst = path.join(dataPath, file.replace(/\//g, '-'));
+			const source = await this.expandPath(file);
+			const destination = path.join(dataPath, file.replaceAll('/', '-'));
 
-			await fse.copy(dst, src, {
+			await fse.copy(destination, source, {
 				preserveTimestamps: true,
 			});
 		}
@@ -1019,7 +1024,7 @@ export class FileRepository extends Repository {
 			data = '[]';
 		}
 
-		await fse.outputFile(dataPath, data, 'utf-8');
+		await fse.outputFile(dataPath, data, 'utf8');
 	} // }}}
 
 	protected async restoreUserSettings(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
@@ -1031,7 +1036,7 @@ export class FileRepository extends Repository {
 		if(await exists(dataPath)) {
 			const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
 			const ignoredSettings = syncSettings.ignoredSettings ?? [];
-			const text = await fse.readFile(dataPath, 'utf-8');
+			const text = await fse.readFile(dataPath, 'utf8');
 
 			extracted = extractProperties(text, ignoredSettings);
 		}
@@ -1049,7 +1054,7 @@ export class FileRepository extends Repository {
 			data = insertProperties(data, extracted);
 		}
 
-		await fse.outputFile(dataPath, data, 'utf-8');
+		await fse.outputFile(dataPath, data, 'utf8');
 	} // }}}
 
 	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
@@ -1080,7 +1085,7 @@ export class FileRepository extends Repository {
 	protected async restoreUIState(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore UI state');
 
-		const extDataPath = await getExtensionDataUri();
+		const extensionDataPath = await getExtensionDataUri();
 		const profile = await this.listProfileUIStateProperties();
 		const values: any[] = [];
 
@@ -1090,7 +1095,7 @@ export class FileRepository extends Repository {
 			values.push(`'${key}', $${index}`);
 
 			if(typeof value === 'string') {
-				value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extDataPath);
+				value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
 			}
 
 			args[`$${index}`] = value;
@@ -1117,7 +1122,7 @@ export class FileRepository extends Repository {
 		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources', 'additionalFiles']) {
 			const data = config.inspect(property);
 
-			if(data && typeof data.globalValue !== 'undefined') {
+			if(data && data.globalValue !== undefined) {
 				settings[property] = data.globalValue;
 
 				if(!ancestors || !deepEqual(ancestors[property], data.globalValue)) {
@@ -1129,7 +1134,7 @@ export class FileRepository extends Repository {
 		if(length > 0) {
 			const data = yaml.stringify(settings);
 
-			await fse.writeFile(this.getProfileSyncSettingsPath(), data, 'utf-8');
+			await fse.writeFile(this.getProfileSyncSettingsPath(), data, 'utf8');
 		}
 		else {
 			await fse.remove(this.getProfileSyncSettingsPath());
@@ -1141,7 +1146,7 @@ export class FileRepository extends Repository {
 		const dataPath = this.getDiffSnippetsPath();
 
 		await fse.writeFile(dataPath, data, {
-			encoding: 'utf-8',
+			encoding: 'utf8',
 			mode: 0o600,
 		});
 	} // }}}
@@ -1151,7 +1156,7 @@ export class FileRepository extends Repository {
 			const data = yaml.stringify(diff);
 
 			await fse.writeFile(this.getDiffUIStatePath(), data, {
-				encoding: 'utf-8',
+				encoding: 'utf8',
 				mode: 0o600,
 			});
 		}
@@ -1200,16 +1205,16 @@ export class FileRepository extends Repository {
 		await fse.emptyDir(dataPath);
 
 		for(let file of additionalFiles) {
-			file = file.replace(/\\/g, '/');
+			file = file.replaceAll('\\', '/');
 
 			if(file.endsWith('/zokugun.sync-settings/settings.yml')) {
 				throw new Error('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
 			}
 
-			const src = await this.expandPath(file);
-			const dst = path.join(dataPath, file.replace(/\//g, '-'));
+			const source = await this.expandPath(file);
+			const destination = path.join(dataPath, file.replaceAll('/', '-'));
 
-			await fse.copy(src, dst, {
+			await fse.copy(source, destination, {
 				preserveTimestamps: true,
 			});
 		}
@@ -1226,8 +1231,8 @@ export class FileRepository extends Repository {
 			const profile = await this.listProfileExtensions(profileSettings.extends);
 
 			const ids: Record<string, ExtensionId> = {};
-			for(const ext of [...profile.disabled, ...profile.enabled, ...editor.disabled, ...editor.enabled]) {
-				ids[ext.id] = ext;
+			for(const extension of [...profile.disabled, ...profile.enabled, ...editor.disabled, ...editor.enabled]) {
+				ids[extension.id] = extension;
 			}
 
 			const disabled = arrayDiff(editor.disabled.map(({ id }) => id), profile.disabled.map(({ id }) => id)).map((id) => ids[id]);
@@ -1266,7 +1271,7 @@ export class FileRepository extends Repository {
 		}
 
 		await fse.writeFile(this.getProfileExtensionsPath(), data, {
-			encoding: 'utf-8',
+			encoding: 'utf8',
 			mode: 0o600,
 		});
 
@@ -1282,7 +1287,7 @@ export class FileRepository extends Repository {
 
 		const editorPath = this.getEditorKeybindingsPath(userDataPath);
 		if(await exists(editorPath)) {
-			editor = await fse.readFile(editorPath, 'utf-8');
+			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(editor);
 		}
 
@@ -1290,7 +1295,7 @@ export class FileRepository extends Repository {
 
 		if(editor) {
 			await fse.writeFile(dataPath, editor, {
-				encoding: 'utf-8',
+				encoding: 'utf8',
 				mode: 0o600,
 			});
 		}
@@ -1308,11 +1313,11 @@ export class FileRepository extends Repository {
 		if(profileSettings.extends) {
 			const profile = await this.listProfileSnippetHashes(profileSettings.extends);
 			const hasher = createHash('SHA1');
-			const removed: any[] = [];
+			const removed: string[] = [];
 
 			if(editor.length > 0) {
 				for(const file of Array.from(editor)) {
-					const data = await fse.readFile(path.join(snippetsPath, file), 'utf-8');
+					const data = await fse.readFile(path.join(snippetsPath, file), 'utf8');
 					const hash = hasher.copy().update(data).digest('hex');
 
 					if(profile[file]) {
@@ -1343,10 +1348,10 @@ export class FileRepository extends Repository {
 			await fse.emptyDir(dataPath);
 
 			for(const file of Array.from(editor)) {
-				const src = path.join(snippetsPath, file);
-				const dst = path.join(dataPath, file);
+				const source = path.join(snippetsPath, file);
+				const destination = path.join(dataPath, file);
 
-				await fse.copy(src, dst, {
+				await fse.copy(source, destination, {
 					preserveTimestamps: true,
 				});
 			}
@@ -1379,7 +1384,7 @@ export class FileRepository extends Repository {
 			const data = yaml.stringify(editor);
 
 			await fse.writeFile(this.getProfileUIStatePath(), data, {
-				encoding: 'utf-8',
+				encoding: 'utf8',
 				mode: 0o600,
 			});
 		}
@@ -1394,7 +1399,7 @@ export class FileRepository extends Repository {
 		if(await exists(editorPath)) {
 			const ignoredSettings = this.getIgnoredSettings(config);
 
-			editor = await fse.readFile(editorPath, 'utf-8');
+			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(removeProperties(editor, ignoredSettings));
 		}
 
@@ -1402,7 +1407,7 @@ export class FileRepository extends Repository {
 
 		if(editor) {
 			await fse.writeFile(dataPath, editor, {
-				encoding: 'utf-8',
+				encoding: 'utf8',
 				mode: 0o600,
 			});
 		}

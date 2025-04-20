@@ -2,8 +2,8 @@ import { createHash } from 'crypto';
 import fs from 'fs/promises';
 import fse from 'fs-extra';
 import { Uri } from 'vscode';
-import { Settings } from '../settings';
-import { exists } from './exists';
+import { type Settings } from '../settings.js';
+import { exists } from './exists.js';
 
 export namespace TemporaryRepository {
 	export function getPath(settings: Settings): string { // {{{
@@ -16,7 +16,7 @@ export namespace TemporaryRepository {
 		const hashPath = `${path}.hash`;
 
 		if(await exists(hashPath)) {
-			const oldHash = await fs.readFile(hashPath, 'utf-8');
+			const oldHash = await fs.readFile(hashPath, 'utf8');
 
 			if(newHash === oldHash) {
 				return;
@@ -25,7 +25,7 @@ export namespace TemporaryRepository {
 
 		await fse.remove(path);
 
-		await fs.writeFile(hashPath, newHash, 'utf-8');
+		await fs.writeFile(hashPath, newHash, 'utf8');
 	} // }}}
 
 	export async function terminate(settings: Settings): Promise<void> { // {{{

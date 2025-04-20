@@ -1,5 +1,5 @@
 import { window, workspace } from 'vscode';
-import { Settings } from '../settings';
+import { Settings } from '../settings.js';
 
 export async function openSettings(): Promise<void> {
 	const settings = Settings.get();

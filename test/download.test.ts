@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 import yaml from 'yaml';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { fixtures } from './utils/fixtures.js';
 
 describe('download', () => {
 	const dotsyncFxt = fixtures('dotsync');
@@ -144,7 +144,7 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basics);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basics);
 		}); // }}}
 
 		it('attr.os', async () => { // {{{
@@ -161,7 +161,7 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.attrOsLinux);
 		}); // }}}
 
 		it('attr.editor', async () => { // {{{
@@ -176,7 +176,7 @@ describe('download', () => {
 			await repository.download();
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrEditorRes);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.attrEditorRes);
 		}); // }}}
 	});
 
@@ -194,7 +194,7 @@ describe('download', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-			expect(vol.readFileSync('/user/keybindings.json', 'utf-8')).to.be.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/user/keybindings.json', 'utf8')).to.be.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('linux', async () => { // {{{
@@ -210,7 +210,7 @@ describe('download', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-			expect(vol.readFileSync('/user/keybindings.json', 'utf-8')).to.be.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/user/keybindings.json', 'utf8')).to.be.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 	});
 
@@ -227,7 +227,7 @@ describe('download', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-		expect(vol.readFileSync('/user/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+		expect(vol.readFileSync('/user/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 	}); // }}}
 
 	it('additionals', async () => { // {{{
@@ -243,7 +243,7 @@ describe('download', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-		expect(vol.readFileSync('/globalStorage/alefragnani.project-manager/projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
-		expect(vol.readFileSync('/home/projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+		expect(vol.readFileSync('/globalStorage/alefragnani.project-manager/projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
+		expect(vol.readFileSync('/home/projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 	}); // }}}
 });

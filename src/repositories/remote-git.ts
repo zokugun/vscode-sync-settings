@@ -1,11 +1,11 @@
 import fs from 'fs/promises';
 import fse from 'fs-extra';
 import { ResetMode } from 'simple-git';
-import { Settings } from '../settings';
-import { exists } from '../utils/exists';
-import { Logger } from '../utils/logger';
-import { TemporaryRepository } from '../utils/temporary-repository';
-import { CommitType, LocalGitRepository } from './local-git';
+import { type Settings } from '../settings.js';
+import { exists } from '../utils/exists.js';
+import { Logger } from '../utils/logger.js';
+import { TemporaryRepository } from '../utils/temporary-repository.js';
+import { type CommitType, LocalGitRepository } from './local-git.js';
 
 export class RemoteGitRepository extends LocalGitRepository {
 	protected _remoteUrl: string;

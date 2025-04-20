@@ -1,6 +1,6 @@
 import { window } from 'vscode';
-import { RepositoryFactory } from '../repository-factory';
-import { Logger } from '../utils/logger';
+import { RepositoryFactory } from '../repository-factory.js';
+import { Logger } from '../utils/logger.js';
 
 export async function createProfile(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {
@@ -15,7 +15,7 @@ export async function createProfile(): Promise<void> {
 			title: 'Create new profile',
 			placeHolder: 'New profile name',
 			validateInput(value) {
-				const correct = value.replace(/[^\w\-.]/g, '');
+				const correct = value.replaceAll(/[^\w\-.]/, '');
 				if(correct === value) {
 					return null;
 				}

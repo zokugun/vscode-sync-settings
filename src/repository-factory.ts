@@ -1,13 +1,13 @@
-import { DummyRepository } from './repositories/dummy';
-import { FileRepository } from './repositories/file';
-import { LocalGitRepository } from './repositories/local-git';
-import { RemoteGitRepository } from './repositories/remote-git';
-import { RsyncRepository } from './repositories/rsync';
-import { WebDAVRepository } from './repositories/webdav';
-import { Repository } from './repository';
-import { RepositoryType } from './repository-type';
-import { Settings } from './settings';
-import { Logger } from './utils/logger';
+import { DummyRepository } from './repositories/dummy.js';
+import { FileRepository } from './repositories/file.js';
+import { LocalGitRepository } from './repositories/local-git.js';
+import { RemoteGitRepository } from './repositories/remote-git.js';
+import { RsyncRepository } from './repositories/rsync.js';
+import { WebDAVRepository } from './repositories/webdav.js';
+import { RepositoryType } from './repository-type.js';
+import { type Repository } from './repository.js';
+import { Settings } from './settings.js';
+import { Logger } from './utils/logger.js';
 
 let $instance: Repository | undefined;
 

@@ -2,15 +2,15 @@ import fs from 'fs/promises';
 import path from 'path';
 import fse from 'fs-extra';
 import semver from 'semver';
-import createSimpleGit, { SimpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 import vscode from 'vscode';
-import { RepositoryType } from '../repository-type';
-import { Settings } from '../settings';
-import { exists } from '../utils/exists';
-import { formatter } from '../utils/formatter';
-import { hostname } from '../utils/hostname';
-import { Logger } from '../utils/logger';
-import { FileRepository } from './file';
+import { RepositoryType } from '../repository-type.js';
+import { type Settings } from '../settings.js';
+import { exists } from '../utils/exists.js';
+import { formatter } from '../utils/formatter.js';
+import { hostname } from '../utils/hostname.js';
+import { Logger } from '../utils/logger.js';
+import { FileRepository } from './file.js';
 
 export enum CommitType {
 	INIT = 'init',
@@ -28,7 +28,7 @@ export class LocalGitRepository extends FileRepository {
 	constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings, rootPath);
 
-		this._git = createSimpleGit();
+		this._git = simpleGit();
 		this._branch = settings.repository.branch ?? 'master';
 
 		const config = vscode.workspace.getConfiguration('syncSettings');
@@ -53,7 +53,7 @@ export class LocalGitRepository extends FileRepository {
 		if(!await exists(gitkeepPath)) {
 			await fs.mkdir(profilePath, { recursive: true });
 
-			await fs.writeFile(gitkeepPath, '', 'utf-8');
+			await fs.writeFile(gitkeepPath, '', 'utf8');
 		}
 
 		await this.push(CommitType.INIT, newProfile);
@@ -70,7 +70,7 @@ export class LocalGitRepository extends FileRepository {
 		if(!await exists(gitkeepPath)) {
 			await fs.mkdir(profilePath, { recursive: true });
 
-			await fs.writeFile(gitkeepPath, '', 'utf-8');
+			await fs.writeFile(gitkeepPath, '', 'utf8');
 
 			await this.push(CommitType.INIT);
 		}

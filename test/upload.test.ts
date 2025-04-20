@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { vol } from 'memfs';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { fixtures } from './utils/fixtures.js';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 chai.use(chaiAsPromised);
 
 describe('upload', () => {
@@ -35,7 +36,7 @@ describe('upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: [],
 			enabled: [],
 		}));
@@ -53,7 +54,7 @@ describe('upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 		}));
@@ -72,7 +73,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('linux', async () => { // {{{
@@ -85,7 +86,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-linux.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-linux.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('macos', async () => { // {{{
@@ -98,7 +99,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-macos.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-macos.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('windows', async () => { // {{{
@@ -111,7 +112,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-windows.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings-windows.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 	});
 
@@ -127,7 +128,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 				disabled: [],
 				enabled: [],
 			}));
@@ -144,14 +145,14 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basics);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basics);
 		}); // }}}
 
 		it('attr', async () => { // {{{
 			vscode.setPlatform('linux');
 			vscode.setSettings(userSettingsFxt.json.attrOsTmpl);
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsLinux);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.attrOsLinux);
 
 			const repository = await RepositoryFactory.get();
 
@@ -159,7 +160,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.attrOsTmpl);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(userSettingsFxt.json.attrOsTmpl);
 		}); // }}}
 	});
 
@@ -173,7 +174,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('some', async () => { // {{{
@@ -187,9 +188,9 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop2.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop3.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop2.json', 'utf8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop3.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 	});
 
@@ -211,7 +212,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('home', async () => { // {{{
@@ -231,7 +232,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('both', async () => { // {{{
@@ -253,8 +254,8 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
-			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~globalStorage-alefragnani.project-manager-projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/additionals/~-projects.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 
 		it('settings.yml', async () => { // {{{
@@ -293,13 +294,13 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 			}));
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('extensions - clean', async () => { // {{{
@@ -328,9 +329,9 @@ describe('upload', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
 			expect(vol.existsSync('/repository/profiles/main/data/extensions.yml')).to.be.false;
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('extensions - dirty', async () => { // {{{
@@ -363,9 +364,9 @@ describe('upload', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
 			expect(vol.existsSync('/repository/profiles/main/data/extensions.yml')).to.be.false;
-			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf-8')).to.eql(keybindingsFxt.json.gotoline);
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/keybindings.json', 'utf8')).to.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('keybindings - clean', async () => { // {{{
@@ -393,13 +394,13 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 			}));
 			expect(vol.existsSync('/repository/profiles/main/data/keybindings.json')).to.be.false;
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('keybindings - dirty', async () => { // {{{
@@ -434,7 +435,7 @@ describe('upload', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+			expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 				disabled: ['pub1.ext3', 'pub3.ext1'],
 				enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 			}));
@@ -442,8 +443,8 @@ describe('upload', () => {
 			expect(vol.existsSync('/repository/profiles/main/data/keybindings-macos.json')).to.be.false;
 			expect(vol.existsSync('/repository/profiles/main/data/keybindings-linux.json')).to.be.false;
 			expect(vol.existsSync('/repository/profiles/main/data/keybindings-windows.json')).to.be.false;
-			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf-8')).to.eql(JSON.stringify(settings, null, '\t'));
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(JSON.stringify(settings, null, '\t'));
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 	});
 
@@ -461,7 +462,7 @@ describe('upload', () => {
 
 				await repository.upload();
 
-				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [extensionName],
 				}));
@@ -479,7 +480,7 @@ describe('upload', () => {
 
 				await repository.upload();
 
-				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [],
 				}));

@@ -1,6 +1,6 @@
 import * as os from 'os';
-import { WorkspaceConfiguration } from 'vscode';
-import { formatter } from './formatter';
+import { type WorkspaceConfiguration } from 'vscode';
+import { formatter } from './formatter.js';
 
 export function hostname(config: WorkspaceConfiguration): string {
 	const format = config.get<string>('hostname') ?? '';

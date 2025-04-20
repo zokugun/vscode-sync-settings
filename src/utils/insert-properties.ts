@@ -43,7 +43,10 @@ export function insertProperties(text: string, properties: string): string {
 
 	visit(text, visitor);
 
-	if(endOffset !== -1) {
+	if(endOffset === -1) {
+		return text;
+	}
+	else {
 		let result = text.slice(0, endOffset);
 
 		if(!separated) {
@@ -54,8 +57,5 @@ export function insertProperties(text: string, properties: string): string {
 		result += text.slice(endOffset);
 
 		return result;
-	}
-	else {
-		return text;
 	}
 }

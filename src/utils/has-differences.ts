@@ -1,5 +1,5 @@
 import fse from 'fs-extra';
-import { Uri } from 'vscode';
+import { type Uri } from 'vscode';
 
 export async function hasDifferences(uriA: Uri, uriB: Uri): Promise<boolean> { // {{{
 	let contentA;
@@ -8,15 +8,15 @@ export async function hasDifferences(uriA: Uri, uriB: Uri): Promise<boolean> { /
 	let deletedB = false;
 
 	try {
-		contentA = await fse.readFile(uriA.fsPath, 'utf-8');
-		contentB = await fse.readFile(uriB.fsPath, 'utf-8');
+		contentA = await fse.readFile(uriA.fsPath, 'utf8');
+		contentB = await fse.readFile(uriB.fsPath, 'utf8');
 	}
 	catch {
 		deletedA = true;
 	}
 
 	try {
-		contentB = await fse.readFile(uriB.fsPath, 'utf-8');
+		contentB = await fse.readFile(uriB.fsPath, 'utf8');
 	}
 	catch {
 		deletedB = true;
@@ -27,12 +27,12 @@ export async function hasDifferences(uriA: Uri, uriB: Uri): Promise<boolean> { /
 	}
 
 	if(deletedA) {
-		await fse.writeFile(uriA.fsPath, 'This file has been deleted', 'utf-8');
+		await fse.writeFile(uriA.fsPath, 'This file has been deleted', 'utf8');
 
 		return true;
 	}
 	else if(deletedB) {
-		await fse.writeFile(uriB.fsPath, 'This file has been deleted', 'utf-8');
+		await fse.writeFile(uriB.fsPath, 'This file has been deleted', 'utf8');
 		return true;
 	}
 	else {

@@ -1,19 +1,19 @@
 import path from 'path';
 import fse from 'fs-extra';
-import globby from 'globby';
-import vscode, { WorkspaceConfiguration } from 'vscode';
-import { RepositoryType } from './repository-type';
-import { Settings } from './settings';
-import { exists } from './utils/exists';
-import { getExtensionDataPath } from './utils/get-extension-data-path';
-import { NIL_UUID } from './utils/nil-uuid';
-import { listVSIXExtensions } from './utils/vsix-manager';
+import { globby } from 'globby';
+import vscode, { type WorkspaceConfiguration } from 'vscode';
+import type { RepositoryType } from './repository-type.js';
+import { type Hook, type Settings } from './settings.js';
+import { exists } from './utils/exists.js';
+import { getExtensionDataPath } from './utils/get-extension-data-path.js';
+import { NIL_UUID } from './utils/nil-uuid.js';
+import { listVSIXExtensions } from './utils/vsix-manager.js';
 
-export interface ExtensionId {
+export type ExtensionId = {
 	id: string;
 	uuid: string;
-}
-export interface ExtensionList {
+};
+export type ExtensionList = {
 	builtin?: {
 		disabled?: string[];
 		enabled?: string[];
@@ -21,7 +21,7 @@ export interface ExtensionList {
 	disabled: ExtensionId[];
 	enabled: ExtensionId[];
 	uninstall?: ExtensionId[];
-}
+};
 
 export enum Resource {
 	Settings = 'settings',
@@ -29,13 +29,6 @@ export enum Resource {
 	Snippets = 'snippets',
 	Extensions = 'extensions',
 	UIState = 'uiState',
-}
-
-export enum Hook {
-	PreDownload = 'pre-download',
-	PostDownload = 'post-download',
-	PreUpload = 'pre-upload',
-	PostUpload = 'post-upload',
 }
 
 export abstract class Repository {
@@ -84,11 +77,11 @@ export abstract class Repository {
 			ids[id] = true;
 		}
 
-		const extDataPath = await getExtensionDataPath();
-		const obsoletePath = path.join(extDataPath, '.obsolete');
+		const extensionDataPath = await getExtensionDataPath();
+		const obsoletePath = path.join(extensionDataPath, '.obsolete');
 		const obsolete = await exists(obsoletePath) ? await fse.readJSON(obsoletePath) as Record<string, boolean> : {};
 		const extensions = await globby('*/package.json', {
-			cwd: extDataPath,
+			cwd: extensionDataPath,
 		});
 
 		for(const packagePath of extensions) {
@@ -103,7 +96,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			const pkg = await fse.readJSON(path.join(extDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
+			const pkg = await fse.readJSON(path.join(extensionDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
 			const id = `${pkg.publisher}.${pkg.name}`;
 
 			if(obsolete[id]) {

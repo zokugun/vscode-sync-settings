@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 import yaml from 'yaml';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { fixtures } from './utils/fixtures.js';
 
 describe('download.lvl1', () => {
 	const dotsyncFxt = fixtures('dotsync');
@@ -42,7 +42,7 @@ describe('download.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.be.eql(userSettingsFxt.json.basics);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.be.eql(userSettingsFxt.json.basics);
 		}); // }}}
 	});
 
@@ -154,7 +154,7 @@ describe('download.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-			expect(vol.readFileSync('/user/keybindings.json', 'utf-8')).to.be.eql(keybindingsFxt.json.gotoline);
+			expect(vol.readFileSync('/user/keybindings.json', 'utf8')).to.be.eql(keybindingsFxt.json.gotoline);
 		}); // }}}
 	});
 
@@ -173,7 +173,7 @@ describe('download.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.be.eql(userSettingsFxt.json.basics);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.be.eql(userSettingsFxt.json.basics);
 		}); // }}}
 	});
 
@@ -194,7 +194,7 @@ describe('download.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAdd);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
 		}); // }}}
 
 		it('main.begin', async () => { // {{{
@@ -213,7 +213,7 @@ describe('download.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAddBeginRes);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAddBeginRes);
 		}); // }}}
 
 		it('main.before', async () => { // {{{
@@ -232,7 +232,7 @@ describe('download.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAddBeforeRes);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAddBeforeRes);
 		}); // }}}
 
 		it('main.edit', async () => { // {{{
@@ -251,7 +251,7 @@ describe('download.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAdd);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
 		}); // }}}
 
 		it('main.same', async () => { // {{{
@@ -270,7 +270,7 @@ describe('download.lvl1', () => {
 			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
 			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
 
-			expect(vol.readFileSync('/user/settings.json', 'utf-8')).to.eql(userSettingsFxt.json.basicsAdd);
+			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
 		}); // }}}
 	}); */
 });

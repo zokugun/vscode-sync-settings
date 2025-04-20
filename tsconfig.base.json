@@ -1,11 +1,33 @@
 {
 	"compilerOptions": {
 		/* Basic Options */
-		"target": "ES2015",								/* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', 'ES2021', or 'ESNEXT'. */
+		/* Language and Environment */
+		"target": "ES2022",								/* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', 'ES2021', or 'ESNEXT'. */
+
+		/* Modules */
 		"module": "commonjs",							/* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */
+		/* Basic Options */
+		// "allowJs": false,							/* Allow javascript files to be compiled. */
+		// "checkJs": false,							/* Report errors in '.js' files. */
+		// "jsx": undefined,							/* Specify JSX code generation: 'preserve', 'react-native', 'react', 'react-jsx' or 'react-jsxdev'. */
+		// "declaration": false,						/* Generates corresponding '.d.ts' file. */
+		// "declarationDir": ""							/* Specify the output directory for generated declaration files. */
+		// "declarationMap": false,						/* Generates a sourcemap for each corresponding '.d.ts' file. */
+		// "outFile": "",								/* Specify a file that bundles all outputs into one JavaScript file. */
+		// "outDir": "",								/* Specify an output folder for all emitted files. */
+		// "rootDir": "",								/* Specify the root directory of input files. */
+		// "incremental": false,						/* Save '.tsbuildinfo' files to allow for incremental compilation of projects. */
+		// "composite": false,							/* Enable constraints that allow a TypeScript project to be used with project references. */
+		// "tsBuildInfoFile": ".tsbuildinfo",			/* Specify the folder for '.tsbuildinfo' incremental compilation files. */
+		// "removeComments": false,						/* Disable emitting comments. */
+		// "noEmit": true,								/* Disable emitting file from a compilation. */
+		// "importHelpers": false,						/* Allow importing helper functions from tslib once per project, instead of including them per-file. */
+		// "downlevelIteration": false,					/* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */
+		// "isolatedModules": false,					/* Ensure that each file can be safely transpiled without relying on other imports. */
 		"lib": [										/* Specify library files to be included in the compilation. */
 			"ES2021",
 			"DOM",
+			"ES2022"
 		],
 		// "allowJs": false,							/* Allow javascript files to be compiled. */
 		// "checkJs": false,							/* Report errors in '.js' files. */
@@ -24,6 +46,7 @@
 		// "importHelpers": false,						/* Allow importing helper functions from tslib once per project, instead of including them per-file. */
 		// "downlevelIteration": false,					/* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */
 		// "isolatedModules": false,					/* Ensure that each file can be safely transpiled without relying on other imports. */
+
 
 		/* Strict Type-Checking Options */
 		"strict": true,									/* Enable all strict type-checking options. */

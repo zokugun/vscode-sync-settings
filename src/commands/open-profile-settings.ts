@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import { window, workspace } from 'vscode';
-import { RepositoryFactory } from '../repository-factory';
-import { exists } from '../utils/exists';
+import { RepositoryFactory } from '../repository-factory.js';
+import { exists } from '../utils/exists.js';
 
 export async function openProfileSettings(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {

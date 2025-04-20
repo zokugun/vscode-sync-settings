@@ -3,9 +3,9 @@ import path from 'path';
 import process from 'process';
 import { transform } from '@daiyam/jsonc-preprocessor';
 import vscode from 'vscode';
-import { Settings } from '../settings';
-import { getEditorStorage } from './get-editor-storage';
-import { hostname } from './hostname';
+import { type Settings } from '../settings.js';
+import { getEditorStorage } from './get-editor-storage.js';
+import { hostname } from './hostname.js';
 
 const TYPES = {
 	version: 'version',

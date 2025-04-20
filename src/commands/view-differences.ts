@@ -2,12 +2,12 @@ import os from 'os';
 import path from 'path';
 import fse from 'fs-extra';
 import vscode, { Uri } from 'vscode';
-import { FileRepository } from '../repositories/file';
-import { Resource } from '../repository';
-import { RepositoryFactory } from '../repository-factory';
-import { Settings } from '../settings';
-import { copyProfile } from '../utils/copy-profile';
-import { hasDifferences } from '../utils/has-differences';
+import { FileRepository } from '../repositories/file.js';
+import { RepositoryFactory } from '../repository-factory.js';
+import { Resource } from '../repository.js';
+import { Settings } from '../settings.js';
+import { copyProfile } from '../utils/copy-profile.js';
+import { hasDifferences } from '../utils/has-differences.js';
 
 export async function viewDifferences(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {

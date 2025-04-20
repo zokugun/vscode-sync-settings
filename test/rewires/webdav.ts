@@ -1,13 +1,13 @@
-import { Readable, Writable } from 'stream';
+import { type Readable, type Writable } from 'stream';
 import rewiremock from 'rewiremock';
-import { fs } from '../mocks/fs';
+import { fs } from '../mocks/fs.js';
 
 rewiremock('fs').with(fs);
 
 rewiremock.enable();
 
 /* eslint-disable import/first, import/order */
-import { ReturnCallback, v2 as ws } from 'webdav-server';
+import { type ReturnCallback, v2 as ws } from 'webdav-server';
 /* eslint-enable import/first, import/order */
 
 rewiremock.disable();

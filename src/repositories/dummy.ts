@@ -1,5 +1,6 @@
-import { ExtensionList, Hook, Repository } from '../repository';
-import { RepositoryType } from '../repository-type';
+import { RepositoryType } from '../repository-type.js';
+import { type ExtensionList, Repository } from '../repository.js';
+import { type Hook } from '../settings.js';
 
 export class DummyRepository extends Repository {
 	public override readonly type = RepositoryType.DUMMY;

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { formatter } from '../src/utils/formatter';
+import { formatter } from '../src/utils/formatter.js';
 
 describe('formatter', () => {
 	it('profile', () => { // {{{

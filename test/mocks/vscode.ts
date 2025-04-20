@@ -1,18 +1,18 @@
 import { transform } from '@daiyam/jsonc-preprocessor';
 import * as JSONC from 'jsonc-parser';
 import { vol } from 'memfs';
-import { OutputChannel } from 'vscode';
+import { type OutputChannel } from 'vscode';
 import yaml from 'yaml';
-import { Uri } from './vscode/uri';
+import { Uri } from './vscode/uri.js';
 
-interface Extension {
+type Extension = {
 	id: string;
 	packageJSON: {
 		isBuiltin: boolean;
 		isUnderDevelopment: boolean;
 		uuid: string;
 	};
-}
+};
 
 const $executedCommands: string[] = [];
 const $extensions: string[] = [];
@@ -65,8 +65,8 @@ const $vscode = {
 			if(command === 'workbench.extensions.disableExtension') {
 				const id = args[0] as string;
 
-				for(const [index, ext] of $vscode.extensions.all.entries()) {
-					if(ext.id === id) {
+				for(const [index, extension] of $vscode.extensions.all.entries()) {
+					if(extension.id === id) {
 						$vscode.extensions.all.splice(index, 1);
 
 						break;
@@ -76,7 +76,7 @@ const $vscode = {
 			else if(command === 'workbench.extensions.enableExtension') {
 				const id = args[0] as string;
 
-				if(!$vscode.extensions.all.some((ext) => ext.id === id)) {
+				if(!$vscode.extensions.all.some((extension) => extension.id === id)) {
 					$vscode.extensions.all.push({
 						id,
 						packageJSON: {
@@ -90,7 +90,7 @@ const $vscode = {
 			else if(command === 'workbench.extensions.installExtension') {
 				const id = args[0] as string;
 
-				if($vscode.extensions.all.some((ext) => ext.id === id)) {
+				if($vscode.extensions.all.some((extension) => extension.id === id)) {
 					return;
 				}
 
@@ -125,7 +125,7 @@ const $vscode = {
 							id: '00000000-0000-0000-0000-000000000000',
 						},
 					}), {
-						encoding: 'utf-8',
+						encoding: 'utf8',
 					});
 
 					$extensions.push(id);
@@ -139,8 +139,8 @@ const $vscode = {
 					throw new Error(`Extension '${id}' is not installed. Make sure you use the full extension ID, including the publisher, e.g.: ms-dotnettools.csharp.`);
 				}
 
-				for(const [index, ext] of $vscode.extensions.all.entries()) {
-					if(ext.id === id) {
+				for(const [index, extension] of $vscode.extensions.all.entries()) {
+					if(extension.id === id) {
 						$vscode.extensions.all.splice(index, 1);
 
 						break;
@@ -219,9 +219,10 @@ const $vscode = {
 function addSnippet(name: string, data: string): void { // {{{
 	vol.mkdirpSync('/user/snippets');
 
-	vol.writeFileSync(`/user/snippets/${name}.json`, data, { encoding: 'utf-8' });
+	vol.writeFileSync(`/user/snippets/${name}.json`, data, { encoding: 'utf8' });
 } // }}}
 
+// eslint-disable-next-line unicorn/prevent-abbreviations
 function ext2yml({ disabled, enabled, uninstall }: { disabled: string[]; enabled: string[]; uninstall?: string[] }): string { // {{{
 	const data: any = {
 		disabled: disabled.map((id) => ({
@@ -281,7 +282,7 @@ function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: str
 				id: '00000000-0000-0000-0000-000000000000',
 			},
 		}), {
-			encoding: 'utf-8',
+			encoding: 'utf8',
 		});
 	}
 
@@ -297,7 +298,7 @@ function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: str
 				id: '00000000-0000-0000-0000-000000000000',
 			},
 		}), {
-			encoding: 'utf-8',
+			encoding: 'utf8',
 		});
 	}
 
@@ -311,7 +312,7 @@ function setKeybindings(data: string | any[]): void { // {{{
 
 	vol.mkdirpSync('/user');
 
-	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf-8' });
+	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf8' });
 } // }}}
 
 function setManageExtensions(manage: boolean): void { // {{{
@@ -340,7 +341,7 @@ function setSettings(data: any | string, { profile, hostname }: { profile: strin
 
 		data = transform(data, { version: 'version' }, args);
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-assignment
 		$settings = JSONC.parse(data);
 	}
 	else {
@@ -349,7 +350,8 @@ function setSettings(data: any | string, { profile, hostname }: { profile: strin
 		data = JSON.stringify(data, null, '\t');
 	}
 
-	vol.writeFileSync('/user/settings.json', data, { encoding: 'utf-8' });
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+	vol.writeFileSync('/user/settings.json', data, { encoding: 'utf8' });
 } // }}}
 
 export function reset(): void { // {{{

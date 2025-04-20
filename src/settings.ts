@@ -1,11 +1,11 @@
 import { createHash } from 'crypto';
 import fse from 'fs-extra';
-import { ExtensionContext, ExtensionKind, Terminal, TerminalOptions, Uri, window } from 'vscode';
+import { type ExtensionContext, type Terminal, type TerminalOptions, ExtensionKind, Uri, window } from 'vscode';
 import yaml from 'yaml';
-import { RepositoryType } from './repository-type';
-import { exists } from './utils/exists';
-import { getEditorStorage } from './utils/get-editor-storage';
-import { Logger } from './utils/logger';
+import { RepositoryType } from './repository-type.js';
+import { exists } from './utils/exists.js';
+import { getEditorStorage } from './utils/get-editor-storage.js';
+import { Logger } from './utils/logger.js';
 
 const $hasher = createHash('SHA1');
 
@@ -23,28 +23,35 @@ function defaults() { // {{{
 	};
 } // }}}
 
-export interface Hooks {
-	preDownload?: string | string[];
-	postDownload?: string | string[];
-	preUpload?: string | string[];
-	postUpload?: string | string[];
+export enum Hook {
+	PreDownload = 'pre-download',
+	PostDownload = 'post-download',
+	PreUpload = 'pre-upload',
+	PostUpload = 'post-upload',
 }
 
-export interface RepositorySettings {
+export type Hooks = {
+	[Hook.PreDownload]?: string | string[];
+	[Hook.PostDownload]?: string | string[];
+	[Hook.PreUpload]?: string | string[];
+	[Hook.PostUpload]?: string | string[];
+};
+
+export type RepositorySettings = {
 	branch?: string;
 	messages?: Record<string, string>;
 	path?: string;
 	shell?: string;
 	type: RepositoryType;
 	url?: string;
-}
+};
 
-interface SettingsData {
+type SettingsData = {
 	hooks?: Hooks;
 	hostname?: string;
 	profile?: string;
 	repository?: RepositorySettings;
-}
+};
 
 export class Settings {
 	public readonly extensionId: string;
@@ -96,10 +103,10 @@ export class Settings {
 
 		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, context.extension.extensionKind === ExtensionKind.Workspace);
 
-		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf-8') : null;
+		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf8') : null;
 
 		if(data) {
-			$instance.set(yaml.parse(data) ?? {});
+			$instance.set(yaml.parse(data) as SettingsData ?? {});
 
 			$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
 		}
@@ -107,14 +114,14 @@ export class Settings {
 			const defaultSettingsPath = Uri.joinPath(context.extensionUri, 'src', 'resources', 'default-settings.yml');
 
 			if(await exists(defaultSettingsPath.fsPath)) {
-				const data = await fse.readFile(defaultSettingsPath.fsPath, 'utf-8');
+				const data = await fse.readFile(defaultSettingsPath.fsPath, 'utf8');
 
-				$instance.set(yaml.parse(data) ?? {});
+				$instance.set(yaml.parse(data) as SettingsData ?? {});
 
 				await fse.ensureDir(Uri.joinPath($instance.settingsUri, '..').fsPath);
 
 				await fse.writeFile($instance.settingsUri.fsPath, data, {
-					encoding: 'utf-8',
+					encoding: 'utf8',
 					mode: 0o600,
 				});
 
@@ -140,16 +147,7 @@ export class Settings {
 				isTransient: true,
 			});
 		}
-		else if(($terminal.creationOptions as TerminalOptions).cwd !== workingDirectory) {
-			$terminal.dispose();
-
-			$terminal = window.createTerminal({
-				name: 'Sync Settings',
-				cwd: workingDirectory,
-				isTransient: true,
-			});
-		}
-		else {
+		else if(($terminal.creationOptions as TerminalOptions).cwd === workingDirectory) {
 			await $terminal.processId.then((processId) => {
 				if(!processId) {
 					$terminal = window.createTerminal({
@@ -160,6 +158,15 @@ export class Settings {
 				}
 			});
 		}
+		else {
+			$terminal.dispose();
+
+			$terminal = window.createTerminal({
+				name: 'Sync Settings',
+				cwd: workingDirectory,
+				isTransient: true,
+			});
+		}
 
 		$terminal.show(false);
 
@@ -167,12 +174,15 @@ export class Settings {
 	} // }}}
 
 	public async reload(): Promise<boolean> { // {{{
-		const data = await exists(this.settingsUri.fsPath) ? await fse.readFile(this.settingsUri.fsPath, 'utf-8') : null;
+		const data = await exists(this.settingsUri.fsPath) ? await fse.readFile(this.settingsUri.fsPath, 'utf8') : null;
 		const hash = $hasher.copy().update(data ?? '').digest('hex');
 
-		if(this._hash !== hash) {
+		if(this._hash === hash) {
+			return false;
+		}
+		else {
 			if(data) {
-				this.set(yaml.parse(data) ?? {});
+				this.set(yaml.parse(data) as SettingsData ?? {});
 			}
 			else {
 				this.set(defaults());
@@ -181,9 +191,6 @@ export class Settings {
 			this._hash = hash;
 
 			return true;
-		}
-		else {
-			return false;
 		}
 	} // }}}
 
@@ -211,7 +218,7 @@ export class Settings {
 		await fse.ensureDir(Uri.joinPath(this.settingsUri, '..').fsPath);
 
 		await fse.writeFile(this.settingsUri.fsPath, data, {
-			encoding: 'utf-8',
+			encoding: 'utf8',
 			mode: 0o600,
 		});
 	} // }}}

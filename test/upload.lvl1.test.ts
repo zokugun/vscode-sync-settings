@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 // import yaml from 'yaml';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { fixtures } from './utils/fixtures.js';
 
 describe('upload.lvl1', () => {
 	const dotsyncFxt = fixtures('dotsync');
@@ -80,7 +80,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/.sync.yml', 'utf-8')).to.eql(dotsyncFxt.yml.keybindings);
+			expect(vol.readFileSync('/repository/profiles/level1/.sync.yml', 'utf8')).to.eql(dotsyncFxt.yml.keybindings);
 		}); // }}}
 
 		it('ignoredSettings', async () => { // {{{
@@ -130,7 +130,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext2'],
 				}));
@@ -155,7 +155,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: ['pub3.ext2'],
 					enabled: [],
 				}));
@@ -180,7 +180,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext1'],
 				}));
@@ -205,7 +205,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: ['pub1.ext2'],
 					enabled: [],
 				}));
@@ -230,7 +230,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [],
 					uninstall: ['pub2.ext2'],
@@ -256,7 +256,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: [],
 					uninstall: ['pub3.ext1'],
@@ -292,7 +292,7 @@ describe('upload.lvl1', () => {
 
 				expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+				expect(vol.readFileSync('/repository/profiles/level1/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 					disabled: [],
 					enabled: ['pub3.ext2'],
 					uninstall: ['pub1.ext3', 'pub3.ext1'],
@@ -358,7 +358,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('add.some', async () => { // {{{
@@ -377,9 +377,9 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop2.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop3.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop2.json', 'utf8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop3.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('edit', async () => { // {{{
@@ -397,8 +397,8 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.div);
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf-8')).to.eql(snippetsFxt.json.loop);
+			expect(vol.readFileSync('/repository/profiles/main/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.div);
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets/loop.json', 'utf8')).to.eql(snippetsFxt.json.loop);
 		}); // }}}
 
 		it('remove', async () => { // {{{
@@ -414,7 +414,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf-8')).to.eql('removed:\n  - loop.json\n');
+			expect(vol.readFileSync('/repository/profiles/level1/data/snippets.diff.yml', 'utf8')).to.eql('removed:\n  - loop.json\n');
 		}); // }}}
 
 		it('same.one', async () => { // {{{
@@ -477,7 +477,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf-8')).to.eql(userSettingsFxt.patch.basicsAdd);
+			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsAdd);
 		}); // }}}
 
 		it('edit', async () => { // {{{
@@ -495,7 +495,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf-8')).to.eql(userSettingsFxt.patch.basicsEdit);
+			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsEdit);
 		}); // }}}
 
 		it('remove', async () => { // {{{
@@ -513,7 +513,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf-8')).to.eql(userSettingsFxt.patch.basicsRemove);
+			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsRemove);
 		}); // }}}
 
 		it('attr.same', async () => { // {{{
@@ -551,7 +551,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf-8')).to.equal(userSettingsFxt.patch.attrEdit);
+			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.equal(userSettingsFxt.patch.attrEdit);
 		}); // }}}
 	}); */
 
@@ -572,7 +572,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf-8')).to.eql(yaml.stringify({
+			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
 				add: [
   					{ key: 'cmd+l', command: 'workbench.action.gotoLine' },
 					{ key: 'ctrl+g', command: '-workbench.action.gotoLine' },
@@ -598,7 +598,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf-8')).to.eql(yaml.stringify({
+			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
 				add: [
   					{ key: "cmd+r", command: "workbench.action.reloadWindow" },
 				],
@@ -666,7 +666,7 @@ describe('upload.lvl1', () => {
 
 			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
 
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf-8')).to.eql(yaml.stringify({
+			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
 				add: [],
 				remove: [
 					{ key: "cmd+r", command: "workbench.action.reloadWindow" },

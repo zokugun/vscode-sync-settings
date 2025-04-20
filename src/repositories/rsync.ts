@@ -1,10 +1,10 @@
 import path from 'path';
 import Rsync from 'rsync';
-import { RepositoryType } from '../repository-type';
-import { Settings } from '../settings';
-import { Logger } from '../utils/logger';
-import { TemporaryRepository } from '../utils/temporary-repository';
-import { FileRepository } from './file';
+import { RepositoryType } from '../repository-type.js';
+import { type Settings } from '../settings.js';
+import { Logger } from '../utils/logger.js';
+import { TemporaryRepository } from '../utils/temporary-repository.js';
+import { FileRepository } from './file.js';
 
 export class RsyncRepository extends FileRepository {
 	protected _remoteUrl: string;

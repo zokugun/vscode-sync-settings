@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import path from 'path';
-import { CharCode } from './char-code';
-import { isWindows } from './is-windows';
-import { MarshalledId } from './marshalling';
+import { CharCode } from './char-code.js';
+import { isWindows } from './is-windows.js';
+import { MarshalledId } from './marshalling.js';
 
 const _schemePattern = /^\w[\w\d+.-]*$/;
 const _singleSlashStart = /^\//;

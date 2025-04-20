@@ -26,8 +26,8 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 			else {
 				const locales = match[4] ? match[4].split(',') : undefined;
 				const options: {
-					dateStyle: string | undefined;
-					timeStyle: string | undefined;
+					dateStyle?: 'full' | 'long' | 'medium' | 'short' | undefined;
+					timeStyle?: 'full' | 'long' | 'medium' | 'short' | undefined;
 				} = {
 					dateStyle: undefined,
 					timeStyle: undefined,
@@ -35,15 +35,17 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 
 				const styles = match[3].split(',');
 
-				if(styles[0]) {
-					options.dateStyle = styles[0];
+				let style = styles[0];
+				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
+					options.dateStyle = style;
 				}
 
-				if(styles[1]) {
-					options.timeStyle = styles[1];
+				style = styles[0];
+				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
+					options.timeStyle = style;
 				}
 
-				const formatter = new Intl.DateTimeFormat(locales, options as any);
+				const formatter = new Intl.DateTimeFormat(locales, options);
 
 				result += formatter.format(date);
 			}

@@ -85,6 +85,8 @@
 			"error",
 			"always"
 		],
+		"@typescript-eslint/parameter-properties": "off",
+		"@typescript-eslint/prefer-promise-reject-errors": "off",
 		"@typescript-eslint/return-await": "off",
 		"arrow-parens": [
 			"error",
@@ -127,17 +129,31 @@
 		"no-else-return": "off",
 		"no-lonely-if": "off",
 		"no-negated-condition": "off",
+		"object-curly-newline": "off",
 		"one-var": [
 			"error",
 			"never"
 		],
 		"unicorn/empty-brace-spaces": "off",
 		"unicorn/no-array-callback-reference": "off",
+		"unicorn/no-length-as-slice-end": "off",
 		"unicorn/no-object-as-default-parameter": "off",
 		"unicorn/prefer-json-parse-buffer": "off",
 		"unicorn/prefer-module": "off",
 		"unicorn/prefer-node-protocol": "off",
 		"unicorn/prefer-switch": "off",
-		"unicorn/prefer-ternary": "off"
+		"unicorn/prefer-ternary": "off",
+		"unicorn/prevent-abbreviations": [
+			"error",
+			{
+				"replacements": {
+					"args": false,
+					"dir": false,
+					"err": false,
+					"func": false,
+					"pkg": false
+				}
+			}
+		]
 	}
 }

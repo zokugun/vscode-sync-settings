@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { createWebDAVServer, WebDAVServer } from './utils/create-webdav-server';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { createWebDAVServer, type WebDAVServer } from './utils/create-webdav-server.js';
+import { fixtures } from './utils/fixtures.js';
 
 describe('webdav.upload', () => {
 	const settingsFxt = fixtures('settings');
@@ -39,7 +39,7 @@ describe('webdav.upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] push done');
 
-		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: [],
 			enabled: [],
 		}));
@@ -57,7 +57,7 @@ describe('webdav.upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] push done');
 
-		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 		}));
@@ -75,7 +75,7 @@ describe('webdav.upload', () => {
 
 		expect(vscode.outputLines.pop()).to.eql('[info] push done');
 
-		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf-8')).to.eql(vscode.ext2yml({
+		expect(vol.readFileSync('/webdav/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: [],
 			enabled: [],
 		}));

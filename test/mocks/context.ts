@@ -1,5 +1,5 @@
-import { ExtensionContext } from 'vscode';
-import { Uri } from './vscode/uri';
+import { type ExtensionContext } from 'vscode';
+import { Uri } from './vscode/uri.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const context: ExtensionContext = {

@@ -20,11 +20,9 @@ export function fixtures(directory: string): Record<string, Record<string, strin
 				const groupName = match[2].toLowerCase();
 				const caseName = camelcase(match[1]);
 
-				if(!result[groupName]) {
-					result[groupName] = {};
-				}
+				result[groupName] ||= {};
 
-				result[groupName][caseName] = readFileSync(join(root, file.name), 'utf-8');
+				result[groupName][caseName] = readFileSync(join(root, file.name), 'utf8');
 			}
 		}
 	}

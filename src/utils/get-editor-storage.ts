@@ -15,7 +15,7 @@ export async function getEditorStorage(context?: vscode.ExtensionContext): Promi
 			$path = path.normalize(path.join(context.extensionPath, '..', '..'));
 		}
 		else {
-			const product = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { dataFolderName: string };
+			const product = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf8')) as { dataFolderName: string };
 
 			$path = path.join(os.homedir(), product.dataFolderName);
 		}

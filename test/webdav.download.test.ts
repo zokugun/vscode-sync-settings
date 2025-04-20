@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 import yaml from 'yaml';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { createWebDAVServer, WebDAVServer } from './utils/create-webdav-server';
-import { fixtures } from './utils/fixtures';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { createWebDAVServer, type WebDAVServer } from './utils/create-webdav-server.js';
+import { fixtures } from './utils/fixtures.js';
 
 describe('webdav.download', () => {
 	const dotsyncFxt = fixtures('dotsync');

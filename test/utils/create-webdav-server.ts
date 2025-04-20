@@ -1,13 +1,13 @@
-import { MemFileSystem, ws } from '../rewires/webdav';
+import { MemFileSystem, ws } from '../rewires/webdav.js';
 
 const PASSWORD = 'pa$$w0rd!';
 const PORT = 9988;
 const USERNAME = 'webdav-user';
 
-interface WebDAVServer {
+type WebDAVServer = {
 	start: () => Promise<void>;
 	stop: () => Promise<void>;
-}
+};
 
 function createWebDAVServer(): WebDAVServer {
 	const userManager = new ws.SimpleUserManager();
@@ -49,6 +49,6 @@ function createWebDAVServer(): WebDAVServer {
 }
 
 export {
-	WebDAVServer,
+	type WebDAVServer,
 	createWebDAVServer,
 };

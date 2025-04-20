@@ -4,24 +4,28 @@ on:
   push:
     tags:
       - "*"
+env:
+  PUBLISH_OPENVSX: ${{ vars.PUBLISH_OPENVSX }}
+  PUBLISH_VSCODE: ${{ vars.PUBLISH_VSCODE }}
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
       - run: npm ci
-      - name: Check versions
-        run: ./scripts/check_versions.sh
       - name: Publish to Open VSX Registry
-        uses: HaaLeo/publish-vscode-extension@v0
+        uses: HaaLeo/publish-vscode-extension@v2
         with:
-          pat: ${{ secrets.OPEN_VSX_TOKEN }}
+          pat: ${{ secrets.TOKEN_OPENVSX }}
+          skipDuplicate: true
         if: env.PUBLISH_OPENVSX == 'yes'
-      - name: Publish to Visual Studio Marketplace
-        uses: HaaLeo/publish-vscode-extension@v0
+      - name: Publish to Visual Studio Code Marketplace
+        uses: HaaLeo/publish-vscode-extension@v2
         with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          pat: ${{ secrets.TOKEN_VSCODE }}
           registryUrl: https://marketplace.visualstudio.com
+          skipDuplicate: true
+        if: env.PUBLISH_VSCODE == 'yes'

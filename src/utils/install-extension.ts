@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import { Logger } from './logger';
+import { Logger } from './logger.js';
 
 export async function installExtension(id: string, saved: Record<string, vscode.Uri>): Promise<boolean> {
 	try {

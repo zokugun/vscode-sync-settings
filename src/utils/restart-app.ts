@@ -5,7 +5,7 @@ import fse from 'fs-extra';
 import vscode from 'vscode';
 
 export async function restartApp(): Promise<void> {
-	const product = JSON.parse(await fse.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf-8')) as { nameLong: string; applicationName: string };
+	const product = JSON.parse(await fse.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf8')) as { nameLong: string; applicationName: string };
 
 	if(process.platform === 'darwin') {
 		await restartMac(product);
@@ -37,7 +37,7 @@ async function getAppBinary(appHomeDir: string, appName: string): Promise<string
 			// select *.cmd
 			const cmdFiles = files.filter((file) => file.endsWith('.cmd') && file.toLowerCase().includes(appName.toLowerCase()));
 
-			if (cmdFiles.length === 1) {
+			if(cmdFiles.length === 1) {
 				return path.join(appHomeDir, cmdFiles[0]);
 			}
 		}
@@ -49,28 +49,31 @@ async function getAppBinary(appHomeDir: string, appName: string): Promise<string
 		}
 
 		return path.join(appHomeDir, binary);
-	} catch (error) {
+	}
+	catch {
 		return null;
 	}
 }
 
 async function getValidatedBinary(binPath: string | string[], appName: string): Promise<string> {
 	// multiple paths
-	if (Array.isArray(binPath)) {
-		for (const path of binPath) {
+	if(Array.isArray(binPath)) {
+		for(const path of binPath) {
 			const binary = await getAppBinary(path, appName);
-			if (binary) {
+			if(binary) {
 				return binary;
 			}
 		}
+
 		throw new Error('Cannot determine binary path');
 	}
 
 	// single path
 	const binary = await getAppBinary(binPath, appName);
-	if (!binary) {
+	if(!binary) {
 		throw new Error('Cannot determine binary path');
 	}
+
 	return binary;
 }
 
@@ -91,14 +94,14 @@ async function restartWindows({ applicationName }: { applicationName: string }):
 
 	const binary = await getValidatedBinary([
 		path.join(appHomeDir, 'bin'),
-		path.join(vscode.env.appRoot, 'bin')
+		path.join(vscode.env.appRoot, 'bin'),
 	], applicationName);
 
 	spawn(process.env.comspec ?? 'cmd', [`/C taskkill /F /IM ${exeName} >nul && timeout /T 1 && "${binary}"`], {
 		detached: true,
 		stdio: 'ignore',
 		windowsVerbatimArguments: true,
-		windowsHide: true
+		windowsHide: true,
 	});
 }
 
@@ -106,7 +109,7 @@ async function restartLinux({ applicationName }: { applicationName: string }): P
 	const appHomeDir = path.dirname(process.execPath);
 	const binary = await getValidatedBinary([
 		path.join(appHomeDir, 'bin'),
-		path.join(vscode.env.appRoot, 'bin')
+		path.join(vscode.env.appRoot, 'bin'),
 	], applicationName);
 
 	spawn('/bin/sh', ['-c', `killall "${process.execPath}" && sleep 1 && killall -9 "${process.execPath}" && sleep 1 && "${binary}"`], {

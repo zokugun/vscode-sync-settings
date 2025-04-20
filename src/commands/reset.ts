@@ -1,6 +1,6 @@
 import vscode from 'vscode';
-import { Logger } from '../utils/logger';
-import { reset as doReset } from '../utils/reset';
+import { Logger } from '../utils/logger.js';
+import { reset as doReset } from '../utils/reset.js';
 
 export async function reset(): Promise<void> {
 	try {

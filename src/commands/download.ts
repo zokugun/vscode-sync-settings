@@ -1,7 +1,7 @@
 import vscode, { window } from 'vscode';
-import { Hook } from '../repository';
-import { RepositoryFactory } from '../repository-factory';
-import { Logger } from '../utils/logger';
+import { RepositoryFactory } from '../repository-factory.js';
+import { Hook } from '../settings.js';
+import { Logger } from '../utils/logger.js';
 
 export async function download(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {

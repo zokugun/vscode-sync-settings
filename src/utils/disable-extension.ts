@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import { Logger } from './logger';
+import { Logger } from './logger.js';
 
 export async function disableExtension(id: string): Promise<boolean> {
 	Logger.info('disable:', id);

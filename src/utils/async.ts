@@ -1,7 +1,7 @@
-export interface ITask<T> {
+export type ITask<T> = {
 	// eslint-disable-next-line @typescript-eslint/prefer-function-type
 	(): T;
-}
+};
 
 const canceledName = 'Canceled';
 
@@ -12,7 +12,7 @@ export function canceled(): Error {
 }
 
 export class Delayer<T> {
-	private timeout: any;
+	private timeout: NodeJS.Timeout | null;
 	private completionPromise: Promise<any> | null;
 	private doResolve: ((value?: any | Promise<any>) => void) | null;
 	private doReject: ((error: any) => void) | null;
@@ -30,22 +30,20 @@ export class Delayer<T> {
 		this.task = task;
 		this.cancelTimeout();
 
-		if(!this.completionPromise) {
-			this.completionPromise = new Promise((resolve, reject) => {
-				this.doResolve = resolve;
-				this.doReject = reject;
-			}).then(() => {
-				this.completionPromise = null;
-				this.doResolve = null;
-				if(this.task) {
-					const task = this.task;
-					this.task = null;
-					return task();
-				}
+		this.completionPromise ||= new Promise((resolve, reject) => {
+			this.doResolve = resolve;
+			this.doReject = reject;
+		}).then(async () => {
+			this.completionPromise = null;
+			this.doResolve = null;
+			if(this.task) {
+				const task = this.task;
+				this.task = null;
+				return task();
+			}
 
-				return undefined;
-			});
-		}
+			return undefined;
+		});
 
 		this.timeout = setTimeout(() => {
 			this.timeout = null;

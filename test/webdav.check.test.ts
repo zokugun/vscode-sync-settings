@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import { DirectoryJSON, vol } from 'memfs';
-import { context } from './mocks/context';
-import * as vscode from './mocks/vscode';
-import { RepositoryFactory, Settings } from './rewires/repository';
-import { createWebDAVServer, WebDAVServer } from './utils/create-webdav-server';
-import { fixtures } from './utils/fixtures';
+import { type DirectoryJSON, vol } from 'memfs';
+import { context } from './mocks/context.js';
+import * as vscode from './mocks/vscode.js';
+import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { createWebDAVServer, type WebDAVServer } from './utils/create-webdav-server.js';
+import { fixtures } from './utils/fixtures.js';
 
 async function reset(json: DirectoryJSON) { // {{{
 	vol.reset();

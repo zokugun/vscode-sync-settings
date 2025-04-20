@@ -4,18 +4,18 @@ import https from 'https';
 import path from 'path';
 import process from 'process';
 import fse from 'fs-extra';
-import globby from 'globby';
+import { globby } from 'globby';
 import { fromCallback as u } from 'universalify';
 import { Uri } from 'vscode';
-import { BufferLike } from 'webdav';
-import { createAdapter, FsStat, PathLike } from 'webdav-fs';
-import { RepositoryType } from '../repository-type';
-import { Settings } from '../settings';
-import { Logger } from '../utils/logger';
-import { TemporaryRepository } from '../utils/temporary-repository';
-import { FileRepository } from './file';
+import { type BufferLike } from 'webdav';
+import { createAdapter, type FsStat, type PathLike } from 'webdav-fs';
+import { RepositoryType } from '../repository-type.js';
+import { type Settings } from '../settings.js';
+import { Logger } from '../utils/logger.js';
+import { TemporaryRepository } from '../utils/temporary-repository.js';
+import { FileRepository } from './file.js';
 
-interface WebDAVFS {
+type WebDAVFS = {
 	mkdir: (dirPath: PathLike) => Promise<void>;
 	readdir: (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<string | FsStat>>;
 	readFile: (filename: PathLike, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<string | BufferLike>;
@@ -23,7 +23,7 @@ interface WebDAVFS {
 	rmdir: (targetPath: PathLike) => Promise<void>;
 	stat: (remotePath: PathLike) => Promise<FsStat>;
 	writeFile: (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>;
-}
+};
 
 class WebDAVError extends Error {
 }
@@ -73,10 +73,10 @@ export class WebDAVRepository extends FileRepository {
 			const { scheme } = Uri.parse(this._url);
 
 			if(scheme === 'https') {
-				options.httpsAgent = new https.Agent(agent);
+				options.httpsAgent = new https.Agent(agent as https.AgentOptions);
 			}
 			else if(scheme === 'http') {
-				options.httpAgent = new http.Agent(agent);
+				options.httpAgent = new http.Agent(agent as http.AgentOptions);
 			}
 		}
 
@@ -189,18 +189,18 @@ export class WebDAVRepository extends FileRepository {
 		exists[dir.path] = true;
 	} // }}}
 
-	protected async moveDir(srcDir: Uri, destDir: Uri): Promise<void> { // {{{
+	protected async moveDir(sourceDir: Uri, destinationDir: Uri): Promise<void> { // {{{
 		try {
-			await this._fs!.stat(destDir.path);
+			await this._fs!.stat(destinationDir.path);
 
-			await this._fs!.rmdir(destDir.path);
+			await this._fs!.rmdir(destinationDir.path);
 		}
 		catch {
 		}
 
-		Logger.info(`move "${srcDir.path}" to "${destDir.path}"`);
+		Logger.info(`move "${sourceDir.path}" to "${destinationDir.path}"`);
 
-		await this._fs!.rename(srcDir.path, destDir.path);
+		await this._fs!.rename(sourceDir.path, destinationDir.path);
 	} // }}}
 
 	protected async pull(): Promise<void> { // {{{
