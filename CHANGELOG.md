@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17.0 | 2025-04-20
+- better app restart, thanks to **@MeteorSkyOne**
+- update dependencies
+
 ## v0.16.1 | 2025-01-27
 - sort the extension list
 - add an extra log on serialized resources
