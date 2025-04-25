@@ -1,12 +1,15 @@
 name: Publish Extension
+
 on:
-  workflow_dispatch: null
+  workflow_dispatch:
   push:
     tags:
       - "*"
+
 env:
   PUBLISH_OPENVSX: ${{ vars.PUBLISH_OPENVSX }}
   PUBLISH_VSCODE: ${{ vars.PUBLISH_VSCODE }}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -15,23 +18,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Get Version
         run: |
           # Get the latest tag
-          git fetch --tags
-          LATEST_TAG=$(git describe --tags --abbrev=0)
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n1)
           if [ -z "$LATEST_TAG" ]; then
             echo "No tags found in the repository"
             exit 1
           fi
           echo "VERSION=$LATEST_TAG" >> $GITHUB_ENV
           echo "Using version: $LATEST_TAG"
+
       - name: Check Existing Release
-        run: >
+        run: |
           # Try to get the release information
-
           RELEASE_INFO=$(gh release view ${{ env.VERSION }} --json assets,url 2>/dev/null || echo "")
-
           if [ ! -z "$RELEASE_INFO" ]; then
             echo "Release exists"
             echo "RELEASE_EXISTS=yes" >> $GITHUB_ENV
@@ -47,20 +49,21 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
+
       - name: Download Existing VSIX
         if: env.RELEASE_EXISTS == 'yes' && env.VSIX_URL != ''
-        run: >
-          gh api ${{ env.VSIX_URL }} --header 'Accept: application/octet-stream'
-          > ${{ env.VSIX_NAME }}
-
+        run: |
+          gh api ${{ env.VSIX_URL }} --header 'Accept: application/octet-stream' > ${{ env.VSIX_NAME }}
           echo "CHECKSUM=$(sha256sum ${{ env.VSIX_NAME }} | cut -d ' ' -f 1)" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ github.token }}
+
       - name: Setup Node.js
         if: env.RELEASE_EXISTS == 'no'
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - name: Build
         if: env.RELEASE_EXISTS == 'no'
         run: |
@@ -72,21 +75,17 @@ jobs:
           echo "VSIX_NAME=$VSIX_NAME" >> $GITHUB_ENV
           echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
           echo "$CHECKSUM" > "$VSIX_NAME.sha256"
+
       - name: Get Changelog
         if: env.RELEASE_EXISTS == 'no'
-        run: >
-          CHANGELOG_ENTRY=$(node .github/scripts/get-changelog.js ${{
-          env.VERSION }})
-
+        run: |
+          CHANGELOG_ENTRY=$(node .github/scripts/get-changelog.js ${{ env.VERSION }})
           # Properly handle multiline output in GitHub Actions
-
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-
           echo "CHANGELOG_ENTRY<<$EOF" >> $GITHUB_ENV
-
           echo "$CHANGELOG_ENTRY" >> $GITHUB_ENV
-
           echo "$EOF" >> $GITHUB_ENV
+
       - name: Release
         if: env.RELEASE_EXISTS == 'no'
         uses: softprops/action-gh-release@v2
@@ -96,31 +95,22 @@ jobs:
             ${{ env.VSIX_NAME }}.sha256
           name: ${{ env.VERSION }}
           tag_name: ${{ env.VERSION }}
-          body: >
+          body: |
             Release ${{ env.VERSION }}
 
-
             ## What's Changed
-
             ${{ env.CHANGELOG_ENTRY }}
 
-
             ## Installation
-
             1. [Download the .vsix file](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.VSIX_NAME }})
-
             2. In your editor, open the Command Palette (<kbd>Meta</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>)
-
             3. Type `Install from VSIX` and select the downloaded file
 
-
             ## Checksum (SHA-256)
-
             ```
-
             ${{ env.CHECKSUM }}
-
             ```
+
       - name: Publish to Open VSX Registry
         if: env.PUBLISH_OPENVSX == 'yes'
         uses: HaaLeo/publish-vscode-extension@v2
@@ -128,6 +118,7 @@ jobs:
           extensionFile: ${{ env.VSIX_NAME }}
           pat: ${{ secrets.TOKEN_OPENVSX }}
           skipDuplicate: true
+
       - name: Publish to Visual Studio Code Marketplace
         if: env.PUBLISH_VSCODE == 'yes'
         uses: HaaLeo/publish-vscode-extension@v2

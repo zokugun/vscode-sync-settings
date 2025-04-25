@@ -6,7 +6,7 @@ artifacts:
   - name: "@daiyam/artifact-test-mocha-ts"
     version: 0.4.0
   - name: "@daiyam/artifact-vsx-ts"
-    version: 0.7.1
+    version: 0.7.2
   - name: "@daiyam/artifact-vsx-zokugun"
     version: 0.3.1
   - name: "@daiyam/artifact-vsx-bundle-ncc"
