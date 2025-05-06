@@ -248,6 +248,7 @@ export class WebDAVRepository extends FileRepository {
 		const files = await globby('**', {
 			cwd: path.join(this._rootPath, 'profiles'),
 			followSymbolicLinks: false,
+			dot: true // Include dot files like .sync.yml
 		});
 
 		const temporaryRoot = Uri.parse('/.profiles');
