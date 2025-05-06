@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.17.1 | 2025-04-06
+- fix missing `.sync.yml` when syncing with webdav, thanks to **@xvoid**
+
 ## v0.17.0 | 2025-04-20
 - better app restart, thanks to **@MeteorSkyOne**
 - update dependencies
