@@ -18,7 +18,7 @@ export function removeProperties(text: string, properties: string[]): string {
 
 			++level;
 		},
-		onArrayEnd() {
+		onArrayEnd(offset: number, length: number) {
 			--level;
 		},
 		onLiteralValue(_: any, offset: number, length: number) {
@@ -47,8 +47,14 @@ export function removeProperties(text: string, properties: string[]): string {
 				match = true;
 			}
 		},
-		onObjectEnd() {
+		onObjectEnd(offset: number, length: number) {
 			--level;
+
+			if(level === -1 && match) {
+				matches[0].until = offset;
+
+				match = false;
+			}
 		},
 		onSeparator(character: string, offset: number, length: number) {
 			if(level === 0 && match && character === ',') {

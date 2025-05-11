@@ -162,6 +162,30 @@ describe('upload', () => {
 
 			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(userSettingsFxt.json.attrOsTmpl);
 		}); // }}}
+
+		it('ignoredSettings.no-comma', async () => { // {{{
+			vscode.setSettings(userSettingsFxt.json.inosetCommaNoRaw);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(userSettingsFxt.json.inosetCommaNoResult);
+		}); // }}}
+
+		it('ignoredSettings.with-comma', async () => { // {{{
+			vscode.setSettings(userSettingsFxt.json.inosetCommaYesRaw);
+
+			const repository = await RepositoryFactory.get();
+
+			await repository.upload();
+
+			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+			expect(vol.readFileSync('/repository/profiles/main/data/settings.json', 'utf8')).to.eql(userSettingsFxt.json.inosetCommaYesResult);
+		}); // }}}
 	});
 
 	describe('snippets', () => {

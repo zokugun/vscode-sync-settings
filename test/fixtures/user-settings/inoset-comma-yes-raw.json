@@ -1,0 +1,14 @@
+{
+	"syncSettings.ignoredSettings": [
+		"json.schemas",
+	],
+	"json.schemas": [
+		{
+			"fileMatch": [
+				"/bower.json",
+				"/.bower.json",
+			],
+			"url": "http://json.schemastore.org/bower",
+		},
+	],
+}
