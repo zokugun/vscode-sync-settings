@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.17.2 | 2025-05-12
+- ignored property with `syncSettings.ignoredSettings` is correctly removed when in last position and without extra comma
+- remove duplicate extensions from `disabled` extensions list
+- for `disabled` extension, lookup for missing UUID in the `extensions.json` file
+
 ## v0.17.1 | 2025-04-06
 - fix missing `.sync.yml` when syncing with webdav, thanks to **@xvoid**
 
@@ -63,7 +68,7 @@
 - add JSONC preprocessing rules: `rewrite-enable`, `rewrite-disable` and `rewrite-next-line`
 - add JSONC attibute variables: `editorStorage`, `globalStorage` and `userStorage`
 - add `~editorStorage` special path to `syncSettings.additionalFiles` setting
-- revert to a default uuid if missing in an extension
+- revert to a default UUID if missing in an extension
 
 ## v0.10.0 | 2022-03-10
 - add support for builtin extensions
