@@ -12,7 +12,6 @@ describe('download.lvl1', () => {
 	const keybindingsFxt = fixtures('keybindings');
 	const profilesFxt = fixtures('profiles');
 	const settingsFxt = fixtures('settings');
-	/* const snippetsFxt = fixtures('snippets'); */
 	const userSettingsFxt = fixtures('user-settings');
 
 	beforeEach(async () => { // {{{
@@ -32,7 +31,7 @@ describe('download.lvl1', () => {
 		it('none', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
 			});
 
@@ -58,11 +57,11 @@ describe('download.lvl1', () => {
 
 		it('none', async () => { // {{{
 			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+				'/repository/profiles/main/data/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
 					enabled: ['pub1.ext1', 'pub1.ext2'],
 				}),
-				'/repository/profiles/level1/extensions.yml': yaml.stringify({
+				'/repository/profiles/level1/data/extensions.yml': yaml.stringify({
 					disabled: [],
 					enabled: ['pub2.ext1', 'pub2.ext2'],
 				}),
@@ -82,11 +81,11 @@ describe('download.lvl1', () => {
 
 		it('add', async () => { // {{{
 			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+				'/repository/profiles/main/data/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
 					enabled: ['pub1.ext1', 'pub1.ext2'],
 				}),
-				'/repository/profiles/level1/extensions.yml': yaml.stringify({
+				'/repository/profiles/level1/data/extensions.yml': yaml.stringify({
 					disabled: [],
 					enabled: ['pub2.ext1', 'pub2.ext2'],
 				}),
@@ -111,11 +110,11 @@ describe('download.lvl1', () => {
 
 		it('remove', async () => { // {{{
 			vol.fromJSON({
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+				'/repository/profiles/main/data/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
 					enabled: ['pub1.ext1', 'pub1.ext2'],
 				}),
-				'/repository/profiles/level1/extensions.yml': yaml.stringify({
+				'/repository/profiles/level1/data/extensions.yml': yaml.stringify({
 					disabled: [],
 					enabled: ['pub2.ext1', 'pub2.ext2'],
 				}),
@@ -143,7 +142,7 @@ describe('download.lvl1', () => {
 		it('nopatch', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
 				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
 			});
@@ -162,7 +161,7 @@ describe('download.lvl1', () => {
 		it('nopatch', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
 				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
 			});
@@ -176,101 +175,4 @@ describe('download.lvl1', () => {
 			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.be.eql(userSettingsFxt.json.basics);
 		}); // }}}
 	});
-
-	/* describe('settings', () => {
-		it('none', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/level1/data/settings.json.patch': userSettingsFxt.patch.basicsAdd,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
-		}); // }}}
-
-		it('main.begin', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basicsAddBegin,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/level1/data/settings.json.patch': userSettingsFxt.patch.basicsAdd,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAddBeginRes);
-		}); // }}}
-
-		it('main.before', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basicsAddBefore,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/level1/data/settings.json.patch': userSettingsFxt.patch.basicsAdd,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAddBeforeRes);
-		}); // }}}
-
-		it('main.edit', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basicsAddEdit,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/level1/data/settings.json.patch': userSettingsFxt.patch.basicsAdd,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
-		}); // }}}
-
-		it('main.same', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basicsAdd,
-				'/repository/profiles/level1/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/level1/data/settings.json.patch': userSettingsFxt.patch.basicsAdd,
-			});
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.download();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] restore done');
-			expect(vscode.executedCommands.pop()).to.eql('workbench.action.reloadWindow');
-
-			expect(vol.readFileSync('/user/settings.json', 'utf8')).to.eql(userSettingsFxt.json.basicsAdd);
-		}); // }}}
-	}); */
 });

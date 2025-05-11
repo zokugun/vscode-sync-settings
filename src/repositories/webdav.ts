@@ -4,7 +4,7 @@ import https from 'https';
 import path from 'path';
 import process from 'process';
 import fse from 'fs-extra';
-import { globby } from 'globby';
+import globby from 'globby';
 import { fromCallback as u } from 'universalify';
 import { Uri } from 'vscode';
 import { type BufferLike } from 'webdav';
@@ -248,7 +248,7 @@ export class WebDAVRepository extends FileRepository {
 		const files = await globby('**', {
 			cwd: path.join(this._rootPath, 'profiles'),
 			followSymbolicLinks: false,
-			dot: true // Include dot files like .sync.yml
+			dot: true, // Include dot files like .sync.yml
 		});
 
 		const temporaryRoot = Uri.parse('/.profiles');

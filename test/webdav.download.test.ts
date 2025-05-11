@@ -55,7 +55,7 @@ describe('webdav.download', () => {
 			vol.fromJSON({
 				'/webdav/.vsx': 'zokugun.sync-settings',
 				'/webdav/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/webdav/profiles/main/extensions.yml': yaml.stringify({
+				'/webdav/profiles/main/data/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
 					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 				}),
@@ -82,7 +82,7 @@ describe('webdav.download', () => {
 			vol.fromJSON({
 				'/webdav/.vsx': 'zokugun.sync-settings',
 				'/webdav/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/webdav/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/webdav/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setExtensions({

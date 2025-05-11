@@ -1,6 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
-import { globby } from 'globby';
+import globby from 'globby';
 import vscode, { type WorkspaceConfiguration } from 'vscode';
 import type { RepositoryType } from './repository-type.js';
 import { type Hook, type Settings } from './settings.js';

@@ -57,7 +57,7 @@ describe('download', () => {
 		it('add', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': yaml.stringify({
+				'/repository/profiles/main/data/extensions.yml': yaml.stringify({
 					disabled: ['pub1.ext3', 'pub3.ext1'],
 					enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
 				}),
@@ -83,7 +83,7 @@ describe('download', () => {
 		it('remove', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setExtensions({
@@ -106,7 +106,7 @@ describe('download', () => {
 		it('leftovers', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setExtensions({
@@ -135,7 +135,7 @@ describe('download', () => {
 		it('base', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
 			});
 
@@ -150,7 +150,7 @@ describe('download', () => {
 		it('attr.os', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attrOsTmpl,
 			});
 
@@ -167,7 +167,7 @@ describe('download', () => {
 		it('attr.editor', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attrEditorTmpl,
 			});
 
@@ -184,7 +184,7 @@ describe('download', () => {
 		it('all', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
 			});
 
@@ -217,7 +217,7 @@ describe('download', () => {
 	it('snippets', async () => { // {{{
 		vol.fromJSON({
 			'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-			'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+			'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
 		});
 

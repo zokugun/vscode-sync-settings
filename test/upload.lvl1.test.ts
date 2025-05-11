@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
-// import yaml from 'yaml';
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
@@ -305,7 +304,7 @@ describe('upload.lvl1', () => {
 		it('nopatch', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
 				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
 			});
@@ -327,7 +326,7 @@ describe('upload.lvl1', () => {
 		it('nopatch', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
 			});
 
@@ -347,7 +346,7 @@ describe('upload.lvl1', () => {
 		it('add.one', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.addSnippet('loop', snippetsFxt.json.loop);
@@ -364,7 +363,7 @@ describe('upload.lvl1', () => {
 		it('add.some', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.addSnippet('loop', snippetsFxt.json.loop);
@@ -385,7 +384,7 @@ describe('upload.lvl1', () => {
 		it('edit', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.div,
 			});
 
@@ -404,7 +403,7 @@ describe('upload.lvl1', () => {
 		it('remove', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
 			});
 
@@ -420,7 +419,7 @@ describe('upload.lvl1', () => {
 		it('same.one', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
 			});
 
@@ -439,7 +438,7 @@ describe('upload.lvl1', () => {
 		it('same.some', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
+				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/snippets/hello.json': snippetsFxt.json.hello,
 				'/repository/profiles/main/data/snippets/loop.json': snippetsFxt.json.loop,
 				'/repository/profiles/main/data/snippets/typescriptreact.json': snippetsFxt.json.typescriptreact,
@@ -460,218 +459,4 @@ describe('upload.lvl1', () => {
 			expect(vol.existsSync('/repository/profiles/level1/data/snippets/typescriptreact.json')).to.be.false;
 		}); // }}}
 	});
-
-	/* describe('settings', () => {
-		it('add', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.basicsAdd);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsAdd);
-		}); // }}}
-
-		it('edit', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.basicsEdit);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsEdit);
-		}); // }}}
-
-		it('remove', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.basics,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.basicsRemove);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.eql(userSettingsFxt.patch.basicsRemove);
-		}); // }}}
-
-		it('attr.same', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attr,
-			});
-
-			vscode.setPlatform('linux');
-			vscode.setSettings(userSettingsFxt.json.attr);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/data/settings.json.patch')).to.be.false;
-		}); // }}}
-
-		it('attr.edit', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.attr,
-			});
-
-			vscode.setPlatform('linux');
-			vscode.setSettings(userSettingsFxt.json.attrEdit);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/data/settings.json.patch', 'utf8')).to.equal(userSettingsFxt.patch.attrEdit);
-		}); // }}}
-	}); */
-
-	/* describe('keybindings', () => {
-		it('add.0', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotoline);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
-				add: [
-  					{ key: 'cmd+l', command: 'workbench.action.gotoLine' },
-					{ key: 'ctrl+g', command: '-workbench.action.gotoLine' },
-				],
-				remove: [],
-			}));
-		}); // }}}
-
-		it('add.1', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotolineReload);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
-				add: [
-  					{ key: "cmd+r", command: "workbench.action.reloadWindow" },
-				],
-				remove: [],
-			}));
-		}); // }}}
-
-		it('same', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotoline);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/keybindings.diff.yml')).to.be.false;
-		}); // }}}
-
-		it('inverted', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-				'/repository/profiles/main/data/keybindings.json': JSON.stringify([
-					{ key: 'ctrl+g', command: '-workbench.action.gotoLine' },
-  					{ key: 'cmd+l', command: 'workbench.action.gotoLine' },
-				]),
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotoline);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.existsSync('/repository/profiles/level1/keybindings.diff.yml')).to.be.false;
-		}); // }}}
-
-		it('remove', async () => { // {{{
-			vol.fromJSON({
-				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
-				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotolineReload,
-			});
-
-			vscode.setSettings(userSettingsFxt.json.keybindings);
-			vscode.setKeybindings(keybindingsFxt.json.gotoline);
-
-			const repository = await RepositoryFactory.get();
-
-			await repository.upload();
-
-			expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
-
-			expect(vol.readFileSync('/repository/profiles/level1/keybindings.diff.yml', 'utf8')).to.eql(yaml.stringify({
-				add: [],
-				remove: [
-					{ key: "cmd+r", command: "workbench.action.reloadWindow" },
-				],
-			}));
-		}); // }}}
-	}); */
 });

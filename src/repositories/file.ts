@@ -6,7 +6,7 @@ import { comment } from '@daiyam/jsonc-preprocessor';
 import { restartApp } from '@zokugun/vscode-utils';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
-import { globby } from 'globby';
+import globby from 'globby';
 import { type SqlValue } from 'sql.js';
 import untildify from 'untildify';
 import vscode, { type WorkspaceConfiguration } from 'vscode';
