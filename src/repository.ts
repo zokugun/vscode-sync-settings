@@ -63,7 +63,7 @@ export abstract class Repository {
 			const id = extension.id;
 			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
 
-			if(!packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || extensionsFromVSIXManager.includes(id)) {
+			if(ids[id] || !packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || extensionsFromVSIXManager.includes(id)) {
 				continue;
 			}
 
@@ -78,8 +78,18 @@ export abstract class Repository {
 		}
 
 		const extensionDataPath = await getExtensionDataPath();
+
 		const obsoletePath = path.join(extensionDataPath, '.obsolete');
 		const obsolete = await exists(obsoletePath) ? await fse.readJSON(obsoletePath) as Record<string, boolean> : {};
+
+		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
+		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string } }> : [];
+		const id2uuid = {};
+
+		for(const { identifier: { id, uuid } } of extensionsJson) {
+			id2uuid[id] = uuid;
+		}
+
 		const extensions = await globby('*/package.json', {
 			cwd: extensionDataPath,
 		});
@@ -106,9 +116,11 @@ export abstract class Repository {
 			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !extensionsFromVSIXManager.includes(id)) {
 				disabled.push({
 					id,
-					uuid: pkg.__metadata?.id ?? NIL_UUID,
+					uuid: pkg.__metadata?.id ?? id2uuid[id] ?? NIL_UUID,
 				});
 			}
+
+			ids[id] = true;
 		}
 
 		const builtinDataPath = path.join(vscode.env.appRoot, 'extensions');
@@ -123,6 +135,8 @@ export abstract class Repository {
 			if(!ids[id]) {
 				builtin.disabled.push(id);
 			}
+
+			ids[id] = true;
 		}
 
 		if(builtin.disabled.length > 0) {
