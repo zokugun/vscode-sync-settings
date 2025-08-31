@@ -15,7 +15,7 @@ export async function createProfile(): Promise<void> {
 			title: 'Create new profile',
 			placeHolder: 'New profile name',
 			validateInput(value) {
-				const correct = value.replaceAll(/[^\w\-.]/, '');
+				const correct = value.replaceAll(/[^\w\-.]/g, '');
 				if(correct === value) {
 					return null;
 				}
