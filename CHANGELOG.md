@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.17.3 | 2025-09-01
+- display error messages when creating a new profile
+
 ## v0.17.2 | 2025-05-12
 - ignored property with `syncSettings.ignoredSettings` is correctly removed when in last position and without extra comma
 - remove duplicate extensions from `disabled` extensions list
