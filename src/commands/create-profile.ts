@@ -1,6 +1,7 @@
 import { window } from 'vscode';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Logger } from '../utils/logger.js';
+import { showValidatingInputBox } from '../utils/show-validating-input-box.js';
 
 export async function createProfile(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {
@@ -11,24 +12,32 @@ export async function createProfile(): Promise<void> {
 		const repository = await RepositoryFactory.get();
 		const profiles = await repository.listProfiles();
 
-		const newProfile = await window.showInputBox({
+		const answer = await showValidatingInputBox({
 			title: 'Create new profile',
 			placeHolder: 'New profile name',
 			validateInput(value) {
-				const correct = value.replaceAll(/[^\w\-.]/, '');
-				if(correct === value) {
-					return null;
+				if(/[^\w\-.]/.test(value)) {
+					return 'Profile name must only contain letters, numbers, underscores or dot ("A-Za-z0-9_-.").';
+				}
+				else if(profiles.includes(value)) {
+					return `Profile "${value}" already exists`;
 				}
 				else {
-					return correct;
+					return null;
 				}
 			},
 		});
 
-		if(typeof newProfile !== 'string' || newProfile.length === 0 || profiles.includes(newProfile)) {
+		if(answer.fails) {
+			void window.showErrorMessage(answer.error);
+
+			return;
+		}
+		else if(answer.value === undefined || answer.value.length === 0) {
 			return;
 		}
 
+		const newProfile = answer.value;
 		const profile = repository.profile;
 
 		const quickPickItems = [
