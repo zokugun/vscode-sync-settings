@@ -174,6 +174,14 @@ export class FileRepository extends Repository {
 		return path.join(this._rootPath, 'profiles', profile, 'data');
 	} // }}}
 
+	public getProfileDataProfilesConfigPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'profiles.yml');
+	} // }}}
+
+	public getProfileDataProfilesDataPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'profiles');
+	} // }}}
+
 	public getProfileExtensionsPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, 'data', 'extensions.yml');
 	} // }}}
@@ -330,7 +338,7 @@ export class FileRepository extends Repository {
 		const syncSettings = await this.loadProfileSyncSettings();
 		const userDataPath = getUserDataPath(this._settings);
 		const ancestorProfile = await this.getAncestorProfile(this.profile);
-		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Mcp, Resource.Settings, Resource.Snippets, Resource.Tasks, Resource.UIState];
+		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.UIState];
 
 		if(this._settings.remote) {
 			if(resources.includes(Resource.Extensions)) {
@@ -362,8 +370,16 @@ export class FileRepository extends Repository {
 				await this.restoreUserSettings(ancestorProfile, userDataPath);
 			}
 
+			if(resources.includes(Resource.Profiles)) {
+				await this.restoreDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations));
+			}
+
 			if(resources.includes(Resource.Keybindings)) {
 				await this.restoreKeybindings(ancestorProfile, userDataPath);
+			}
+
+			if(resources.includes(Resource.Mcp)) {
+				await this.restoreMcp(userDataPath);
 			}
 
 			if(resources.includes(Resource.Snippets)) {
@@ -380,11 +396,7 @@ export class FileRepository extends Repository {
 			}
 
 			if(resources.includes(Resource.Tasks)) {
-				await this.restoreTasks(ancestorProfile, userDataPath);
-			}
-
-			if(resources.includes(Resource.Mcp)) {
-				await this.restoreMcp(ancestorProfile, userDataPath);
+				await this.restoreTasks(userDataPath);
 			}
 
 			if(resources.includes(Resource.UIState)) {
@@ -433,11 +445,13 @@ export class FileRepository extends Repository {
 		const profileDataPath = this.getProfileDataPath();
 		await fse.ensureDir(profileDataPath);
 
-		let extensions: ExtensionList | undefined;
+		let extensions: ExtensionList;
 		if(resources.includes(Resource.Extensions)) {
 			extensions = await this.serializeExtensions(profileSettings, syncSettings);
 		}
 		else {
+			extensions = await this.listEditorExtensions([], true) ?? { disabled: [], enabled: [] };
+
 			await this.scrubExtensions();
 		}
 
@@ -469,6 +483,13 @@ export class FileRepository extends Repository {
 				}
 				else {
 					await this.scrubMcp();
+				}
+
+				if(resources.includes(Resource.Profiles)) {
+					await this.serializeDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations), extensions);
+				}
+				else {
+					await this.scrubDataProfiles();
 				}
 
 				if(resources.includes(Resource.Settings)) {
@@ -676,10 +697,8 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	protected async listEditorUIStateProperties(userDataPath: string, extensions?: ExtensionList): Promise<Record<string, SqlValue>> { // {{{
-		extensions ||= await this.listEditorExtensions([], true) ?? { disabled: [], enabled: [] };
-
-		const keys = [
+	protected async listEditorUIStateProperties(userDataPath: string, extensions: ExtensionList | String[]): Promise<Record<string, SqlValue>> { // {{{
+		const keys = Array.isArray(extensions) ? extensions : [
 			...extensions.disabled.map(({ id }) => id),
 			...extensions.enabled.map(({ id }) => id),
 		];
@@ -923,6 +942,99 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	protected async restoreDataProfiles(userDataPath: string, syncAssociations: boolean): Promise<void> { // {{{
+		Logger.info('restore profiles');
+
+		const storagePath = this.getEditorStorageJsonPath(userDataPath);
+		const configPath = this.getProfileDataProfilesConfigPath(this.profile);
+		const dataPath = this.getProfileDataProfilesDataPath(this.profile);
+		const editorDataPath = this.getEditorDataProfilesDataPath(userDataPath);
+
+		if(!await exists(configPath)) {
+			if(await exists(editorDataPath)) {
+				const result = await vscode.window.showInformationMessage(
+					'There is a conflict with your Profiles settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+					{
+						modal: true,
+					},
+					'Yes',
+				);
+
+				if(result === 'Yes') {
+					await fse.remove(editorDataPath);
+
+					const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
+
+					delete storage.userDataProfiles;
+
+					await fse.writeFile(JSON.stringify(storage, null, 4), 'utf8');
+				}
+			}
+
+			return;
+		}
+
+		const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
+		const config = yaml.parse(await fse.readFile(configPath, 'utf8')) as Record<string, unknown>;
+
+		storage.userDataProfiles = config.profiles;
+
+		if(syncAssociations) {
+			storage.profileAssociations = config.associations;
+		}
+
+		await fse.writeFile(storagePath, JSON.stringify(storage, null, 4), 'utf8');
+
+		await fse.emptyDir(editorDataPath);
+
+		for(const { location } of config.profiles as Array<{ location: string }>) {
+			await fse.copy(path.join(dataPath, location), path.join(editorDataPath, location), {
+				preserveTimestamps: true,
+			});
+
+			const extensionDataPath = await getExtensionDataUri();
+
+			const extensionsPath = path.join(editorDataPath, location, 'extensions.json');
+
+			if(await exists(extensionsPath)) {
+				let data = await fse.readFile(extensionsPath, 'utf8');
+
+				data = data.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+
+				await fse.writeFile(extensionsPath, data, {
+					encoding: 'utf8',
+				});
+			}
+
+			const uiStatePath = path.join(editorDataPath, location, 'ui-state.yml');
+
+			if(await exists(uiStatePath)) {
+				const data = yaml.parse(await fse.readFile(uiStatePath, 'utf8')) as Record<string, unknown>;
+				const values: any[] = [];
+				const args: Record<string, unknown> = {};
+				let index = 0;
+
+				for(let [key, value] of Object.entries(data)) {
+					values.push(`'${key}', $${index}`);
+
+					if(typeof value === 'string') {
+						value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+					}
+
+					args[`$${index}`] = value;
+
+					++index;
+				}
+
+				if(index > 0) {
+					await writeStateDB(path.join(editorDataPath, location), `INSERT OR REPLACE INTO ItemTable (key, value) VALUES (${values.join('), (')})`, args);
+				}
+
+				await fse.remove(uiStatePath);
+			}
+		}
+	} // }}}
+
 	protected async restoreExtensions(syncSettings: ProfileSyncSettings): Promise<boolean> { // {{{
 		Logger.info('restore extensions');
 
@@ -1079,21 +1191,30 @@ export class FileRepository extends Repository {
 		await fse.outputFile(dataPath, data, 'utf8');
 	} // }}}
 
-	protected async restoreMcp(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+	protected async restoreMcp(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore mcp');
 
 		const dataPath = this.getEditorMcpPath(userDataPath);
-
-		let data = await this.getProfileMcp(ancestorProfile);
+		let data = await this.getProfileMcp(this.profile);
 
 		if(data) {
 			data = await preprocessJSONC(data, this._settings);
-		}
-		else {
-			data = '[]';
-		}
 
-		await fse.outputFile(dataPath, data, 'utf8');
+			await fse.outputFile(dataPath, data, 'utf8');
+		}
+		else if(await exists(dataPath)) {
+			const result = await vscode.window.showInformationMessage(
+				'There is a conflict with your MCP settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+				{
+					modal: true,
+				},
+				'Yes',
+			);
+
+			if(result === 'Yes') {
+				await fse.remove(dataPath);
+			}
+		}
 	} // }}}
 
 	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
@@ -1121,21 +1242,30 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	protected async restoreTasks(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+	protected async restoreTasks(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore tasks');
 
 		const dataPath = this.getEditorTasksPath(userDataPath);
-
-		let data = await this.getProfileTasks(ancestorProfile);
+		let data = await this.getProfileTasks(this.profile);
 
 		if(data) {
 			data = await preprocessJSONC(data, this._settings);
-		}
-		else {
-			data = '[]';
-		}
 
-		await fse.outputFile(dataPath, data, 'utf8');
+			await fse.outputFile(dataPath, data, 'utf8');
+		}
+		else if(await exists(dataPath)) {
+			const result = await vscode.window.showInformationMessage(
+				'There is a conflict with your Tasks settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+				{
+					modal: true,
+				},
+				'Yes',
+			);
+
+			if(result === 'Yes') {
+				await fse.remove(dataPath);
+			}
+		}
 	} // }}}
 
 	protected async restoreUIState(userDataPath: string): Promise<void> { // {{{
@@ -1144,9 +1274,9 @@ export class FileRepository extends Repository {
 		const extensionDataPath = await getExtensionDataUri();
 		const profile = await this.listProfileUIStateProperties();
 		const values: any[] = [];
-
 		const args: Record<string, unknown> = {};
 		let index = 0;
+
 		for(let [key, value] of Object.entries(profile)) {
 			values.push(`'${key}', $${index}`);
 
@@ -1248,6 +1378,11 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	protected async scrubDataProfiles(): Promise<void> { // {{{
+		await fse.remove(this.getProfileDataProfilesConfigPath());
+		await fse.remove(this.getProfileDataProfilesDataPath());
+	} // }}}
+
 	protected async scrubExtensions(): Promise<void> { // {{{
 		await fse.remove(this.getProfileExtensionsPath());
 	} // }}}
@@ -1311,6 +1446,95 @@ export class FileRepository extends Repository {
 			await fse.copy(source, destination, {
 				preserveTimestamps: true,
 			});
+		}
+	} // }}}
+
+	protected async serializeDataProfiles(userDataPath: string, syncAssociations: boolean, extensions: ExtensionList): Promise<void> { // {{{
+		Logger.info('serialize profiles');
+
+		const storagePath = this.getEditorStorageJsonPath(userDataPath);
+		const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
+		const configPath = this.getProfileDataProfilesConfigPath(this.profile);
+		const dataPath = this.getProfileDataProfilesDataPath(this.profile);
+		const editorDataPath = this.getEditorDataProfilesDataPath(userDataPath);
+
+		if(Array.isArray(storage.userDataProfiles) && storage.userDataProfiles.length > 0) {
+			const config: { profiles: unknown; associations?: unknown } = {
+				profiles: storage.userDataProfiles,
+			};
+
+			if(syncAssociations) {
+				config.associations = storage.profileAssociations;
+			}
+
+			const configData = yaml.stringify(config);
+
+			await fse.writeFile(configPath, configData, {
+				encoding: 'utf8',
+				mode: 0o600,
+			});
+
+			await fse.emptyDir(dataPath);
+
+			for(const { location, useDefaultFlags } of storage.userDataProfiles as Array<{ location: string; useDefaultFlags?: { extensions?: boolean } }>) {
+				const source = path.join(editorDataPath, location);
+				const destination = path.join(dataPath, location);
+
+				const files = await globby(['**', '!globalStorage', '!extensions.json'], {
+					cwd: source,
+					followSymbolicLinks: false,
+				});
+				for(const file of files) {
+					await fse.copy(path.join(source, file), path.join(destination, file), {
+						preserveTimestamps: true,
+					});
+				}
+
+				if(await exists(path.join(source, 'extensions.json'))) {
+					const extensionDataPath = await getExtensionDataUri();
+					let data = await fse.readFile(path.join(source, 'extensions.json'), 'utf8');
+
+					data = data.replaceAll(extensionDataPath, '%%EXTENSION_DATA_PATH%%');
+
+					await fse.writeFile(path.join(destination, 'extensions.json'), data, {
+						encoding: 'utf8',
+						mode: 0o600,
+					});
+				}
+
+				const uiStatePath = path.join(editorDataPath, location, 'globalStorage', 'state.vscdb');
+
+				if(await exists(uiStatePath)) {
+					let properties: Record<string, SqlValue>;
+
+					if(useDefaultFlags?.extensions) {
+						properties = await this.listEditorUIStateProperties(uiStatePath, extensions);
+					}
+					else {
+						const extensionPath = path.join(source, 'extensions.json');
+						if(await exists(extensionPath)) {
+							const data = JSON.parse(await fse.readFile(extensionPath, 'utf8')) as Array<{ identifier: { id: string } }>;
+							const extensions = data.map(({ identifier }) => identifier.id);
+
+							properties = await this.listEditorUIStateProperties(uiStatePath, extensions);
+						}
+						else {
+							properties = {};
+						}
+					}
+
+					const data = yaml.stringify(properties);
+
+					await fse.writeFile(path.join(destination, 'ui-state.yml'), data, {
+						encoding: 'utf8',
+						mode: 0o600,
+					});
+				}
+			}
+		}
+		else {
+			await fse.remove(configPath);
+			await fse.remove(dataPath);
 		}
 	} // }}}
 
@@ -1505,7 +1729,7 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	protected async serializeUIState(profileSettings: ProfileSettings, userDataPath: string, extensions?: ExtensionList): Promise<void> { // {{{
+	protected async serializeUIState(profileSettings: ProfileSettings, userDataPath: string, extensions: ExtensionList): Promise<void> { // {{{
 		Logger.info('serialize UI state');
 
 		const editor = await this.listEditorUIStateProperties(userDataPath, extensions);

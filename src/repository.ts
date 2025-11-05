@@ -27,6 +27,7 @@ export enum Resource {
 	Extensions = 'extensions',
 	Keybindings = 'keybindings',
 	Mcp = 'mcp',
+	ProfileAssociations = 'profile-associations',
 	Profiles = 'profiles',
 	Settings = 'settings',
 	Snippets = 'snippets',
@@ -174,6 +175,10 @@ export abstract class Repository {
 		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
 	} // }}}
 
+	protected getEditorDataProfilesDataPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'profiles');
+	} // }}}
+
 	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
 		return path.join(userDataPath, 'keybindings.json');
 	} // }}}
@@ -184,6 +189,10 @@ export abstract class Repository {
 
 	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
 		return path.join(userDataPath, 'snippets');
+	} // }}}
+
+	protected getEditorStorageJsonPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'globalStorage', 'storage.json');
 	} // }}}
 
 	protected getEditorTasksPath(userDataPath: string): string { // {{{
