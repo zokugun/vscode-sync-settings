@@ -1226,7 +1226,8 @@ export class FileRepository extends Repository {
 		const ignoredExtensions = config.get<string[]>('ignoredExtensions') ?? [];
 		const editor = await this.listEditorExtensions(ignoredExtensions);
 
-		let data: string;
+		let extensions: ExtensionList;
+
 		if(profileSettings.extends) {
 			const profile = await this.listProfileExtensions(profileSettings.extends);
 
@@ -1241,34 +1242,35 @@ export class FileRepository extends Repository {
 			const builtinDisabled = editor.builtin?.disabled ? (profile.builtin?.disabled ? arrayDiff(editor.builtin.disabled, profile.builtin.disabled) : editor.builtin.disabled) : [];
 			const builtinEnabled = profile.builtin?.disabled && editor.builtin?.disabled ? arrayDiff(profile.builtin.disabled, editor.builtin.disabled) : [];
 
-			const output: Record<string, any> = {
-				disabled: sortExtensionList(disabled),
-				enabled: sortExtensionList(enabled),
+			extensions = {
+				disabled,
+				enabled,
 			};
 
 			if(uninstall.length > 0) {
-				output.uninstall = sortExtensionList(uninstall);
+				extensions.uninstall = uninstall;
 			}
 
 			if(builtinDisabled.length > 0 || builtinEnabled.length > 0) {
 				const builtin: Record<string, any> = {};
 
 				if(builtinDisabled.length > 0) {
-					builtin.disabled = builtinDisabled.sort((a, b) => a.localeCompare(b));
+					builtin.disabled = builtinDisabled;
 				}
 
 				if(builtinEnabled.length > 0) {
-					builtin.enabled = builtinEnabled.sort((a, b) => a.localeCompare(b));
+					builtin.enabled = builtinEnabled;
 				}
 
-				output.builtin = builtin;
+				extensions.builtin = builtin;
 			}
-
-			data = yaml.stringify(output);
 		}
 		else {
-			data = yaml.stringify(editor);
+			extensions = editor;
 		}
+
+		const sortedExtensions = sortExtensionList(extensions);
+		const data = yaml.stringify(sortedExtensions);
 
 		await fse.writeFile(this.getProfileExtensionsPath(), data, {
 			encoding: 'utf8',
