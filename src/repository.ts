@@ -24,10 +24,14 @@ export type ExtensionList = {
 };
 
 export enum Resource {
-	Settings = 'settings',
-	Keybindings = 'keybindings',
-	Snippets = 'snippets',
 	Extensions = 'extensions',
+	Keybindings = 'keybindings',
+	Mcp = 'mcp',
+	Profiles = 'profiles',
+	Prompts = 'prompts',
+	Settings = 'settings',
+	Snippets = 'snippets',
+	Tasks = 'tasks',
 	UIState = 'uiState',
 }
 
@@ -177,6 +181,10 @@ export abstract class Repository {
 
 	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
 		return path.join(userDataPath, 'snippets');
+	} // }}}
+
+	protected getEditorTasksPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'tasks.json');
 	} // }}}
 
 	protected getEditorUserSettingsPath(userDataPath: string): string { // {{{

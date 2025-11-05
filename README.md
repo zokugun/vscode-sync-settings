@@ -130,7 +130,7 @@ repository:
 
 You can configure what and how to synchronize with properties in your regular settings (`settings.json`).
 
-- `"syncSettings.resources": ["extensions", "keybindings", "settings", "snippets", "uiState"]`
+- `"syncSettings.resources": ["extensions", "keybindings", "settings", "snippets", "tasks", "uiState"]`
 - `"syncSettings.ignoredExtensions": ["<extension's id>"]`
 - `"syncSettings.ignoredSettings": ["editor.fontFamily"]`
 - `"syncSettings.keybindingsPerPlatform": true`

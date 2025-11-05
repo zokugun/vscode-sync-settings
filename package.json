@@ -388,6 +388,7 @@
 								"keybindings",
 								"settings",
 								"snippets",
+								"tasks",
 								"uiState"
 							],
 							"enumDescriptions": [
@@ -395,6 +396,7 @@
 								"Keyboard Shortcuts",
 								"Settings",
 								"User Snippets",
+								"Tasks",
 								"UIState"
 							]
 						}
@@ -404,6 +406,7 @@
 						"keybindings",
 						"settings",
 						"snippets",
+						"tasks",
 						"uiState"
 					],
 					"scope": "application",

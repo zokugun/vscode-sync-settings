@@ -209,6 +209,10 @@ export class FileRepository extends Repository {
 		return path.join(this._rootPath, 'profiles', profile, 'profile.yml');
 	} // }}}
 
+	public getProfileTasksPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'tasks.json');
+	} // }}}
+
 	public getProfileUserSettingsPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, 'data', 'settings.json');
 	} // }}}
@@ -322,7 +326,7 @@ export class FileRepository extends Repository {
 		const syncSettings = await this.loadProfileSyncSettings();
 		const userDataPath = getUserDataPath(this._settings);
 		const ancestorProfile = await this.getAncestorProfile(this.profile);
-		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.UIState];
+		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.Tasks, Resource.UIState];
 
 		if(this._settings.remote) {
 			if(resources.includes(Resource.Extensions)) {
@@ -369,6 +373,10 @@ export class FileRepository extends Repository {
 				if(vsixManager) {
 					await vsixManager.installExtensions(true);
 				}
+			}
+
+			if(resources.includes(Resource.Tasks)) {
+				await this.restoreTasks(ancestorProfile, userDataPath);
 			}
 
 			if(resources.includes(Resource.UIState)) {
@@ -453,6 +461,13 @@ export class FileRepository extends Repository {
 				}
 				else {
 					await this.scrubUserSettings();
+				}
+
+				if(resources.includes(Resource.Tasks)) {
+					await this.serializeTasks(syncSettings, userDataPath);
+				}
+				else {
+					await this.scrubTasks();
 				}
 
 				await this.serializeAdditionalFiles(syncSettings);
@@ -607,6 +622,17 @@ export class FileRepository extends Repository {
 
 	protected getProfileSyncSettingsPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, '.sync.yml');
+	} // }}}
+
+	protected async getProfileTasks(profile: string = this.profile): Promise<string | undefined> { // {{{
+		const dataPath = this.getProfileTasksPath(profile);
+
+		if(await exists(dataPath)) {
+			return fse.readFile(dataPath, 'utf8');
+		}
+		else {
+			return undefined;
+		}
 	} // }}}
 
 	protected getProfileUIStatePath(profile: string = this.profile): string { // {{{
@@ -1027,6 +1053,74 @@ export class FileRepository extends Repository {
 		await fse.outputFile(dataPath, data, 'utf8');
 	} // }}}
 
+	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore snippets');
+
+		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
+
+		await fse.emptyDir(snippetsPath);
+
+		const ignore: string[] = [];
+		const diff = await this.loadSnippetsDiff();
+		if(diff) {
+			ignore.push(...diff.removed);
+		}
+
+		const snippets = await this.listProfileSnippetPaths();
+		for(const [name, snippetPath] of Object.entries(snippets)) {
+			if(ignore.includes(name)) {
+				continue;
+			}
+
+			await fse.copy(snippetPath, path.join(snippetsPath, name), {
+				preserveTimestamps: true,
+			});
+		}
+	} // }}}
+
+	protected async restoreTasks(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore tasks');
+
+		const dataPath = this.getEditorTasksPath(userDataPath);
+
+		let data = await this.getProfileTasks(ancestorProfile);
+
+		if(data) {
+			data = await preprocessJSONC(data, this._settings);
+		}
+		else {
+			data = '[]';
+		}
+
+		await fse.outputFile(dataPath, data, 'utf8');
+	} // }}}
+
+	protected async restoreUIState(userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore UI state');
+
+		const extensionDataPath = await getExtensionDataUri();
+		const profile = await this.listProfileUIStateProperties();
+		const values: any[] = [];
+
+		const args: Record<string, unknown> = {};
+		let index = 0;
+		for(let [key, value] of Object.entries(profile)) {
+			values.push(`'${key}', $${index}`);
+
+			if(typeof value === 'string') {
+				value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+			}
+
+			args[`$${index}`] = value;
+
+			++index;
+		}
+
+		if(index > 0) {
+			await writeStateDB(userDataPath, `INSERT OR REPLACE INTO ItemTable (key, value) VALUES (${values.join('), (')})`, args);
+		}
+	} // }}}
+
 	protected async restoreUserSettings(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore settings');
 
@@ -1055,57 +1149,6 @@ export class FileRepository extends Repository {
 		}
 
 		await fse.outputFile(dataPath, data, 'utf8');
-	} // }}}
-
-	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
-		Logger.info('restore snippets');
-
-		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
-
-		await fse.emptyDir(snippetsPath);
-
-		const ignore: string[] = [];
-		const diff = await this.loadSnippetsDiff();
-		if(diff) {
-			ignore.push(...diff.removed);
-		}
-
-		const snippets = await this.listProfileSnippetPaths();
-		for(const [name, snippetPath] of Object.entries(snippets)) {
-			if(ignore.includes(name)) {
-				continue;
-			}
-
-			await fse.copy(snippetPath, path.join(snippetsPath, name), {
-				preserveTimestamps: true,
-			});
-		}
-	} // }}}
-
-	protected async restoreUIState(userDataPath: string): Promise<void> { // {{{
-		Logger.info('restore UI state');
-
-		const extensionDataPath = await getExtensionDataUri();
-		const profile = await this.listProfileUIStateProperties();
-		const values: any[] = [];
-
-		const args: Record<string, unknown> = {};
-		let index = 0;
-		for(let [key, value] of Object.entries(profile)) {
-			values.push(`'${key}', $${index}`);
-
-			if(typeof value === 'string') {
-				value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
-			}
-
-			args[`$${index}`] = value;
-
-			++index;
-		}
-
-		if(index > 0) {
-			await writeStateDB(userDataPath, `INSERT OR REPLACE INTO ItemTable (key, value) VALUES (${values.join('), (')})`, args);
-		}
 	} // }}}
 
 	protected async saveProfileSyncSettings(config: WorkspaceConfiguration): Promise<void> { // {{{
@@ -1181,6 +1224,10 @@ export class FileRepository extends Repository {
 
 	protected async scrubSnippets(): Promise<void> { // {{{
 		await fse.remove(this.getProfileSnippetsPath());
+	} // }}}
+
+	protected async scrubTasks(): Promise<void> { // {{{
+		await fse.remove(this.getProfileTasksPath());
 	} // }}}
 
 	protected async scrubUIState(): Promise<void> { // {{{
@@ -1357,6 +1404,30 @@ export class FileRepository extends Repository {
 					preserveTimestamps: true,
 				});
 			}
+		}
+		else {
+			await fse.remove(dataPath);
+		}
+	} // }}}
+
+	protected async serializeTasks(_config: WorkspaceConfiguration, userDataPath: string): Promise<void> { // {{{
+		Logger.info('serialize tasks');
+
+		let editor: string | undefined;
+
+		const editorPath = this.getEditorTasksPath(userDataPath);
+		if(await exists(editorPath)) {
+			editor = await fse.readFile(editorPath, 'utf8');
+			editor = comment(editor);
+		}
+
+		const dataPath = this.getProfileTasksPath(this.profile);
+
+		if(editor) {
+			await fse.writeFile(dataPath, editor, {
+				encoding: 'utf8',
+				mode: 0o600,
+			});
 		}
 		else {
 			await fse.remove(dataPath);
