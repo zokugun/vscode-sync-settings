@@ -386,6 +386,7 @@
 							"enum": [
 								"extensions",
 								"keybindings",
+								"mcp",
 								"settings",
 								"snippets",
 								"tasks",
@@ -394,6 +395,7 @@
 							"enumDescriptions": [
 								"Extensions",
 								"Keyboard Shortcuts",
+								"MCP",
 								"Settings",
 								"User Snippets",
 								"Tasks",
@@ -404,6 +406,7 @@
 					"default": [
 						"extensions",
 						"keybindings",
+						"mcp",
 						"settings",
 						"snippets",
 						"tasks",

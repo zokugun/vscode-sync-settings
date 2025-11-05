@@ -28,7 +28,6 @@ export enum Resource {
 	Keybindings = 'keybindings',
 	Mcp = 'mcp',
 	Profiles = 'profiles',
-	Prompts = 'prompts',
 	Settings = 'settings',
 	Snippets = 'snippets',
 	Tasks = 'tasks',
@@ -177,6 +176,10 @@ export abstract class Repository {
 
 	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
 		return path.join(userDataPath, 'keybindings.json');
+	} // }}}
+
+	protected getEditorMcpPath(userDataPath: string): string { // {{{
+		return path.join(userDataPath, 'mcp.json');
 	} // }}}
 
 	protected getEditorSnippetsPath(userDataPath: string): string { // {{{

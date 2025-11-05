@@ -205,6 +205,10 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	public getProfileMcpPath(profile: string = this.profile): string { // {{{
+		return path.join(this._rootPath, 'profiles', profile, 'data', 'mcp.json');
+	} // }}}
+
 	public override getProfileSettingsPath(profile: string = this.profile): string { // {{{
 		return path.join(this._rootPath, 'profiles', profile, 'profile.yml');
 	} // }}}
@@ -326,7 +330,7 @@ export class FileRepository extends Repository {
 		const syncSettings = await this.loadProfileSyncSettings();
 		const userDataPath = getUserDataPath(this._settings);
 		const ancestorProfile = await this.getAncestorProfile(this.profile);
-		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Settings, Resource.Snippets, Resource.Tasks, Resource.UIState];
+		const resources = syncSettings.resources ?? [Resource.Extensions, Resource.Keybindings, Resource.Mcp, Resource.Settings, Resource.Snippets, Resource.Tasks, Resource.UIState];
 
 		if(this._settings.remote) {
 			if(resources.includes(Resource.Extensions)) {
@@ -377,6 +381,10 @@ export class FileRepository extends Repository {
 
 			if(resources.includes(Resource.Tasks)) {
 				await this.restoreTasks(ancestorProfile, userDataPath);
+			}
+
+			if(resources.includes(Resource.Mcp)) {
+				await this.restoreMcp(ancestorProfile, userDataPath);
 			}
 
 			if(resources.includes(Resource.UIState)) {
@@ -454,6 +462,13 @@ export class FileRepository extends Repository {
 				}
 				else {
 					await this.scrubKeybindings();
+				}
+
+				if(resources.includes(Resource.Mcp)) {
+					await this.serializeMcp(syncSettings, userDataPath);
+				}
+				else {
+					await this.scrubMcp();
 				}
 
 				if(resources.includes(Resource.Settings)) {
@@ -607,6 +622,17 @@ export class FileRepository extends Repository {
 		}
 
 		const dataPath = this.getProfileKeybindingsPath(profile, keybindingsPerPlatform);
+
+		if(await exists(dataPath)) {
+			return fse.readFile(dataPath, 'utf8');
+		}
+		else {
+			return undefined;
+		}
+	} // }}}
+
+	protected async getProfileMcp(profile: string = this.profile): Promise<string | undefined> { // {{{
+		const dataPath = this.getProfileMcpPath(profile);
 
 		if(await exists(dataPath)) {
 			return fse.readFile(dataPath, 'utf8');
@@ -1053,6 +1079,23 @@ export class FileRepository extends Repository {
 		await fse.outputFile(dataPath, data, 'utf8');
 	} // }}}
 
+	protected async restoreMcp(ancestorProfile: string, userDataPath: string): Promise<void> { // {{{
+		Logger.info('restore mcp');
+
+		const dataPath = this.getEditorMcpPath(userDataPath);
+
+		let data = await this.getProfileMcp(ancestorProfile);
+
+		if(data) {
+			data = await preprocessJSONC(data, this._settings);
+		}
+		else {
+			data = '[]';
+		}
+
+		await fse.outputFile(dataPath, data, 'utf8');
+	} // }}}
+
 	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore snippets');
 
@@ -1222,6 +1265,10 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	protected async scrubMcp(): Promise<void> { // {{{
+		await fse.remove(this.getProfileMcpPath());
+	} // }}}
+
 	protected async scrubSnippets(): Promise<void> { // {{{
 		await fse.remove(this.getProfileSnippetsPath());
 	} // }}}
@@ -1341,6 +1388,30 @@ export class FileRepository extends Repository {
 		}
 
 		const dataPath = this.getProfileKeybindingsPath(this.profile, keybindingsPerPlatform);
+
+		if(editor) {
+			await fse.writeFile(dataPath, editor, {
+				encoding: 'utf8',
+				mode: 0o600,
+			});
+		}
+		else {
+			await fse.remove(dataPath);
+		}
+	} // }}}
+
+	protected async serializeMcp(_config: WorkspaceConfiguration, userDataPath: string): Promise<void> { // {{{
+		Logger.info('serialize mcp');
+
+		let editor: string | undefined;
+
+		const editorPath = this.getEditorMcpPath(userDataPath);
+		if(await exists(editorPath)) {
+			editor = await fse.readFile(editorPath, 'utf8');
+			editor = comment(editor);
+		}
+
+		const dataPath = this.getProfileMcpPath(this.profile);
 
 		if(editor) {
 			await fse.writeFile(dataPath, editor, {
