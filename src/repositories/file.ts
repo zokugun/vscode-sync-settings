@@ -16,6 +16,7 @@ import { type ExtensionId, type ExtensionList, Repository, Resource } from '../r
 import { Hook, Settings } from '../settings.js';
 import { arrayDiff } from '../utils/array-diff.js';
 import { disableExtension } from '../utils/disable-extension.js';
+import { EDITOR_MODE, EditorMode } from '../utils/editor.js';
 import { enableExtension } from '../utils/enable-extension.js';
 import { exists } from '../utils/exists.js';
 import { extractProperties } from '../utils/extract-properties.js';
@@ -370,20 +371,8 @@ export class FileRepository extends Repository {
 				await this.restoreUserSettings(ancestorProfile, userDataPath);
 			}
 
-			if(resources.includes(Resource.Profiles)) {
-				await this.restoreDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations));
-			}
-
 			if(resources.includes(Resource.Keybindings)) {
 				await this.restoreKeybindings(ancestorProfile, userDataPath);
-			}
-
-			if(resources.includes(Resource.Mcp)) {
-				await this.restoreMcp(userDataPath);
-			}
-
-			if(resources.includes(Resource.Snippets)) {
-				await this.restoreSnippets(userDataPath);
 			}
 
 			if(resources.includes(Resource.Extensions)) {
@@ -399,8 +388,22 @@ export class FileRepository extends Repository {
 				await this.restoreTasks(userDataPath);
 			}
 
-			if(resources.includes(Resource.UIState)) {
-				await this.restoreUIState(userDataPath);
+			if(EDITOR_MODE === EditorMode.VSCode) {
+				if(resources.includes(Resource.Mcp)) {
+					await this.restoreMcp(userDataPath);
+				}
+
+				if(resources.includes(Resource.Profiles)) {
+					await this.restoreDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations));
+				}
+
+				if(resources.includes(Resource.Snippets)) {
+					await this.restoreSnippets(userDataPath);
+				}
+
+				if(resources.includes(Resource.UIState)) {
+					await this.restoreUIState(userDataPath);
+				}
 			}
 
 			await this.restoreAdditionalFiles(ancestorProfile);
@@ -408,7 +411,17 @@ export class FileRepository extends Repository {
 			Logger.info('restore done');
 
 			if(restart) {
-				await restartApp();
+				if(EDITOR_MODE === EditorMode.Theia) {
+					await vscode.window.showInformationMessage(
+						'The editor needs to be restarted before continuing. You need to do it manually. Thx',
+						{
+							modal: true,
+						},
+					);
+				}
+				else {
+					await restartApp();
+				}
 			}
 			else if(reloadWindow) {
 				await vscode.commands.executeCommand('workbench.action.reloadWindow');
@@ -456,18 +469,20 @@ export class FileRepository extends Repository {
 		}
 
 		if(!this._settings.remote) {
-			if(resources.includes(Resource.Snippets)) {
-				await this.serializeSnippets(profileSettings, userDataPath);
-			}
-			else {
-				await this.scrubSnippets();
-			}
+			if(EDITOR_MODE === EditorMode.VSCode) {
+				if(resources.includes(Resource.Snippets)) {
+					await this.serializeSnippets(profileSettings, userDataPath);
+				}
+				else {
+					await this.scrubSnippets();
+				}
 
-			if(resources.includes(Resource.UIState)) {
-				await this.serializeUIState(profileSettings, userDataPath, extensions);
-			}
-			else {
-				await this.scrubUIState();
+				if(resources.includes(Resource.UIState)) {
+					await this.serializeUIState(profileSettings, userDataPath, extensions);
+				}
+				else {
+					await this.scrubUIState();
+				}
 			}
 
 			if(!profileSettings.extends) {
@@ -476,20 +491,6 @@ export class FileRepository extends Repository {
 				}
 				else {
 					await this.scrubKeybindings();
-				}
-
-				if(resources.includes(Resource.Mcp)) {
-					await this.serializeMcp(syncSettings, userDataPath);
-				}
-				else {
-					await this.scrubMcp();
-				}
-
-				if(resources.includes(Resource.Profiles)) {
-					await this.serializeDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations), extensions);
-				}
-				else {
-					await this.scrubDataProfiles();
 				}
 
 				if(resources.includes(Resource.Settings)) {
@@ -504,6 +505,22 @@ export class FileRepository extends Repository {
 				}
 				else {
 					await this.scrubTasks();
+				}
+
+				if(EDITOR_MODE === EditorMode.VSCode) {
+					if(resources.includes(Resource.Mcp)) {
+						await this.serializeMcp(syncSettings, userDataPath);
+					}
+					else {
+						await this.scrubMcp();
+					}
+
+					if(resources.includes(Resource.Profiles)) {
+						await this.serializeDataProfiles(userDataPath, resources.includes(Resource.ProfileAssociations), extensions);
+					}
+					else {
+						await this.scrubDataProfiles();
+					}
 				}
 
 				await this.serializeAdditionalFiles(syncSettings);
@@ -1147,16 +1164,49 @@ export class FileRepository extends Repository {
 			}
 
 			if(local) {
-				const toDisable: any[] = [...disabled];
+				const toDisable: ExtensionId[] = [...disabled];
 
 				if(builtin?.disabled) {
 					toDisable.push(...builtin.disabled.map((id) => ({ id })));
 				}
 
 				if(toDisable.length > 0) {
-					await writeStateDB(getUserDataPath(this._settings), 'INSERT OR REPLACE INTO ItemTable (key, value) VALUES (\'extensionsIdentifiers/disabled\', $value)', {
-						$value: JSON.stringify(toDisable),
-					});
+					if(EDITOR_MODE === EditorMode.Theia) {
+						const backendPath = path.join(await getEditorStorage(), 'backend-settings.json');
+
+						let data: Record<string, string>;
+
+						if(await exists(backendPath)) {
+							data = JSON.parse(await fse.readFile(backendPath, 'utf8')) as Record<string, string>;
+
+							if(data['installedPlugins.disabledPlugins']) {
+								const disabledPlugins = JSON.parse(data['installedPlugins.disabledPlugins']) as string[];
+
+								for(const { id } of toDisable) {
+									if(!disabledPlugins.includes(id)) {
+										disabledPlugins.push(id);
+									}
+								}
+
+								data['installedPlugins.disabledPlugins'] = JSON.stringify(disabledPlugins);
+							}
+							else {
+								data['installedPlugins.disabledPlugins'] = JSON.stringify(toDisable.map(({ id }) => id));
+							}
+						}
+						else {
+							data = {
+								'installedPlugins.disabledPlugins': JSON.stringify(toDisable.map(({ id }) => id)),
+							};
+						}
+
+						await fse.writeFile(backendPath, JSON.stringify(data), 'utf8');
+					}
+					else {
+						await writeStateDB(getUserDataPath(this._settings), 'INSERT OR REPLACE INTO ItemTable (key, value) VALUES (\'extensionsIdentifiers/disabled\', $value)', {
+							$value: JSON.stringify(toDisable),
+						});
+					}
 				}
 			}
 		}
@@ -1795,12 +1845,14 @@ export class FileRepository extends Repository {
 			return true;
 		}
 
-		const editor = await this.listEditorUIStateProperties(userDataPath, extensions);
-		const profile = await this.listProfileUIStateProperties();
+		if(EDITOR_MODE === EditorMode.VSCode) {
+			const editor = await this.listEditorUIStateProperties(userDataPath, extensions);
+			const profile = await this.listProfileUIStateProperties();
 
-		for(const [key, value] of Object.entries(profile)) {
-			if(value !== editor[key]) {
-				return true;
+			for(const [key, value] of Object.entries(profile)) {
+				if(value !== editor[key]) {
+					return true;
+				}
 			}
 		}
 

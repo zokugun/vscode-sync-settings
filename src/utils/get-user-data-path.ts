@@ -2,8 +2,17 @@ import path from 'path';
 import process from 'process';
 import { type Settings } from '../settings.js';
 
-export function getUserDataPath(settings: Settings): string { // {{{
-	const globalStoragePath = process.env.VSCODE_PORTABLE ? path.resolve(process.env.VSCODE_PORTABLE, 'user-data') : path.resolve(settings.globalStorageUri.fsPath, '../../..');
+let $path: string = '';
 
-	return path.resolve(globalStoragePath, 'User');
+export function getUserDataPath(settings: Settings): string { // {{{
+	if(!$path) {
+		if(process.env.VSCODE_PORTABLE) {
+			$path = path.resolve(process.env.VSCODE_PORTABLE, 'user-data', 'User');
+		}
+		else {
+			$path = path.resolve(settings.globalStorageUri.fsPath, '..', '..');
+		}
+	}
+
+	return $path;
 } // }}}

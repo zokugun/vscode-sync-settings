@@ -17,6 +17,7 @@ import { setupCrons } from './crons.js';
 import { RepositoryFactory } from './repository-factory.js';
 import { Settings } from './settings.js';
 import { ThrottledDelayer } from './utils/async.js';
+import { detectEditor } from './utils/editor.js';
 import { Logger } from './utils/logger.js';
 
 const VERSION_KEY = 'version';
@@ -50,6 +51,8 @@ async function showWhatsNewMessage(version: string) { // {{{
 } // }}}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+	detectEditor(context);
+
 	context.globalState.setKeysForSync([VERSION_KEY]);
 
 	const previousVersion = context.globalState.get<string>(VERSION_KEY);
