@@ -10,6 +10,7 @@ Sync Settings
 
 With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can synchronize your settings/resources across multiple devices.<br />
 You can also switch between profiles with their own settings/resources.
+It supports with Visual Studio Code, Eclipse Theia, and other Theia/VSCode derivatives.
 
 HowTo
 -----
@@ -256,6 +257,15 @@ Remote
 Remote mode is supported but the synchronization will be limited to only extensions.
 
 [More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/remote.md)
+
+Eclipse Theia
+-------------
+
+Support for Eclipse Theia is limited to:
+- settings
+- keyboard shortcuts
+- tasks
+- additional files
 
 Donations
 ---------

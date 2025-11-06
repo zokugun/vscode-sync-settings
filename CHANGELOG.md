@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.18.0 | 2025-11-06
+- support TheiaIDE but only sync the settings, the keymaps, the tasks and the additional files
+- synchronize tasks, profiles and mcp (disabled by default and extra modal window to prevent erroneous suppressions)
+- correctly sort the extension list, thanks to **@cupcakearmy**
+
 ## v0.17.3 | 2025-09-01
 - display error messages when creating a new profile
 
