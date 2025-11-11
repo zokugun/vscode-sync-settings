@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.18.1 | 2025-11-11
+- directly catch git errors instead on relaying on VSCode behavior (!= TheiaIDE)
+
 ## v0.18.0 | 2025-11-06
 - support TheiaIDE but only sync the settings, the keymaps, the tasks and the additional files
 - synchronize tasks, profiles and mcp (disabled by default and extra modal window to prevent erroneous suppressions)
