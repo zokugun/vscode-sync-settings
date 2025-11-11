@@ -137,7 +137,9 @@ export class RemoteGitRepository extends LocalGitRepository {
 
 	protected override async push(type: CommitType, profile: string = this._profile): Promise<boolean> { // {{{
 		try {
-			await super.push(type, profile);
+			if(!await super.push(type, profile)) {
+				return false;
+			}
 
 			const status = await this._git.remote(['show', 'origin']);
 

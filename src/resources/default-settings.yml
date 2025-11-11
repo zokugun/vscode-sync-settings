@@ -4,6 +4,7 @@ hostname: ""
 
 # selected profile, required
 profile: main
+
 # repository to sync the settings with, required
 repository:
   # repository's type, required (dummy: no sync)

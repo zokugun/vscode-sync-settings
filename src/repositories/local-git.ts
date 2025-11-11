@@ -72,7 +72,9 @@ export class LocalGitRepository extends FileRepository {
 
 			await fs.writeFile(gitkeepPath, '', 'utf8');
 
-			await this.push(CommitType.INIT);
+			if(!await this.push(CommitType.INIT)) {
+				return;
+			}
 		}
 
 		this._initialized = true;
@@ -96,18 +98,37 @@ export class LocalGitRepository extends FileRepository {
 		return this._version;
 	} // }}}
 
-	protected async initRepo(): Promise<void> { // {{{
+	protected async initRepo(): Promise<boolean> { // {{{
 		Logger.info('creating git at', this._rootPath);
 
-		if(semver.gte(await this.getVersion(), '2.28.0')) {
-			await this._git.init({
-				'--initial-branch': this._branch,
-			});
-		}
-		else {
-			await this._git.init();
+		try {
+			if(semver.gte(await this.getVersion(), '2.28.0')) {
+				await this._git.init({
+					'--initial-branch': this._branch,
+				});
+			}
+			else {
+				await this._git.init();
 
-			await this._git.checkoutLocalBranch(this._branch);
+				await this._git.checkoutLocalBranch(this._branch);
+			}
+
+			return true;
+		}
+		catch (error) {
+			Logger.error(error);
+
+			if(error instanceof Error) {
+				void vscode.window.showErrorMessage(
+					'Sync Settings: command \'git init\' resulted in an error:',
+					{
+						detail: error.message,
+						modal: true,
+					},
+				);
+			}
+
+			return false;
 		}
 	} // }}}
 
@@ -116,8 +137,8 @@ export class LocalGitRepository extends FileRepository {
 
 		await this._git.cwd(this._rootPath);
 
-		if(!await this._git.checkIsRepo()) {
-			await this.initRepo();
+		if(!await this._git.checkIsRepo() && !await this.initRepo()) {
+			return false;
 		}
 
 		return true;
@@ -140,7 +161,24 @@ export class LocalGitRepository extends FileRepository {
 
 			Logger.info(`commit: ${message}`);
 
-			await this._git.commit(message);
+			try {
+				await this._git.commit(message);
+			}
+			catch (error) {
+				Logger.error(error);
+
+				if(error instanceof Error) {
+					void vscode.window.showErrorMessage(
+						'Sync Settings: command \'git commit\' resulted in an error:',
+						{
+							detail: error.message,
+							modal: true,
+						},
+					);
+				}
+
+				return false;
+			}
 		}
 
 		return true;
