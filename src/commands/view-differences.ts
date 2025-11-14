@@ -34,10 +34,11 @@ export async function viewDifferences(): Promise<void> {
 		const profileSettings = await oldRepository.loadProfileSettings();
 
 		let identical = true;
+		const toRemoves: string[] = [];
 
 		const oldExtensionsUri = Uri.file(oldRepository.getProfileExtensionsPath());
 		const newExtensionsUri = Uri.file(newRepository.getProfileExtensionsPath());
-		if(await hasDifferences(oldExtensionsUri, newExtensionsUri)) {
+		if(await hasDifferences(oldExtensionsUri, newExtensionsUri, toRemoves)) {
 			await vscode.commands.executeCommand('vscode.diff', oldExtensionsUri, newExtensionsUri, 'extensions.yml', { preview: false });
 
 			identical = false;
@@ -47,7 +48,7 @@ export async function viewDifferences(): Promise<void> {
 			if(resources.includes(Resource.Settings)) {
 				const oldUri = Uri.file(oldRepository.getProfileUserSettingsPath());
 				const newUri = Uri.file(newRepository.getProfileUserSettingsPath());
-				if(await hasDifferences(oldUri, newUri)) {
+				if(await hasDifferences(oldUri, newUri, toRemoves)) {
 					await vscode.commands.executeCommand('vscode.diff', oldUri, newUri, 'settings.json', { preview: false });
 
 					identical = false;
@@ -57,11 +58,17 @@ export async function viewDifferences(): Promise<void> {
 			if(resources.includes(Resource.Keybindings)) {
 				const oldUri = Uri.file(oldRepository.getProfileKeybindingsPath(oldRepository.profile, keybindingsPerPlatform));
 				const newUri = Uri.file(newRepository.getProfileKeybindingsPath(newRepository.profile, keybindingsPerPlatform));
-				if(await hasDifferences(oldUri, newUri)) {
+				if(await hasDifferences(oldUri, newUri, toRemoves)) {
 					await vscode.commands.executeCommand('vscode.diff', oldUri, newUri, 'keybindings.json', { preview: false });
 
 					identical = false;
 				}
+			}
+		}
+
+		if(toRemoves.length > 0) {
+			for(const path of toRemoves) {
+				await fse.remove(path);
 			}
 		}
 
