@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.18.2 | 2025-11-14
+- fix `viewDifferences` command with new profile
+
 ## v0.18.1 | 2025-11-11
 - directly catch git errors instead on relaying on VSCode behavior (!= TheiaIDE)
 
