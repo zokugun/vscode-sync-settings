@@ -1,0 +1,38 @@
+name: Check PR
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+    - '**/*.md'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Build
+        run: |
+          npm ci
+          npm run vscode:prepublish
+
+      - name: Test
+        run: |
+          npm run test
+
+      - name: Lint code
+        run: |
+          npm run lint
+
+      - name: Lint commit
+        run: |
+          npx commitlint --last --verbose
