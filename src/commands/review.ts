@@ -6,6 +6,7 @@ import { FileRepository } from '../repositories/file.js';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Resource } from '../repository.js';
 import { Settings } from '../settings.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { copyProfile } from '../utils/copy-profile.js';
 import { hasDifferences } from '../utils/has-differences.js';
 import { upload } from './upload.js';
@@ -62,7 +63,7 @@ export async function review(): Promise<void> {
 
 		if(!identical) {
 			const result = await vscode.window.showInformationMessage(
-				'Your settings have been modified since the last save. Do you want to sync your settings?',
+				`Source: ${EXTENSION_NAME}\n\nYour settings have been modified since the last save. Do you want to sync your settings?`,
 				{
 					modal: true,
 				},

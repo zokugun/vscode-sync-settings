@@ -14,6 +14,7 @@ import { RepositoryType } from '../repository-type.js';
 import { type ExtensionId, type ExtensionList, Repository, Resource } from '../repository.js';
 import { Hook, Settings } from '../settings.js';
 import { arrayDiff } from '../utils/array-diff.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { disableExtension } from '../utils/disable-extension.js';
 import { EDITOR_MODE, EditorMode } from '../utils/editor.js';
 import { enableExtension } from '../utils/enable-extension.js';
@@ -356,7 +357,7 @@ export class FileRepository extends Repository {
 
 			if(restart) {
 				const result = await vscode.window.showInformationMessage(
-					'The editor will be restarted after applying the profile. Do you want to continue?',
+					`Source: ${EXTENSION_NAME}\n\nThe editor will be restarted after applying the profile.\nDo you want to continue?`,
 					{
 						modal: true,
 					},
@@ -413,7 +414,7 @@ export class FileRepository extends Repository {
 
 			Logger.info('restore done');
 
-			await restartEditor(restart, reloadWindow, this._restartMode);
+			await restartEditor(restart, reloadWindow, this._restartMode, EXTENSION_NAME);
 		}
 
 		return true;
@@ -958,7 +959,7 @@ export class FileRepository extends Repository {
 		if(!await exists(configPath)) {
 			if(await exists(editorDataPath)) {
 				const result = await vscode.window.showInformationMessage(
-					'There is a conflict with your Profiles settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+					`Source: ${EXTENSION_NAME}\n\nThere is a conflict with your Profiles settings. Sync Settings doesn't have any but your editor does!\nDo you want to remove them?`,
 					{
 						modal: true,
 					},
@@ -1242,7 +1243,7 @@ export class FileRepository extends Repository {
 		}
 		else if(await exists(dataPath)) {
 			const result = await vscode.window.showInformationMessage(
-				'There is a conflict with your MCP settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+				`Source: ${EXTENSION_NAME}\n\nThere is a conflict with your MCP settings. Sync Settings doesn't have any but your editor does!\nDo you want to remove them?`,
 				{
 					modal: true,
 				},
@@ -1293,7 +1294,7 @@ export class FileRepository extends Repository {
 		}
 		else if(await exists(dataPath)) {
 			const result = await vscode.window.showInformationMessage(
-				'There is a conflict with your Tasks settings. Sync Settings doesn\'t have any but your editor does! Do you want to remove them?',
+				`Source: ${EXTENSION_NAME}\n\nThere is a conflict with your Tasks settings. Sync Settings doesn't have any but your editor does!\nDo you want to remove them?`,
 				{
 					modal: true,
 				},

@@ -1,5 +1,6 @@
 import { window } from 'vscode';
 import { RepositoryFactory } from '../repository-factory.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
 
 export async function deleteProfile(): Promise<void> {
@@ -25,7 +26,7 @@ export async function deleteProfile(): Promise<void> {
 			return;
 		}
 		else if(selected.label === profile) {
-			await window.showInformationMessage(`You can't delete the current profile '${profile}'`, { modal: true });
+			await window.showInformationMessage(`Source: ${EXTENSION_NAME}\n\nYou can't delete the current profile '${profile}'`, { modal: true });
 
 			return;
 		}
@@ -36,7 +37,7 @@ export async function deleteProfile(): Promise<void> {
 
 		await repository.deleteProfile(newProfile);
 
-		await window.showInformationMessage(`The profile '${newProfile}' has been deleted`, { modal: true });
+		await window.showInformationMessage(`Source: ${EXTENSION_NAME}\n\nThe profile '${newProfile}' has been deleted`, { modal: true });
 	}
 	catch (error: unknown) {
 		Logger.error(error);

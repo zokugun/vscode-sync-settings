@@ -17,6 +17,7 @@ import { setupCrons } from './crons.js';
 import { RepositoryFactory } from './repository-factory.js';
 import { Settings } from './settings.js';
 import { ThrottledDelayer } from './utils/async.js';
+import { EXTENSION_NAME } from './utils/constants.js';
 import { detectEditor } from './utils/editor.js';
 import { Logger } from './utils/logger.js';
 
@@ -30,7 +31,7 @@ async function showWhatsNewMessage(version: string) { // {{{
 	}];
 
 	const result = await vscode.window.showInformationMessage(
-		`Sync Settings has been updated to v${version} — check out what's new!`,
+		`${EXTENSION_NAME} has been updated to v${version} — check out what's new!`,
 		...actions,
 	);
 

@@ -1,5 +1,6 @@
 import { window } from 'vscode';
 import { RepositoryFactory } from '../repository-factory.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
 import { showValidatingInputBox } from '../utils/show-validating-input-box.js';
 
@@ -90,7 +91,7 @@ export async function createProfile(): Promise<void> {
 		}
 
 		const result = await window.showInformationMessage(
-			`Do you want to switch and apply the new profile '${newProfile}'`,
+			`Source: ${EXTENSION_NAME}\n\nDo you want to switch and apply the new profile '${newProfile}'`,
 			{
 				modal: true,
 			},
