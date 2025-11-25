@@ -3,7 +3,6 @@ import os from 'os';
 import path from 'path';
 import process from 'process';
 import { comment } from '@daiyam/jsonc-preprocessor';
-import { restartApp } from '@zokugun/vscode-utils';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
 import globby from 'globby';
@@ -31,6 +30,7 @@ import { NIL_UUID } from '../utils/nil-uuid.js';
 import { preprocessJSONC } from '../utils/preprocess-jsonc.js';
 import { readStateDB } from '../utils/read-statedb.js';
 import { removeProperties } from '../utils/remove-properties.js';
+import { restartEditor, type RestartMode } from '../utils/restart.js';
 import { sortExtensionList } from '../utils/sort-extension-list.js';
 import { uninstallExtension } from '../utils/uninstall-extension.js';
 import { getVSIXManager } from '../utils/vsix-manager.js';
@@ -120,6 +120,7 @@ function parseHook(fromYaml?: string | string[], fromJson?: string | string[]): 
 
 export class FileRepository extends Repository {
 	protected _hooks: Record<Hook, string[]>;
+	protected _restartMode: RestartMode;
 	protected _rootPath: string;
 
 	constructor(settings: Settings, rootPath?: string) { // {{{
@@ -136,6 +137,8 @@ export class FileRepository extends Repository {
 			[Hook.PreUpload]: parseHook(hooksStg[Hook.PreUpload], hooksCfg.get('preUpload')),
 			[Hook.PostUpload]: parseHook(hooksStg[Hook.PostUpload], hooksCfg.get('postUpload')),
 		};
+
+		this._restartMode = vscode.workspace.getConfiguration('syncSettings').get<RestartMode>('restartMode') ?? 'auto';
 	} // }}}
 
 	public override get type() { // {{{
@@ -410,22 +413,7 @@ export class FileRepository extends Repository {
 
 			Logger.info('restore done');
 
-			if(restart) {
-				if(EDITOR_MODE === EditorMode.Theia) {
-					await vscode.window.showInformationMessage(
-						'The editor needs to be restarted before continuing. You need to do it manually. Thx',
-						{
-							modal: true,
-						},
-					);
-				}
-				else {
-					await restartApp();
-				}
-			}
-			else if(reloadWindow) {
-				await vscode.commands.executeCommand('workbench.action.reloadWindow');
-			}
+			await restartEditor(restart, reloadWindow, this._restartMode);
 		}
 
 		return true;
@@ -1835,6 +1823,14 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	protected async shouldRestartApp(resources: Resource[], userDataPath: string): Promise<boolean> { // {{{
+		if(this._restartMode === 'restart-app') {
+			return true;
+		}
+
+		if(this._restartMode !== 'auto') {
+			return false;
+		}
+
 		if(!(resources.includes(Resource.UIState) || resources.includes(Resource.Extensions))) {
 			return false;
 		}
