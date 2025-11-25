@@ -6,6 +6,7 @@ import { FileRepository } from '../repositories/file.js';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Resource } from '../repository.js';
 import { Settings } from '../settings.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { copyProfile } from '../utils/copy-profile.js';
 import { hasDifferences } from '../utils/has-differences.js';
 
@@ -73,10 +74,10 @@ export async function viewDifferences(): Promise<void> {
 		}
 
 		if(identical) {
-			await vscode.window.showInformationMessage('There is no differences.', { modal: true });
+			await vscode.window.showInformationMessage(`Source: ${EXTENSION_NAME}\n\nThere is no differences.`, { modal: true });
 		}
 	}
 	else {
-		await vscode.window.showInformationMessage('No differences can be shown since the repository isn\'t defined.', { modal: true });
+		await vscode.window.showInformationMessage(`Source: ${EXTENSION_NAME}\n\nNo differences can be shown since the repository isn't defined.`, { modal: true });
 	}
 }

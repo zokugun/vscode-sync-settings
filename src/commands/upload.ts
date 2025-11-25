@@ -1,6 +1,7 @@
 import vscode, { window } from 'vscode';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Hook } from '../settings.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
 
 export async function upload(): Promise<void> {
@@ -15,7 +16,7 @@ export async function upload(): Promise<void> {
 
 	if(confirmSync) {
 		const result = await window.showInformationMessage(
-			'Do you want to upload your settings (user -> repository)?',
+			`Source: ${EXTENSION_NAME}\n\nDo you want to upload your settings (user -> repository)?`,
 			{
 				modal: true,
 			},

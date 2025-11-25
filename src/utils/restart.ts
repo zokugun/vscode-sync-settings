@@ -4,10 +4,10 @@ import { EDITOR_MODE, EditorMode } from './editor.js';
 
 export type RestartMode = 'auto' | 'none' | 'reload-windows' | 'restart-app' | 'restart-host';
 
-export async function restartEditor(restart: boolean, reload: boolean, mode: RestartMode): Promise<void> {
+export async function restartEditor(restart: boolean, reload: boolean, mode: RestartMode, name: string): Promise<void> {
 	if(mode === 'auto') {
 		if(restart) {
-			await doRestart();
+			await doRestart(name);
 		}
 		else if(reload) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
@@ -23,7 +23,7 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 	}
 	else if(mode === 'restart-app') {
 		if(restart || reload) {
-			await doRestart();
+			await doRestart(name);
 		}
 	}
 	else if(mode === 'restart-host') {
@@ -34,10 +34,10 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 	}
 }
 
-async function doRestart(): Promise<void> {
+async function doRestart(name: string): Promise<void> {
 	if(EDITOR_MODE === EditorMode.Theia) {
 		await vscode.window.showInformationMessage(
-			'The editor needs to be restarted before continuing. You need to do it manually. Thx',
+			`Source: ${name}\n\nThe editor needs to be restarted before continuing. You need to do it manually. Thx`,
 			{
 				modal: true,
 			},

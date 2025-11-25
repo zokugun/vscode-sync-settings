@@ -1,5 +1,6 @@
 import { window } from 'vscode';
 import { RepositoryFactory } from '../repository-factory.js';
+import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
 
 export async function switchProfile(): Promise<void> {
@@ -32,7 +33,7 @@ export async function switchProfile(): Promise<void> {
 		await RepositoryFactory.setProfile(newProfile);
 
 		const result = await window.showInformationMessage(
-			'Do you want to apply the profile?',
+			`Source: ${EXTENSION_NAME}\n\nDo you want to apply the profile?`,
 			{
 				modal: true,
 			},
