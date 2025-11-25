@@ -420,6 +420,29 @@
 						"sync"
 					]
 				},
+				"syncSettings.restartMode": {
+					"type": "string",
+					"description": "Select how to restart the extension host (only for advanced users, should be left on 'auto')",
+					"default": "auto",
+					"enum": [
+						"auto",
+						"none",
+						"reload-windows",
+						"restart-app",
+						"restart-host"
+					],
+					"enumDescriptions": [
+						"Select the best action",
+						"Do nothing",
+						"Reload the window",
+						"Restart the extension host",
+						"Restart the app"
+					],
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
 				"syncSettings.showFinishAlert": {
 					"type": "boolean",
 					"description": "Show an alert when the synchronization is finished.",
