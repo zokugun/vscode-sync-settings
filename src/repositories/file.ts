@@ -1050,45 +1050,53 @@ export class FileRepository extends Repository {
 		const saved = await this.listSavedExtensions();
 		const local = !this._settings.remote;
 
-		const installed: Record<string, boolean> = {};
+		const installed: Record<string, { version?: string } | undefined> = {};
+		const currentlyDisabled: Record<string, { version?: string } | undefined> = {};
+		const currentlyEnabled: Record<string, { version?: string } | undefined> = {};
 
-		const currentlyDisabled: Record<string, boolean> = {};
-		for(const { id } of editor.disabled) {
-			currentlyDisabled[id] = true;
-			installed[id] = true;
+		for(const { id, version } of editor.disabled) {
+			currentlyDisabled[id] = { version };
+			installed[id] = { version };
 		}
 
-		const currentlyEnabled: Record<string, boolean> = {};
-		for(const { id } of editor.enabled) {
-			currentlyEnabled[id] = true;
-			installed[id] = true;
+		for(const { id, version } of editor.enabled) {
+			currentlyEnabled[id] = { version };
+			installed[id] = { version };
 		}
 
 		const { builtin, disabled, enabled, uninstall } = await this.listProfileExtensions();
 
 		if(await this.canManageExtensions()) {
 			if(local) {
-				for(const { id } of disabled) {
+				for(const { id, version } of disabled) {
 					if(!installed[id]) {
-						failures = !(await installExtension(id, saved) && await disableExtension(id)) || failures;
+						failures = !(await installExtension(id, version, saved) && await disableExtension(id)) || failures;
+					}
+					else if(version && installed[id].version !== version) {
+						failures = !(await installExtension(id, version, saved) && await disableExtension(id)) || failures;
 					}
 					else if(currentlyEnabled[id]) {
 						failures = !(await disableExtension(id)) || failures;
 					}
 
-					installed[id] = false;
+					installed[id] = undefined;
 				}
 			}
 
-			for(const { id } of enabled) {
+			for(const { id, version } of enabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id, saved)) || failures;
+					failures = !(await installExtension(id, version, saved)) || failures;
 				}
-				else if(local && currentlyDisabled[id]) {
-					failures = !(await enableExtension(id)) || failures;
+				else if(local) {
+					if(version && installed[id].version !== version) {
+						failures = !(await installExtension(id, version, saved)) || failures;
+					}
+					else if(currentlyDisabled[id]) {
+						failures = !(await enableExtension(id)) || failures;
+					}
 				}
 
-				installed[id] = false;
+				installed[id] = undefined;
 			}
 
 			for(const id in installed) {
@@ -1123,27 +1131,35 @@ export class FileRepository extends Repository {
 		}
 		else {
 			if(local) {
-				for(const { id } of disabled) {
+				for(const { id, version } of disabled) {
 					if(!installed[id]) {
-						failures = !(await installExtension(id, saved)) || failures;
+						failures = !(await installExtension(id, version, saved)) || failures;
+					}
+					else if(version && installed[id].version !== version) {
+						failures = !(await installExtension(id, version, saved)) || failures;
 					}
 					else if(currentlyDisabled[id]) {
-						installed[id] = false;
+						installed[id] = undefined;
 					}
 
-					installed[id] = false;
+					installed[id] = undefined;
 				}
 			}
 
-			for(const { id } of enabled) {
+			for(const { id, version } of enabled) {
 				if(!installed[id]) {
-					failures = !(await installExtension(id, saved)) || failures;
+					failures = !(await installExtension(id, version, saved)) || failures;
 				}
-				else if(local && currentlyDisabled[id]) {
-					failures = !(await uninstallExtension(id) && await installExtension(id, saved)) || failures;
+				else if(local) {
+					if(version && installed[id].version !== version) {
+						failures = !(await installExtension(id, version, saved)) || failures;
+					}
+					else if(currentlyDisabled[id]) {
+						failures = !(await uninstallExtension(id) && await installExtension(id, version, saved)) || failures;
+					}
 				}
 
-				installed[id] = false;
+				installed[id] = undefined;
 			}
 
 			for(const id in installed) {
