@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.19.1 | 2025-12-27
+- fix bad release due to over-protected branch
+
 ## v0.19.0 | 2025-12-27
 - add new `syncSettings.restartMode` setting (advanced)
 - include source in modal messages to improve traceability for users
