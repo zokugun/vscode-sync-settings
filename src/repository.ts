@@ -14,6 +14,7 @@ import { listVSIXExtensions } from './utils/vsix-manager.js';
 export type ExtensionId = {
 	id: string;
 	uuid?: string;
+	version?: string;
 };
 export type ExtensionList = {
 	builtin?: {
@@ -222,8 +223,8 @@ export abstract class Repository {
 		} = {
 			disabled: [],
 		};
-		const disabled: Array<{ id: string; uuid: string }> = [];
-		const enabled: Array<{ id: string; uuid: string }> = [];
+		const disabled: Array<{ id: string; uuid: string; version?: string }> = [];
+		const enabled: Array<{ id: string; uuid: string; version?: string }> = [];
 
 		const ids: Record<string, boolean> = {};
 
@@ -251,11 +252,11 @@ export abstract class Repository {
 		const obsolete = await exists(obsoletePath) ? await fse.readJSON(obsoletePath) as Record<string, boolean> : {};
 
 		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
-		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string } }> : [];
-		const id2uuid = {};
+		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string }; metadata: { pinned?: boolean; source: string; id: string }; version: string }> : [];
+		const metadatas: Record<string, { uuid: string; pinned: boolean; source: string; version: string; metadataId: string }> = {};
 
-		for(const { identifier: { id, uuid } } of extensionsJson) {
-			id2uuid[id] = uuid;
+		for(const { identifier: { id, uuid }, metadata: { pinned, source, id: mid }, version } of extensionsJson) {
+			metadatas[id] = { uuid, source, pinned: pinned ?? false, version, metadataId: mid };
 		}
 
 		const extensions = await globby('*/package.json', {
@@ -281,11 +282,37 @@ export abstract class Repository {
 				continue;
 			}
 
-			if(!ids[id] && id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !extensionsFromVSIXManager.includes(id)) {
-				disabled.push({
+			const version = metadatas[id]?.pinned && metadatas[id].source === 'gallery' ? metadatas[id].version : undefined;
+
+			if(ids[id]) {
+				if(version) {
+					const extension = enabled.find((extension) => extension.id === id);
+
+					if(extension) {
+						extension.version = version;
+					}
+				}
+			}
+			else if(id !== this._settings.extensionId && !ignoredExtensions.includes(id) && !extensionsFromVSIXManager.includes(id)) {
+				let uuid = NIL_UUID;
+
+				if(pkg.__metadata?.id) {
+					uuid = pkg.__metadata?.id;
+				}
+				else if(metadatas[id]) {
+					uuid = metadatas[id].uuid ?? metadatas[id].metadataId ?? NIL_UUID;
+				}
+
+				const extension: { id: string; uuid: string; version?: string } = {
 					id,
-					uuid: pkg.__metadata?.id ?? id2uuid[id] ?? NIL_UUID,
-				});
+					uuid,
+				};
+
+				if(version) {
+					extension.version = version;
+				}
+
+				disabled.push(extension);
 			}
 
 			ids[id] = true;
