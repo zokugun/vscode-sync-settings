@@ -1,6 +1,7 @@
 {
 	"ignores": [
 		"*.config.js",
+		"*.config.ts",
 		"test/fixtures",
 		"test/mocks/vscode/*"
 	],
@@ -68,13 +69,21 @@
 				"format": [
 					"camelCase",
 					"UPPER_CASE"
-				]
+				],
+				"filter": {
+					"regex": "^(__filename|__dirname)$",
+					"match": false
+				}
 			},
 			{
 				"selector": "variable",
 				"format": [
 					"camelCase"
-				]
+				],
+				"filter": {
+					"regex": "^(__filename|__dirname)$",
+					"match": false
+				}
 			}
 		],
 		"@typescript-eslint/no-confusing-void-expression": "off",
@@ -147,11 +156,18 @@
 			"error",
 			{
 				"replacements": {
+					"arg": false,
 					"args": false,
 					"dir": false,
 					"err": false,
+					"fn": false,
 					"func": false,
-					"pkg": false
+					"i": false,
+					"j": false,
+					"mod": false,
+					"num": false,
+					"pkg": false,
+					"str": false
 				}
 			}
 		]

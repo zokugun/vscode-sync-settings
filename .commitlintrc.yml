@@ -12,6 +12,7 @@ rules:
       - fix
       - perf
       - refactor
+      - remodel
       - revert
       - style
       - test

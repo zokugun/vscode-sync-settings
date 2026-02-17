@@ -6,7 +6,7 @@ import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
 import { fixtures } from './utils/fixtures.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,import/no-named-as-default-member
 chai.use(chaiAsPromised);
 
 describe('upload', () => {

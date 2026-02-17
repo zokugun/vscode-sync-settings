@@ -21,7 +21,7 @@ jobs:
           npm ci
       - name: Build
         run: |
-          npm run vscode:prepublish
+          npm run build
       - name: Test
         run: |
           npm run test

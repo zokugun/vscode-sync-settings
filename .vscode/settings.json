@@ -6,6 +6,7 @@
 		"lib/**": true,
 		"out/**": true,
 		".test/**": true,
+		"package-lock.json": true,
 	},
 	"taskExplorer.exclude": [
 		".husky",

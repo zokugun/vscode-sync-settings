@@ -1,13 +1,15 @@
 artifacts:
-  - name: "@daiyam/artifact-lang-js"
-    version: 0.6.1
-  - name: "@daiyam/artifact-lang-ts"
-    version: 0.5.5
-  - name: "@daiyam/artifact-test-mocha-ts"
-    version: 0.4.0
-  - name: "@daiyam/artifact-vsx-ts"
-    version: 0.7.2
-  - name: "@daiyam/artifact-vsx-zokugun"
+  "@daiyam/artifact-lang-js":
+    version: 0.9.3
+    provides:
+      - "20"
+  "@daiyam/artifact-lang-ts":
+    version: 0.6.3
+  "@daiyam/artifact-test-mocha-ts":
+    version: 0.4.2
+  "@daiyam/artifact-vsx-ts":
+    version: 0.8.3
+  "@daiyam/artifact-vsx-zokugun":
     version: 0.3.1
-  - name: "@daiyam/artifact-vsx-bundle-ncc"
+  "@daiyam/artifact-vsx-bundle-ncc":
     version: 0.4.0
