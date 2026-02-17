@@ -743,12 +743,10 @@ export class FileRepository extends Repository {
 		if(settings.extends) {
 			snippets = await this.listProfileSnippetHashes(settings.extends);
 
-			const diffPath = this.getDiffSnippetsPath(profile);
-			if(await exists(diffPath)) {
-				const data = await fse.readFile(diffPath, 'utf8');
-				const diff = yaml.parse(data) as { remove: string[] };
+			const diff = await this.loadSnippetsDiff(profile);
 
-				for(const name of diff.remove) {
+			if(diff) {
+				for(const name of diff.removed) {
 					if(snippets[name]) {
 						delete snippets[name];
 					}
@@ -790,11 +788,9 @@ export class FileRepository extends Repository {
 		if(settings.extends) {
 			snippets = await this.listProfileSnippetPaths(settings.extends);
 
-			const diffPath = this.getDiffSnippetsPath(profile);
-			if(await exists(diffPath)) {
-				const data = await fse.readFile(diffPath, 'utf8');
-				const diff = yaml.parse(data) as { removed: string[] };
+			const diff = await this.loadSnippetsDiff(profile);
 
+			if(diff) {
 				for(const name of diff.removed) {
 					if(snippets[name]) {
 						delete snippets[name];
@@ -900,8 +896,8 @@ export class FileRepository extends Repository {
 		return yaml.parse(data) as ProfileSyncSettings;
 	} // }}}
 
-	protected async loadSnippetsDiff(): Promise<SnippetsDiff | undefined> { // {{{
-		const diffPath = this.getDiffSnippetsPath();
+	protected async loadSnippetsDiff(profile: string = this.profile): Promise<SnippetsDiff | undefined> { // {{{
+		const diffPath = this.getDiffSnippetsPath(profile);
 		if(await exists(diffPath)) {
 			const data = await fse.readFile(diffPath, 'utf8');
 

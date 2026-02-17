@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.19.1 | 2025-12-27
+- fix bad release due to over-protected branch
+
+## v0.19.0 | 2025-12-27
+- add new `syncSettings.restartMode` setting (advanced)
+- include source in modal messages to improve traceability for users
+- fix bug when loading snippets diff from the inherited profile
+
 ## v0.18.2 | 2025-11-14
 - fix `viewDifferences` command with new profile
 
