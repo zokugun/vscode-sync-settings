@@ -35,7 +35,7 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 }
 
 async function doRestart(name: string): Promise<void> {
-	if(EDITOR_MODE === EditorMode.Theia) {
+	if(EDITOR_MODE === EditorMode.Theia || EDITOR_MODE === EditorMode.Cursor) {
 		await vscode.window.showInformationMessage(
 			`Source: ${name}\n\nThe editor needs to be restarted before continuing. You need to do it manually. Thx`,
 			{

@@ -16,7 +16,7 @@ import { Hook, Settings } from '../settings.js';
 import { arrayDiff } from '../utils/array-diff.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
 import { disableExtension } from '../utils/disable-extension.js';
-import { EDITOR_MODE, EditorMode } from '../utils/editor.js';
+import { EDITOR_MODE, EditorMode, isVSCodeCompatible } from '../utils/editor.js';
 import { enableExtension } from '../utils/enable-extension.js';
 import { exists } from '../utils/exists.js';
 import { extractProperties } from '../utils/extract-properties.js';
@@ -392,7 +392,7 @@ export class FileRepository extends Repository {
 				await this.restoreTasks(userDataPath);
 			}
 
-			if(EDITOR_MODE === EditorMode.VSCode) {
+			if(isVSCodeCompatible()) {
 				if(resources.includes(Resource.Mcp)) {
 					await this.restoreMcp(userDataPath);
 				}
@@ -458,7 +458,7 @@ export class FileRepository extends Repository {
 		}
 
 		if(!this._settings.remote) {
-			if(EDITOR_MODE === EditorMode.VSCode) {
+			if(isVSCodeCompatible()) {
 				if(resources.includes(Resource.Snippets)) {
 					await this.serializeSnippets(profileSettings, userDataPath);
 				}
@@ -496,7 +496,7 @@ export class FileRepository extends Repository {
 					await this.scrubTasks();
 				}
 
-				if(EDITOR_MODE === EditorMode.VSCode) {
+				if(isVSCodeCompatible()) {
 					if(resources.includes(Resource.Mcp)) {
 						await this.serializeMcp(syncSettings, userDataPath);
 					}
@@ -1854,7 +1854,7 @@ export class FileRepository extends Repository {
 			return true;
 		}
 
-		if(EDITOR_MODE === EditorMode.VSCode) {
+		if(isVSCodeCompatible()) {
 			const editor = await this.listEditorUIStateProperties(userDataPath, extensions);
 			const profile = await this.listProfileUIStateProperties();
 

@@ -1,14 +1,19 @@
 import path from 'path';
 import process from 'process';
-import type vscode from 'vscode';
+import vscode from 'vscode';
 
 export enum EditorMode {
+	Cursor = 'cursor',
 	Theia = 'theia',
 	VSCode = 'vscode',
 }
 
 // eslint-disable-next-line import/no-mutable-exports,@typescript-eslint/naming-convention
 export let EDITOR_MODE = EditorMode.VSCode;
+
+export function isVSCodeCompatible(): boolean {
+	return EDITOR_MODE === EditorMode.VSCode || EDITOR_MODE === EditorMode.Cursor;
+}
 
 export function detectEditor(context: vscode.ExtensionContext): void {
 	if(process.env.VSCODE_PORTABLE) {
@@ -19,5 +24,8 @@ export function detectEditor(context: vscode.ExtensionContext): void {
 
 	if(path.basename(storage) !== 'User') {
 		EDITOR_MODE = EditorMode.Theia;
+	}
+	else if(vscode.env.appName.includes('Cursor')) {
+		EDITOR_MODE = EditorMode.Cursor;
 	}
 }
