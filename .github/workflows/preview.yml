@@ -13,6 +13,7 @@ jobs:
         run: |
           # Get the latest tag
           LATEST_TAG=$(git tag --sort=-v:refname | head -n1)
+          LATEST_TAG=${LATEST_TAG%-*}
           if [ -z "$LATEST_TAG" ]; then
             echo "No tags found in the repository"
             exit 1
