@@ -1,13 +1,14 @@
 import { restartApp } from '@zokugun/vscode-utils';
 import vscode from 'vscode';
-import { EDITOR_MODE, EditorMode } from './editor.js';
+import { EXTENSION_NAME } from './constants.js';
+import { Logger } from './logger.js';
 
 export type RestartMode = 'auto' | 'none' | 'reload-windows' | 'restart-app' | 'restart-host';
 
-export async function restartEditor(restart: boolean, reload: boolean, mode: RestartMode, name: string): Promise<void> {
+export async function restartEditor(restart: boolean, reload: boolean, mode: RestartMode, binary: string | undefined): Promise<void> {
 	if(mode === 'auto') {
 		if(restart) {
-			await doRestart(name);
+			await restartApp(EXTENSION_NAME, Logger);
 		}
 		else if(reload) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
@@ -23,7 +24,7 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 	}
 	else if(mode === 'restart-app') {
 		if(restart || reload) {
-			await doRestart(name);
+			await restartApp(EXTENSION_NAME, Logger, { binary });
 		}
 	}
 	else if(mode === 'restart-host') {
@@ -31,19 +32,5 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 		if(restart || reload) {
 			await vscode.commands.executeCommand('workbench.action.restartExtensionHost');
 		}
-	}
-}
-
-async function doRestart(name: string): Promise<void> {
-	if(EDITOR_MODE === EditorMode.Theia) {
-		await vscode.window.showInformationMessage(
-			`Source: ${name}\n\nThe editor needs to be restarted before continuing. You need to do it manually. Thx`,
-			{
-				modal: true,
-			},
-		);
-	}
-	else {
-		await restartApp();
 	}
 }

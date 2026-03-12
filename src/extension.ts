@@ -9,6 +9,7 @@ import { openProfileSettings } from './commands/open-profile-settings.js';
 import { openRepositoryDirectory } from './commands/open-repository-directory.js';
 import { openSettings } from './commands/open-settings.js';
 import { reset } from './commands/reset.js';
+import { restart } from './commands/restart.js';
 import { review } from './commands/review.js';
 import { switchProfile } from './commands/switch-profile.js';
 import { upload } from './commands/upload.js';
@@ -98,6 +99,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		vscode.commands.registerCommand('syncSettings.openRepositoryDirectory', openRepositoryDirectory),
 		vscode.commands.registerCommand('syncSettings.openSettings', openSettings),
 		vscode.commands.registerCommand('syncSettings.reset', reset),
+		vscode.commands.registerCommand('syncSettings.restart', restart),
 		vscode.commands.registerCommand('syncSettings.review', review),
 		vscode.commands.registerCommand('syncSettings.switchProfile', switchProfile),
 		vscode.commands.registerCommand('syncSettings.upload', upload),

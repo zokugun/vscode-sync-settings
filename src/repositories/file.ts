@@ -121,6 +121,7 @@ function parseHook(fromYaml?: string | string[], fromJson?: string | string[]): 
 
 export class FileRepository extends Repository {
 	protected _hooks: Record<Hook, string[]>;
+	protected _restartBinary: string | undefined;
 	protected _restartMode: RestartMode;
 	protected _rootPath: string;
 
@@ -140,6 +141,7 @@ export class FileRepository extends Repository {
 		};
 
 		this._restartMode = vscode.workspace.getConfiguration('syncSettings').get<RestartMode>('restartMode') ?? 'auto';
+		this._restartBinary = vscode.workspace.getConfiguration('syncSettings').get<string>('restartBinary');
 	} // }}}
 
 	public override get type() { // {{{
@@ -414,7 +416,7 @@ export class FileRepository extends Repository {
 
 			Logger.info('restore done');
 
-			await restartEditor(restart, reloadWindow, this._restartMode, EXTENSION_NAME);
+			await restartEditor(restart, reloadWindow, this._restartMode, this._restartBinary);
 		}
 
 		return true;

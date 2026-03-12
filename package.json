@@ -40,8 +40,9 @@
 	},
 	"dependencies": {
 		"@daiyam/jsonc-preprocessor": "^0.3.0",
-		"@zokugun/vscode-utils": "^0.1.0",
-		"@zokugun/xtry": "^0.1.0",
+		"@types/fs-extra": "^11.0.4",
+		"@zokugun/vscode-utils": "^0.3.0",
+		"@zokugun/xtry": "^0.11.1",
 		"array-differ": "^4.0.0",
 		"camelcase": "^6.2.0",
 		"detect-newline": "^3.1.0",
@@ -63,7 +64,6 @@
 		"@commitlint/config-conventional": "^19.7.1",
 		"@types/chai": "^5.0.1",
 		"@types/diff": "^5.0.1",
-		"@types/fs-extra": "^11.0.4",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^20.14.8",
 		"@types/rsync": "^0.4.30",
@@ -76,7 +76,6 @@
 		"chai-as-promised": "^7.1.1",
 		"eslint-plugin-chai-friendly": "^1.0.1",
 		"fixpack": "^4.0.0",
-		"fs-extra": "^11.3.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.1.4",
 		"memfs": "^3.5.3",
@@ -159,6 +158,11 @@
 			{
 				"command": "syncSettings.reset",
 				"title": "Remove all settings and extensions",
+				"category": "Sync Settings"
+			},
+			{
+				"command": "syncSettings.restart",
+				"title": "Restart Editor",
 				"category": "Sync Settings"
 			},
 			{
@@ -437,6 +441,15 @@
 						"Restart the extension host",
 						"Restart the app"
 					],
+					"scope": "application",
+					"tags": [
+						"sync"
+					]
+				},
+				"syncSettings.restartBinary": {
+					"type": "string",
+					"description": "Path of the binary file to launch. Used only on Linux for shared Electron.",
+					"default": "",
 					"scope": "application",
 					"tags": [
 						"sync"
