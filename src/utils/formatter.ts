@@ -1,4 +1,44 @@
-const $regex = /{{([a-z]+)(?:\|([a-z]+)(?::([a-z,]+))?(?::([a-z,]+))?)?}}/g;
+const $regex = /{{(\w+)(?:\|([a-z]+)(?::([\w,-]+))?(?::([\w,-]+))?)?}}/g;
+
+type DateStyle = 'full' | 'long' | 'medium' | 'short';
+
+const DATE_STYLES = new Set<string>(['full', 'long', 'medium', 'short']);
+
+function isDateStyle(value: string): value is DateStyle {
+	return DATE_STYLES.has(value);
+}
+
+function resolveLocales(raw: string | undefined): string[] | undefined {
+	if(!raw || raw === 'local') {
+		return undefined;
+	}
+
+	return raw.split(',');
+}
+
+function formatDate(date: Date, styleParameter: string | undefined, localeParameter: string | undefined): string {
+	if(!styleParameter) {
+		return String(date);
+	}
+
+	if(styleParameter === 'iso') {
+		return date.toISOString();
+	}
+
+	const locales = resolveLocales(localeParameter);
+	const styles = styleParameter.split(',');
+	const options: Intl.DateTimeFormatOptions = {};
+
+	if(isDateStyle(styles[0])) {
+		options.dateStyle = styles[0];
+	}
+
+	if(styles.length > 1 && isDateStyle(styles[1])) {
+		options.timeStyle = styles[1];
+	}
+
+	return new Intl.DateTimeFormat(locales, options).format(date);
+}
 
 export function formatter(format: string, properties: Record<string, unknown>): string {
 	let match = $regex.exec(format);
@@ -15,40 +55,7 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 		}
 
 		if(match[2] === 'date') {
-			const date = properties[match[1]] as Date;
-
-			if(!match[3]) {
-				result += String(date);
-			}
-			else if(match[3] === 'iso') {
-				result += date.toISOString();
-			}
-			else {
-				const locales = match[4] ? match[4].split(',') : undefined;
-				const options: {
-					dateStyle?: 'full' | 'long' | 'medium' | 'short' | undefined;
-					timeStyle?: 'full' | 'long' | 'medium' | 'short' | undefined;
-				} = {
-					dateStyle: undefined,
-					timeStyle: undefined,
-				};
-
-				const styles = match[3].split(',');
-
-				let style = styles[0];
-				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
-					options.dateStyle = style;
-				}
-
-				style = styles[0];
-				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
-					options.timeStyle = style;
-				}
-
-				const formatter = new Intl.DateTimeFormat(locales, options);
-
-				result += formatter.format(date);
-			}
+			result += formatDate(properties[match[1]] as Date, match[3], match[4]);
 		}
 		else {
 			result += String(properties[match[1]]);
