@@ -33,16 +33,14 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 					timeStyle: undefined,
 				};
 
-				const styles = match[3].split(',');
+				const [dateStyle, timeStyle] = match[3].split(',');
 
-				let style = styles[0];
-				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
-					options.dateStyle = style;
+				if(dateStyle === 'full' || dateStyle === 'long' || dateStyle === 'medium' || dateStyle === 'short') {
+					options.dateStyle = dateStyle;
 				}
 
-				style = styles[0];
-				if(style === 'full' || style === 'long' || style === 'medium' || style === 'short') {
-					options.timeStyle = style;
+				if(timeStyle === 'full' || timeStyle === 'long' || timeStyle === 'medium' || timeStyle === 'short') {
+					options.timeStyle = timeStyle;
 				}
 
 				const formatter = new Intl.DateTimeFormat(locales, options);
