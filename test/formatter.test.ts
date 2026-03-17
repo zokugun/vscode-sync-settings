@@ -16,7 +16,7 @@ describe('formatter', () => {
 		})).to.eql(`update -- ${now.toISOString()}`);
 	}); // }}}
 
-	it('date:styles', () => { // {{{
+	it('date:full,full:fr', () => { // {{{
 		const now = new Date();
 		const formater = new Intl.DateTimeFormat('fr', {
 			dateStyle: 'full',
@@ -28,7 +28,70 @@ describe('formatter', () => {
 		})).to.eql(`update -- ${formater.format(now)}`);
 	}); // }}}
 
-	it('2vars', () => { // {{{
+	it('date:medium', () => { // {{{
+		const now = new Date();
+		const expected = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(now);
+
+		expect(formatter('{{now|date:medium}}', {
+			now,
+		})).to.eql(expected);
+	}); // }}}
+
+	it('date:full,short', () => { // {{{
+		const now = new Date();
+		const expected = new Intl.DateTimeFormat(undefined, {
+			dateStyle: 'full',
+			timeStyle: 'short',
+		}).format(now);
+
+		expect(formatter('{{now|date:full,short}}', {
+			now,
+		})).to.eql(expected);
+	}); // }}}
+
+	it('date:long,medium:zh-CN', () => { // {{{
+		const now = new Date();
+		const expected = new Intl.DateTimeFormat('zh-CN', {
+			dateStyle: 'long',
+			timeStyle: 'medium',
+		}).format(now);
+
+		expect(formatter('{{now|date:long,medium:zh-CN}}', {
+			now,
+		})).to.eql(expected);
+	}); // }}}
+
+	it('date:short:en-US,zh-CN', () => { // {{{
+		const now = new Date();
+		const expected = new Intl.DateTimeFormat(['en-US', 'zh-CN'], {
+			dateStyle: 'short',
+		}).format(now);
+
+		expect(formatter('{{now|date:short:en-US,zh-CN}}', {
+			now,
+		})).to.eql(expected);
+	}); // }}}
+
+	it('date:long:local', () => { // {{{
+		const now = new Date();
+		const expected = new Intl.DateTimeFormat(undefined, {
+			dateStyle: 'long',
+		}).format(now);
+
+		expect(formatter('{{now|date:long:local}}', {
+			now,
+		})).to.eql(expected);
+	}); // }}}
+
+	it('date!', () => { // {{{
+		const now = new Date();
+
+		expect(formatter('{{now|date}}', {
+			now,
+		})).to.eql(String(now));
+	}); // }}}
+
+	it('variables - 2', () => { // {{{
 		const now = new Date();
 
 		expect(formatter('profile({{profile}}): update -- {{now|date:iso}}', {
