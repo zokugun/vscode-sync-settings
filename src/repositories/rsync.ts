@@ -37,19 +37,7 @@ export class RsyncRepository extends FileRepository {
 		await super.initialize();
 	} // }}}
 
-	public override async terminate(): Promise<void> { // {{{
-		await TemporaryRepository.terminate(this._settings);
-	} // }}}
-
-	public override async upload(): Promise<boolean> { // {{{
-		if(await super.upload()) {
-			return this.push();
-		}
-
-		return false;
-	} // }}}
-
-	protected async pull(): Promise<boolean> { // {{{
+	public override async pull(): Promise<boolean> { // {{{
 		Logger.info('pull from remote');
 
 		const rsync = new Rsync()
@@ -72,6 +60,18 @@ export class RsyncRepository extends FileRepository {
 				}
 			});
 		});
+	} // }}}
+
+	public override async terminate(): Promise<void> { // {{{
+		await TemporaryRepository.terminate(this._settings);
+	} // }}}
+
+	public override async upload(): Promise<boolean> { // {{{
+		if(await super.upload()) {
+			return this.push();
+		}
+
+		return false;
 	} // }}}
 
 	protected async push(): Promise<boolean> { // {{{

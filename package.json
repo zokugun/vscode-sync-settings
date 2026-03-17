@@ -23,6 +23,7 @@
 	"main": "./lib/index.js",
 	"browser": "./lib/index.js",
 	"scripts": {
+		"build": "npm run compile:src && npm run bundle",
 		"bundle": "ncc build out/extension --out lib --external sql.js",
 		"clean": "rimraf lib out .test",
 		"compile:src": "tsc -p src",
@@ -34,7 +35,7 @@
 		"test": "tsc -p test && mocha",
 		"test:dev": "mocha",
 		"test:watch": "tsc-watch -p test src --onSuccess 'mocha'",
-		"vscode:prepublish": "npm run compile:src && npm run bundle",
+		"vscode:prepublish": "npm run build",
 		"watch:src": "tsc-watch -p src --onSuccess 'npm run bundle'",
 		"watch:test": "tsc-watch -p test"
 	},

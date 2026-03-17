@@ -40,6 +40,10 @@ export class DummyRepository extends Repository {
 		};
 	} // }}}
 
+	public override async pull(): Promise<boolean> { // {{{
+		return true;
+	} // }}}
+
 	public override async restoreProfile(): Promise<boolean> { // {{{
 		return true;
 	} // }}}

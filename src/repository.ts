@@ -360,6 +360,8 @@ export abstract class Repository {
 
 	public abstract listProfileExtensions(profile?: string): Promise<ExtensionList>;
 
+	public abstract pull(): Promise<boolean>;
+
 	public abstract restoreProfile(): Promise<boolean>;
 
 	public abstract runHook(type: Hook): Promise<void>;

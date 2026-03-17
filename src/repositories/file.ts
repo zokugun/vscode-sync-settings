@@ -337,6 +337,10 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
+	public override async pull(): Promise<boolean> { // {{{
+		return true;
+	} // }}}
+
 	public override async restoreProfile(): Promise<boolean> { // {{{
 		this.checkInitialized();
 
