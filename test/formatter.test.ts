@@ -16,7 +16,7 @@ describe('formatter', () => {
 		})).to.eql(`update -- ${now.toISOString()}`);
 	}); // }}}
 
-	it('date:styles', () => { // {{{
+	it('date:full,full:fr', () => { // {{{
 		const now = new Date();
 		const formater = new Intl.DateTimeFormat('fr', {
 			dateStyle: 'full',
@@ -28,7 +28,7 @@ describe('formatter', () => {
 		})).to.eql(`update -- ${formater.format(now)}`);
 	}); // }}}
 
-	it('date:dateStyle only', () => { // {{{
+	it('date:medium', () => { // {{{
 		const now = new Date();
 		const expected = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(now);
 
@@ -37,7 +37,7 @@ describe('formatter', () => {
 		})).to.eql(expected);
 	}); // }}}
 
-	it('date:dateStyle,timeStyle', () => { // {{{
+	it('date:full,short', () => { // {{{
 		const now = new Date();
 		const expected = new Intl.DateTimeFormat(undefined, {
 			dateStyle: 'full',
@@ -49,7 +49,7 @@ describe('formatter', () => {
 		})).to.eql(expected);
 	}); // }}}
 
-	it('date:styles with zh-CN locale', () => { // {{{
+	it('date:long,medium:zh-CN', () => { // {{{
 		const now = new Date();
 		const expected = new Intl.DateTimeFormat('zh-CN', {
 			dateStyle: 'long',
@@ -61,7 +61,7 @@ describe('formatter', () => {
 		})).to.eql(expected);
 	}); // }}}
 
-	it('date:styles with multiple locales', () => { // {{{
+	it('date:short:en-US,zh-CN', () => { // {{{
 		const now = new Date();
 		const expected = new Intl.DateTimeFormat(['en-US', 'zh-CN'], {
 			dateStyle: 'short',
@@ -72,7 +72,7 @@ describe('formatter', () => {
 		})).to.eql(expected);
 	}); // }}}
 
-	it('date:local keyword uses system locale', () => { // {{{
+	it('date:long:local', () => { // {{{
 		const now = new Date();
 		const expected = new Intl.DateTimeFormat(undefined, {
 			dateStyle: 'long',
@@ -83,7 +83,7 @@ describe('formatter', () => {
 		})).to.eql(expected);
 	}); // }}}
 
-	it('date without style falls back to String()', () => { // {{{
+	it('date!', () => { // {{{
 		const now = new Date();
 
 		expect(formatter('{{now|date}}', {
@@ -91,7 +91,7 @@ describe('formatter', () => {
 		})).to.eql(String(now));
 	}); // }}}
 
-	it('2vars', () => { // {{{
+	it('variables - 2', () => { // {{{
 		const now = new Date();
 
 		expect(formatter('profile({{profile}}): update -- {{now|date:iso}}', {

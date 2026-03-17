@@ -1,11 +1,10 @@
-const $regex = /{{(\w+)(?:\|([a-z]+)(?::([\w,-]+))?(?::([\w,-]+))?)?}}/g;
+const VARIABLE_REGEX = /{{([a-z]+)(?:\|([a-z]+)(?::([\w,-]+))?(?::([\w,-]+))?)?}}/g;
+const DATE_STYLES = ['full', 'long', 'medium', 'short'] as const;
 
-type DateStyle = 'full' | 'long' | 'medium' | 'short';
-
-const DATE_STYLES = new Set<string>(['full', 'long', 'medium', 'short']);
+type DateStyle = typeof DATE_STYLES[number];
 
 function isDateStyle(value: string): value is DateStyle {
-	return DATE_STYLES.has(value);
+	return (DATE_STYLES as readonly string[]).includes(value);
 }
 
 function resolveLocales(raw: string | undefined): string[] | undefined {
@@ -26,22 +25,24 @@ function formatDate(date: Date, styleParameter: string | undefined, localeParame
 	}
 
 	const locales = resolveLocales(localeParameter);
-	const styles = styleParameter.split(',');
 	const options: Intl.DateTimeFormatOptions = {};
+	const [dateStyle, timeStyle] = styleParameter.split(',');
 
-	if(isDateStyle(styles[0])) {
-		options.dateStyle = styles[0];
+	if(isDateStyle(dateStyle)) {
+		options.dateStyle = dateStyle;
 	}
 
-	if(styles.length > 1 && isDateStyle(styles[1])) {
-		options.timeStyle = styles[1];
+	if(isDateStyle(timeStyle)) {
+		options.timeStyle = timeStyle;
 	}
 
-	return new Intl.DateTimeFormat(locales, options).format(date);
+	const formatter = new Intl.DateTimeFormat(locales, options);
+
+	return formatter.format(date);
 }
 
 export function formatter(format: string, properties: Record<string, unknown>): string {
-	let match = $regex.exec(format);
+	let match = VARIABLE_REGEX.exec(format);
 	if(!match) {
 		return format;
 	}
@@ -62,7 +63,7 @@ export function formatter(format: string, properties: Record<string, unknown>): 
 		}
 
 		index = match.index + match[0].length;
-		match = $regex.exec(format);
+		match = VARIABLE_REGEX.exec(format);
 	}
 
 	result += format.slice(index, format.length);
