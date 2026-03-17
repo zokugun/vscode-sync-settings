@@ -243,13 +243,7 @@ Crons
 
 `syncSettings.crons` allows you to schedule the commands `download`, `review` or `upload`.
 
-```jsonc
-"syncSettings.crons": {
-    "review": "0 * * * *",      // every hour
-    "download": "0 9 * * *",    // at 9AM, every day
-    "upload": "0 17 * * *"      // at 5PM, every day
-}
-```
+[More details here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/crons.md)
 
 Remote
 ------
