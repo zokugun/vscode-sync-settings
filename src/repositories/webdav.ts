@@ -130,6 +130,27 @@ export class WebDAVRepository extends FileRepository {
 		await super.initialize();
 	} // }}}
 
+	public override async pull(): Promise<boolean> { // {{{
+		Logger.info('pull from webdav');
+
+		await fse.remove(this._rootPath);
+		await fse.mkdir(this._rootPath);
+
+		const files: FsStat[] = await this._fs!.readdir('/', 'stat') as FsStat[];
+		for(const file of files) {
+			if(file.isDirectory()) {
+				await this.pullDirectory(path.join(this._rootPath, file.name), Uri.file(file.name));
+			}
+			else {
+				await this.pullFile(path.join(this._rootPath, file.name), Uri.file(file.name));
+			}
+		}
+
+		Logger.info('pull done');
+
+		return true;
+	} // }}}
+
 	public override async terminate(): Promise<void> { // {{{
 		await TemporaryRepository.terminate(this._settings);
 	} // }}}
@@ -201,25 +222,6 @@ export class WebDAVRepository extends FileRepository {
 		Logger.info(`move "${sourceDir.path}" to "${destinationDir.path}"`);
 
 		await this._fs!.rename(sourceDir.path, destinationDir.path);
-	} // }}}
-
-	protected async pull(): Promise<void> { // {{{
-		Logger.info('pull from webdav');
-
-		await fse.remove(this._rootPath);
-		await fse.mkdir(this._rootPath);
-
-		const files: FsStat[] = await this._fs!.readdir('/', 'stat') as FsStat[];
-		for(const file of files) {
-			if(file.isDirectory()) {
-				await this.pullDirectory(path.join(this._rootPath, file.name), Uri.file(file.name));
-			}
-			else {
-				await this.pullFile(path.join(this._rootPath, file.name), Uri.file(file.name));
-			}
-		}
-
-		Logger.info('pull done');
 	} // }}}
 
 	protected async pullDirectory(localDir: string, remoteDir: Uri): Promise<void> { // {{{

@@ -80,6 +80,18 @@ export class LocalGitRepository extends FileRepository {
 		this._initialized = true;
 	} // }}}
 
+	public override async pull(): Promise<boolean> { // {{{
+		await fse.ensureDir(this._rootPath);
+
+		await this._git.cwd(this._rootPath);
+
+		if(!await this._git.checkIsRepo() && !await this.initRepo()) {
+			return false;
+		}
+
+		return true;
+	} // }}}
+
 	public override async upload(): Promise<boolean> { // {{{
 		await super.upload();
 
@@ -130,18 +142,6 @@ export class LocalGitRepository extends FileRepository {
 
 			return false;
 		}
-	} // }}}
-
-	protected async pull(): Promise<boolean> { // {{{
-		await fse.ensureDir(this._rootPath);
-
-		await this._git.cwd(this._rootPath);
-
-		if(!await this._git.checkIsRepo() && !await this.initRepo()) {
-			return false;
-		}
-
-		return true;
 	} // }}}
 
 	protected async push(type: CommitType, profile: string = this._profile): Promise<boolean> { // {{{

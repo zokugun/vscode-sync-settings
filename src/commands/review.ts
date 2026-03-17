@@ -9,6 +9,7 @@ import { Settings } from '../settings.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
 import { copyProfile } from '../utils/copy-profile.js';
 import { hasDifferences } from '../utils/has-differences.js';
+import { Logger } from '../utils/logger.js';
 import { upload } from './upload.js';
 
 export async function review(): Promise<void> {
@@ -19,6 +20,13 @@ export async function review(): Promise<void> {
 	const oldRepository = await RepositoryFactory.get();
 
 	if(oldRepository instanceof FileRepository) {
+		const pulled = await oldRepository.pull();
+		if(!pulled) {
+			Logger.error('Cannot pull the latest settings');
+
+			return;
+		}
+
 		const temporaryDir = await fse.mkdtemp(path.join(os.tmpdir(), 'sync-settings-'));
 		const settings = Settings.get();
 		const newRepository = new FileRepository(settings, temporaryDir);

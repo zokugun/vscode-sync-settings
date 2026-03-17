@@ -35,51 +35,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 		await super.initialize();
 	} // }}}
 
-	public override async terminate(): Promise<void> { // {{{
-		await TemporaryRepository.terminate(this._settings);
-	} // }}}
-
-	protected async createLocalRepository(remove: boolean): Promise<boolean> { // {{{
-		try {
-			if(remove) {
-				await fse.remove(this._rootPath);
-			}
-
-			await fs.mkdir(this._rootPath, { recursive: true });
-
-			await this._git.cwd(this._rootPath);
-
-			await this.initRepo();
-
-			Logger.info('adding new remote:', this._remoteUrl);
-			await this._git.addRemote('origin', this._remoteUrl);
-
-			Logger.info('fetch from remote');
-
-			await this._git.fetch();
-
-			const branches = await this._git.branch({
-				'--all': null,
-			});
-
-			if(branches.all.includes(`remotes/origin/${this._branch}`)) {
-				Logger.info('pull from remote');
-
-				await this._git.pull('origin', this._branch);
-
-				Logger.info('pull done');
-			}
-
-			return true;
-		}
-		catch (error: unknown) {
-			Logger.error(error);
-
-			return false;
-		}
-	} // }}}
-
-	protected override async pull(): Promise<boolean> { // {{{
+	public override async pull(): Promise<boolean> { // {{{
 		try {
 			if(await exists(this._rootPath)) {
 				await this._git.cwd(this._rootPath);
@@ -127,6 +83,50 @@ export class RemoteGitRepository extends LocalGitRepository {
 			}
 
 			return this.createLocalRepository(false);
+		}
+		catch (error: unknown) {
+			Logger.error(error);
+
+			return false;
+		}
+	} // }}}
+
+	public override async terminate(): Promise<void> { // {{{
+		await TemporaryRepository.terminate(this._settings);
+	} // }}}
+
+	protected async createLocalRepository(remove: boolean): Promise<boolean> { // {{{
+		try {
+			if(remove) {
+				await fse.remove(this._rootPath);
+			}
+
+			await fs.mkdir(this._rootPath, { recursive: true });
+
+			await this._git.cwd(this._rootPath);
+
+			await this.initRepo();
+
+			Logger.info('adding new remote:', this._remoteUrl);
+			await this._git.addRemote('origin', this._remoteUrl);
+
+			Logger.info('fetch from remote');
+
+			await this._git.fetch();
+
+			const branches = await this._git.branch({
+				'--all': null,
+			});
+
+			if(branches.all.includes(`remotes/origin/${this._branch}`)) {
+				Logger.info('pull from remote');
+
+				await this._git.pull('origin', this._branch);
+
+				Logger.info('pull done');
+			}
+
+			return true;
 		}
 		catch (error: unknown) {
 			Logger.error(error);
