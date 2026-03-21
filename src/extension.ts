@@ -21,6 +21,7 @@ import { ThrottledDelayer } from './utils/async.js';
 import { EXTENSION_NAME } from './utils/constants.js';
 import { detectEditor } from './utils/editor.js';
 import { Logger } from './utils/logger.js';
+import { setupSettings } from './utils/settings.js';
 
 const VERSION_KEY = 'version';
 
@@ -53,6 +54,10 @@ async function showWhatsNewMessage(version: string) { // {{{
 } // }}}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+	await setupSettings(context);
+
+	Logger.setup(false);
+
 	detectEditor(context);
 
 	context.globalState.setKeysForSync([VERSION_KEY]);
