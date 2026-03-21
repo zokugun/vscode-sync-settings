@@ -532,6 +532,12 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	public override async upload(): Promise<boolean> { // {{{
+		const pulled = await this.pull();
+
+		if(!pulled) {
+			return false;
+		}
+
 		await this.serializeProfile();
 
 		return true;
