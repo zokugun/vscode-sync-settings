@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.21.0 | 2025-03-21
+## v0.21.0 | 2026-03-21
 - pull remote repository before review or upload
 - fix date formatter
 
