@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.21.0 | 2025-03-21
+- pull remote repository before review or upload
+- fix date formatter
+
 ## v0.20.0 | 2025-04-12
 - save and restore the version of the extensions installed with a specific version
 - on linux, improve restart when the editor uses a shared Electron (new `syncSettings.restartBinary` setting if the binary can't be found)
