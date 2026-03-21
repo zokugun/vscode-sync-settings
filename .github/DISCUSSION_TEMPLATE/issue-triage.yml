@@ -1,0 +1,61 @@
+labels: ["S-needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |-
+        > [!IMPORTANT]
+        > Please read through [the Discussion rules](https://github.com/zokugun/vscode-sync-settings/discussions/118) and check for both existing [Discussions](https://github.com/zokugun/vscode-sync-settings/discussions?discussions_q=) and [Issues](https://github.com/zokugun/vscode-sync-settings/issues?q=sort%3Areactions-desc) prior to opening a new Discussion.
+  - type: markdown
+    attributes:
+      value: "# Issue Details"
+  - type: textarea
+    attributes:
+      label: Issue Description
+      description: |-
+        Provide a detailed description of the issue. Include relevant informations.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: |-
+        Describe how you expect this project to behave in this situation. Include any relevant documentation links.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: |-
+        Describe how this project actually behaves in this situation. If it is not immediately obvious how the actual behavior differs from the expected behavior described above, please be sure to mention the deviation specifically.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction Steps
+      description: |-
+        Provide a detailed set of step-by-step instructions for reproducing this issue.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Version
+      description: Paste the output the version here.
+      render: text
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |-
+        # User Acknowledgements
+        > [!TIP]
+        > Use these links to review the existing [Discussions](https://github.com/zokugun/vscode-sync-settings/discussions?discussions_q=) and [Issues](https://github.com/zokugun/vscode-sync-settings/issues?q=sort%3Areactions-desc).
+  - type: checkboxes
+    attributes:
+      label: "I acknowledge that:"
+      options:
+        - label: I have reviewed the FAQ and confirm that my issue is NOT among them.
+          required: true
+        - label: I have searched the repository (both open and closed Discussions and Issues) and confirm this is not a duplicate of an existing issue or discussion.
+          required: true
+        - label: I have checked the "Preview" tab on all text fields to ensure that everything looks right, and have wrapped all configuration and code in code blocks with a group of three backticks (` ``` `) on separate lines.
+          required: true

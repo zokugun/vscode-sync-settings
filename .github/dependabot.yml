@@ -5,3 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - T-maintenance
+      - A-ci

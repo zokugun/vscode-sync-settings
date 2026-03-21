@@ -15,7 +15,7 @@
 		"url": "https://github.com/zokugun/vscode-sync-settings.git"
 	},
 	"bugs": {
-		"url": "https://github.com/zokugun/vscode-sync-settings/issues"
+		"url": "https://github.com/zokugun/vscode-sync-settings/discussions/categories/issue-triage"
 	},
 	"engines": {
 		"vscode": "^1.23.0"

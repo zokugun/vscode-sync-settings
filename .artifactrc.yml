@@ -13,3 +13,5 @@ artifacts:
     version: 0.3.1
   "@daiyam/artifact-vsx-bundle-ncc":
     version: 0.4.1
+  "@daiyam/artifact-gh-issuehub":
+    version: 0.4.0

@@ -1,0 +1,28 @@
+name: Close Invalid Issue
+on:
+  issues:
+    types: [opened]
+jobs:
+  close-invalid-issue:
+    name: Close invalid issue
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+    - name: Close invalid issue
+      run: |
+        set -e # Exit if one of commands exit with non-zero exit code
+        set -u # Treat unset variables and parameters other than the special parameters '@' or '*' as an error
+        set -o pipefail # Any command failed in the pipe fails the whole pipe
+
+        BODY="$( gh issue view "${ISSUE}" --json body )"
+
+        if [[ "${BODY}" =~ "CLOSE THIS ISSUE" ]]; then
+          gh issue edit "${ISSUE}" --add-label "S-not-preapproved"
+          gh issue close "${ISSUE}" --comment "Please don't open issues directly, use GitHub Discussions instead. See: https://github.com/zokugun/vscode-sync-settings/issues/117"
+          gh issue lock "${ISSUE}"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        ISSUE: ${{ github.event.issue.number }}

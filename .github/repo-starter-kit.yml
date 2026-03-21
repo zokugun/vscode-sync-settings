@@ -1,0 +1,13 @@
+package: "@daiyam/default"
+migrate:
+  labels:
+    bug: T-bug
+    dependencies: T-maintenance
+    documentation: A-docs
+    duplicate: S-duplicate
+    enhancement: T-improvement
+    github_actions: A-ci
+    "good first issue": M-awesome
+    "needs more info": S-needs-info
+    question: T-question
+    stale: S-stale
