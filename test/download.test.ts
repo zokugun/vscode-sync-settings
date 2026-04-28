@@ -3,7 +3,7 @@ import { vol } from 'memfs';
 import yaml from 'yaml';
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
-import { RepositoryFactory, Settings } from './rewires/repository.js';
+import { Logger, RepositoryFactory, Settings } from './rewires/repository.js';
 import { fixtures } from './utils/fixtures.js';
 
 describe('download', () => {
@@ -24,6 +24,8 @@ describe('download', () => {
 
 		await RepositoryFactory.reset();
 		await Settings.load(context);
+
+		Logger.setup(false);
 	}); // }}}
 
 	it('empty', async () => { // {{{

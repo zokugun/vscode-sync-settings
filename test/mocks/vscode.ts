@@ -116,7 +116,7 @@ const $vscode = {
 
 					const dots = id.split('.');
 
-					vol.mkdirpSync(`/.vscode/extensions/${id}-0.0.0`);
+					vol.mkdirSync(`/.vscode/extensions/${id}-0.0.0`, { recursive: true });
 					vol.writeFileSync(`/.vscode/extensions/${id}-0.0.0/package.json`, JSON.stringify({
 						name: dots[1],
 						publisher: dots[0],
@@ -217,7 +217,7 @@ const $vscode = {
 };
 
 function addSnippet(name: string, data: string): void { // {{{
-	vol.mkdirpSync('/user/snippets');
+	vol.mkdirSync('/user/snippets', { recursive: true });
 
 	vol.writeFileSync(`/user/snippets/${name}.json`, data, { encoding: 'utf8' });
 } // }}}
@@ -310,7 +310,7 @@ function setKeybindings(data: string | any[]): void { // {{{
 		data = JSON.stringify(data, null, '\t');
 	}
 
-	vol.mkdirpSync('/user');
+	vol.mkdirSync('/user', { recursive: true });
 
 	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf8' });
 } // }}}
@@ -328,7 +328,7 @@ function setPlatform(platform: string): void { // {{{
 } // }}}
 
 function setSettings(data: any | string, { profile, hostname }: { profile: string; hostname: string } = { profile: 'main', hostname: '' }): void { // {{{
-	vol.mkdirpSync('/user');
+	vol.mkdirSync('/user', { recursive: true });
 
 	if(typeof data === 'string') {
 		const args = {

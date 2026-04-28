@@ -6,7 +6,7 @@ type Crons = {
 	upload?: string;
 };
 
-const $cronsIds = {
+const $cronsIds: Crons = {
 	download: '',
 	review: '',
 	upload: '',

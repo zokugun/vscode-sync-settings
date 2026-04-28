@@ -1,19 +1,21 @@
 name: Pre-Discussed and Approved Topics
-description: |-
-  Only for topics already discussed and approved in the GitHub Discussions section.
+
+description: Only for topics already discussed and approved in the GitHub Discussions section.
+
 body:
   - type: markdown
     attributes:
       value: |-
         This project doesn't accept Issues directly. Please prefer GitHub Discussions. See: https://github.com/zokugun/vscode-sync-settings/issues/117
+
   - type: checkboxes
     id: checkbox
     attributes:
-      label: 'Sanity check'
+      label: Sanity check
       options:
-        - label: |-
-            I read https://github.com/zokugun/vscode-sync-settings/issues/117
+        - label: I read https://github.com/zokugun/vscode-sync-settings/issues/117
           required: true
+
   - type: textarea
     id: body
     attributes:

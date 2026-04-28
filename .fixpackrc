@@ -1,9 +1,14 @@
 {
+	"finalNewLine": true,
+	"required": [
+		"dependencies"
+	],
 	"sortToTop": [
 		"name",
 		"displayName",
 		"description",
 		"version",
+		"since",
 		"private",
 		"author",
 		"publisher",
@@ -24,6 +29,7 @@
 		"dependencies",
 		"devDependencies",
 		"optionalDependencies",
+		"peerDependencies",
 		"overrides",
 		"extensionDependencies",
 		"activationEvents",
@@ -34,6 +40,5 @@
 		"galleryBanner",
 		"categories",
 		"keywords"
-	],
-	"finalNewLine": true
+	]
 }

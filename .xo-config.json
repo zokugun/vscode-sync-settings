@@ -88,6 +88,14 @@
 		],
 		"@typescript-eslint/no-confusing-void-expression": "off",
 		"@typescript-eslint/no-dynamic-delete": "off",
+		"@typescript-eslint/no-empty-function": [
+			"error",
+			{
+				"allow": [
+					"arrowFunctions"
+				]
+			}
+		],
 		"@typescript-eslint/no-inferrable-types": "off",
 		"@typescript-eslint/no-namespace": "off",
 		"@typescript-eslint/object-curly-spacing": [
@@ -139,6 +147,7 @@
 		"no-lonely-if": "off",
 		"no-negated-condition": "off",
 		"object-curly-newline": "off",
+		"object-shorthand": "off",
 		"one-var": [
 			"error",
 			"never"

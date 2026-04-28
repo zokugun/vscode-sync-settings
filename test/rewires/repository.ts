@@ -30,6 +30,7 @@ rewiremock.enable();
 
 /* eslint-disable import/first, import/order */
 import { Settings } from '../../src/settings.js';
+import { Logger } from '../../src/utils/logger.js';
 import { RepositoryFactory } from '../../src/repository-factory.js';
 /* eslint-enable import/first, import/order */
 
@@ -37,6 +38,7 @@ rewiremock.disable();
 
 /* eslint-disable unicorn/prefer-export-from */
 export {
+	Logger,
 	RepositoryFactory,
 	Settings,
 };
