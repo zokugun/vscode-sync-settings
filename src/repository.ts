@@ -169,8 +169,7 @@ export abstract class Repository {
 		for(const packagePath of extensions) {
 			const name = path.dirname(path.dirname(packagePath));
 
-			const match = /^(.*?)-\d+\.\d+\.\d+(?:-|$)/.exec(name);
-			if(!match) {
+			if(!/^.*?-\d+\.\d+\.\d+(?:-|$)/.test(name)) {
 				continue;
 			}
 
@@ -268,23 +267,14 @@ export abstract class Repository {
 		for(const packagePath of extensions) {
 			const name = path.dirname(packagePath);
 
-			if(obsolete[name]) {
-				continue;
-			}
-
-			const match = /^(.*?)-\d+\.\d+\.\d+(?:-|$)/.exec(name);
-			if(!match) {
+			const match = /^(.*?-\d+\.\d+\.\d+)(?:-|$)/.exec(name);
+			if(!match || obsolete[match[1]]) {
 				continue;
 			}
 
 			const pkg = await fse.readJSON(path.join(extensionDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
 			const id = `${pkg.publisher}.${pkg.name}`;
 			const idLower = id.toLowerCase();
-
-			if(obsolete[idLower]) {
-				continue;
-			}
-
 			const version = metadatas[idLower]?.pinned && metadatas[idLower].source === 'gallery' ? metadatas[idLower].version : undefined;
 
 			if(ids[id]) {
