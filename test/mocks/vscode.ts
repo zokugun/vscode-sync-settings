@@ -1,4 +1,4 @@
-import { transform } from '@daiyam/jsonc-preprocessor';
+import { transform } from '@zokugun/jsonc-preprocessor';
 import * as JSONC from 'jsonc-parser';
 import { vol } from 'memfs';
 import { type OutputChannel } from 'vscode';

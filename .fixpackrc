@@ -31,6 +31,7 @@
 		"optionalDependencies",
 		"peerDependencies",
 		"overrides",
+		"allowScripts",
 		"extensionDependencies",
 		"activationEvents",
 		"capabilities",

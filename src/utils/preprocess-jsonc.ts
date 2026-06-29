@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import process from 'process';
-import { transform } from '@daiyam/jsonc-preprocessor';
+import { transform } from '@zokugun/jsonc-preprocessor';
 import vscode from 'vscode';
 import { type Settings } from '../settings.js';
 import { getEditorStorage } from './get-editor-storage.js';

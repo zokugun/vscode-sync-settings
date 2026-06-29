@@ -5,9 +5,6 @@
 		"test/fixtures",
 		"test/mocks/vscode/*"
 	],
-	"plugins": [
-		"chai-friendly"
-	],
 	"overrides": [
 		{
 			"files": "**/*.test.ts",
@@ -16,6 +13,9 @@
 				"chai-friendly/no-unused-expressions": "error"
 			}
 		}
+	],
+	"plugins": [
+		"chai-friendly"
 	],
 	"rules": {
 		"@typescript-eslint/ban-types": "off",
@@ -103,6 +103,12 @@
 			"always"
 		],
 		"@typescript-eslint/parameter-properties": "off",
+		"@typescript-eslint/prefer-nullish-coalescing": [
+			"error",
+			{
+				"ignoreConditionalTests": true
+			}
+		],
 		"@typescript-eslint/prefer-promise-reject-errors": "off",
 		"@typescript-eslint/return-await": "off",
 		"arrow-parens": [
@@ -176,7 +182,8 @@
 					"mod": false,
 					"num": false,
 					"pkg": false,
-					"str": false
+					"str": false,
+					"temp": false
 				}
 			}
 		]

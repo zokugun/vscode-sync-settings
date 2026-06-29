@@ -1,13 +1,16 @@
 {
+	"exclude": [
+		"xo",
+		"@types/vscode",
+		"commitlint/cli",
+		"@commitlint/config-conventional",
+		"lint-staged"
+	],
 	"force": true,
 	"includeLocked": true,
 	"maturityPeriod": 7,
 	"packageMode": {
 		"@types/node": "minor",
 		"typescript": "minor"
-	},
-	"exclude": [
-		"xo",
-		"@types/vscode"
-	]
+	}
 }

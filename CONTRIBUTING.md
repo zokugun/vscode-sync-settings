@@ -14,6 +14,7 @@ This document is intended for anyone considering opening an **issue**, **discuss
 
 - [Code of Conduct](#code-of-conduct)
 - [Users are not allowed to create Issues directly](#users-are-not-allowed-to-create-issues-directly)
+- [Use of AI](#use-of-ai)
 - [I have a bug! / Something isn't working](#i-have-a-bug--something-isnt-working)
 - [I have an idea for a feature](#i-have-an-idea-for-a-feature)
 - [I want to make changes](#i-want-to-make-changes)
@@ -48,7 +49,7 @@ Discussions, issues or PR that consist solely of unvetted AI outputs may be clos
 ## I have a bug! / Something isn't working
 
 First, search the issue tracker and discussions for similar issues.<br />
-Tip: also search for [closed issues] and [closed discussions] — your issue might have already been fixed!
+Tip: also search for [closed issues] and [closed discussions]; your issue might have already been fixed!
 
 > [!NOTE]
 >

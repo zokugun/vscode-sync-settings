@@ -1,6 +1,6 @@
 import path from 'path';
-import fse from '@zokugun/fs-extra-plus/async';
-import { err, OK, type Result } from '@zokugun/xtry';
+import { err, OK, xtryAsync, type Result } from '@zokugun/xtry';
+import fse from 'fs-extra';
 import type vscode from 'vscode';
 
 export const CONFIG_KEY = 'syncSettings';
@@ -28,7 +28,7 @@ export async function setupSettings(context: vscode.ExtensionContext): Promise<R
 
 	$context = context;
 
-	const result = await fse.ensureDir(TEMPORARY_DIR);
+	const result = await xtryAsync(async () => fse.ensureDir(TEMPORARY_DIR));
 	if(result.fails) {
 		return err(`Cannot ensure the directory ${TEMPORARY_DIR}`);
 	}

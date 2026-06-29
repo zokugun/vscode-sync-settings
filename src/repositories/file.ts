@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import os from 'os';
 import path from 'path';
 import process from 'process';
-import { comment } from '@daiyam/jsonc-preprocessor';
+import { comment } from '@zokugun/jsonc-preprocessor';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
 import globby from 'globby';
