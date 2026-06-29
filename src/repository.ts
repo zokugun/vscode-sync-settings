@@ -248,9 +248,11 @@ export abstract class Repository {
 
 		const extensionDataPath = await getExtensionDataPath();
 
+		// id: lowercase
 		const obsoletePath = path.join(extensionDataPath, '.obsolete');
 		const obsolete = await exists(obsoletePath) ? await fse.readJSON(obsoletePath) as Record<string, boolean> : {};
 
+		// id: lowercase
 		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
 		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string }; metadata: { pinned?: boolean; source: string; id: string }; version: string }> : [];
 		const metadatas: Record<string, { uuid: string; pinned: boolean; source: string; version: string; metadataId: string }> = {};
@@ -277,12 +279,13 @@ export abstract class Repository {
 
 			const pkg = await fse.readJSON(path.join(extensionDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
 			const id = `${pkg.publisher}.${pkg.name}`;
+			const idLower = id.toLowerCase();
 
-			if(obsolete[id]) {
+			if(obsolete[idLower]) {
 				continue;
 			}
 
-			const version = metadatas[id]?.pinned && metadatas[id].source === 'gallery' ? metadatas[id].version : undefined;
+			const version = metadatas[idLower]?.pinned && metadatas[idLower].source === 'gallery' ? metadatas[idLower].version : undefined;
 
 			if(ids[id]) {
 				if(version) {
@@ -299,8 +302,8 @@ export abstract class Repository {
 				if(pkg.__metadata?.id) {
 					uuid = pkg.__metadata?.id;
 				}
-				else if(metadatas[id]) {
-					uuid = metadatas[id].uuid ?? metadatas[id].metadataId ?? NIL_UUID;
+				else if(metadatas[idLower]) {
+					uuid = metadatas[idLower].uuid ?? metadatas[idLower].metadataId ?? NIL_UUID;
 				}
 
 				const extension: { id: string; uuid: string; version?: string } = {
