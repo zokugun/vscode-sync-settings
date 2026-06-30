@@ -169,7 +169,7 @@ export abstract class Repository {
 		for(const packagePath of extensions) {
 			const name = path.dirname(path.dirname(packagePath));
 
-			if(!/^.*?-\d+\.\d+\.\d+(?:-|$)/.test(name)) {
+			if(!/^.*?-\d+\.\d+\.\d+/.test(name)) {
 				continue;
 			}
 
@@ -267,8 +267,12 @@ export abstract class Repository {
 		for(const packagePath of extensions) {
 			const name = path.dirname(packagePath);
 
-			const match = /^(.*?-\d+\.\d+\.\d+)(?:-|$)/.exec(name);
-			if(!match || obsolete[match[1]]) {
+			// `.obsolete` contains the directory name of the obsolete extensions
+			if(obsolete[name]) {
+				continue;
+			}
+
+			if(!/^.*?-\d+\.\d+\.\d+/.test(name)) {
 				continue;
 			}
 
