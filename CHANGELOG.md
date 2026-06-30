@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.21.1 | 2026-06-30
+- correctly use lowercase ids from `extensions.json`
+
 ## v0.21.0 | 2026-03-21
 - pull remote repository before review or upload
 - fix date formatter
