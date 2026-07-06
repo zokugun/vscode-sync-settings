@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.21.2 | 2026-07-07
+- validate data from `extensions.json`
+
 ## v0.21.1 | 2026-06-30
 - correctly use lowercase ids from `extensions.json`
 
