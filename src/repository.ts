@@ -26,6 +26,14 @@ export type ExtensionList = {
 	uninstall?: ExtensionId[];
 };
 
+type Metadata = {
+	metadataId?: string;
+	pinned: boolean;
+	source?: string;
+	version: string;
+	uuid: string;
+};
+
 export enum Resource {
 	Extensions = 'extensions',
 	Keybindings = 'keybindings',
@@ -254,10 +262,16 @@ export abstract class Repository {
 		// id: lowercase
 		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
 		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string }; metadata: { pinned?: boolean; source: string; id: string }; version: string }> : [];
-		const metadatas: Record<string, { uuid: string; pinned: boolean; source: string; version: string; metadataId: string }> = {};
+		const metadatas: Record<string, Metadata> = {};
 
-		for(const { identifier: { id, uuid }, metadata: { pinned, source, id: mid }, version } of extensionsJson) {
-			metadatas[id] = { uuid, source, pinned: pinned ?? false, version, metadataId: mid };
+		for(const { identifier: { id, uuid }, metadata, version } of extensionsJson) {
+			metadatas[id] = {
+				metadataId: metadata?.id,
+				pinned: metadata?.pinned ?? false,
+				source: metadata?.source,
+				version,
+				uuid,
+			};
 		}
 
 		const extensions = await globby('*/package.json', {
