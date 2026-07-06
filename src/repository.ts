@@ -264,13 +264,17 @@ export abstract class Repository {
 		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string }; metadata: { pinned?: boolean; source: string; id: string }; version: string }> : [];
 		const metadatas: Record<string, Metadata> = {};
 
-		for(const { identifier: { id, uuid }, metadata, version } of extensionsJson) {
-			metadatas[id] = {
+		for(const { identifier, metadata, version } of extensionsJson) {
+			if(!identifier?.id || !identifier.uuid || !version) {
+				continue;
+			}
+
+			metadatas[identifier.id] = {
 				metadataId: metadata?.id,
 				pinned: metadata?.pinned ?? false,
 				source: metadata?.source,
 				version,
-				uuid,
+				uuid: identifier.uuid,
 			};
 		}
 
