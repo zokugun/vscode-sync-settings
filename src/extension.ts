@@ -135,4 +135,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	});
 
 	context.subscriptions.push(...disposables);
+
+	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	statusBarItem.command = 'syncSettings.switchProfile';
+	const repository = await RepositoryFactory.get();
+	const profile = repository.profile;
+	statusBarItem.text = `Current profile: ${profile}`;
+	statusBarItem.show();
+
+	context.subscriptions.push(statusBarItem)
 }
