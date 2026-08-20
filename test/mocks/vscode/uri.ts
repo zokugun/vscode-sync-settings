@@ -31,11 +31,11 @@ function _validateUri(returnValue: URI, _strict?: boolean): void {
 	// with two slash characters ("//").
 	if(returnValue.path) {
 		if(returnValue.authority) {
-			 if (!_singleSlashStart.test(returnValue.path)) {
+			if(!_singleSlashStart.test(returnValue.path)) {
 				throw new Error('[UriError]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
 			}
 		}
-		else if (_doubleSlashStart.test(returnValue.path)) {
+		else if(_doubleSlashStart.test(returnValue.path)) {
 			throw new Error('[UriError]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
 		}
 	}

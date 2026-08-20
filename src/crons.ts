@@ -12,7 +12,7 @@ const $cronsIds: Crons = {
 	upload: '',
 };
 
-export async function setupCrons() {
+export async function setupCrons(): Promise<void> {
 	for(const key in $cronsIds) {
 		if($cronsIds[key]) {
 			await vscode.commands.executeCommand('cronTasks.unregister', $cronsIds[key]);

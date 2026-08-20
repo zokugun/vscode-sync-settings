@@ -1,4 +1,4 @@
-import { visit } from 'jsonc-parser';
+import { type JSONVisitor, visit } from 'jsonc-parser';
 
 export function removeProperties(text: string, properties: string[]): string {
 	if(properties.length === 0) {
@@ -10,45 +10,31 @@ export function removeProperties(text: string, properties: string[]): string {
 	let level = -1;
 	let match = false;
 
-	const visitor = {
-		onArrayBegin(offset: number, length: number) {
+	const visitor: JSONVisitor = {
+		onArrayBegin(offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
-			++level;
+			level += 1;
 		},
-		onArrayEnd(offset: number, length: number) {
-			--level;
+		onArrayEnd(_offset, _length) {
+			level -= 1;
 		},
-		onLiteralValue(_: any, offset: number, length: number) {
+		onLiteralValue(_value, offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 		},
-		onObjectBegin(offset: number, length: number) {
+		onObjectBegin(offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
-			++level;
+			level += 1;
 		},
-		onObjectProperty(name: string, offset: number, length: number) {
-			if(level === 0 && properties.includes(name)) {
-				const until = offset + length;
-
-				let c;
-				while((c = text.codePointAt(offset - 1)) === 9 || c === 32) {
-					--offset;
-				}
-
-				matches.unshift({ from: offset, until });
-
-				match = true;
-			}
-		},
-		onObjectEnd(offset: number, length: number) {
-			--level;
+		onObjectEnd(offset, _length) {
+			level -= 1;
 
 			if(level === -1 && match) {
 				matches[0].until = offset;
@@ -56,19 +42,36 @@ export function removeProperties(text: string, properties: string[]): string {
 				match = false;
 			}
 		},
-		onSeparator(character: string, offset: number, length: number) {
+		onObjectProperty(name, offset, length) {
+			if(level === 0 && properties.includes(name)) {
+				let from = offset;
+				const until = offset + length;
+
+				let c: number | undefined;
+
+				while((c = text.codePointAt(from - 1)) === 9 || c === 32) {
+					from -= 1;
+				}
+
+				matches.unshift({ from, until });
+
+				match = true;
+			}
+		},
+		onSeparator(character, offset, length) {
 			if(level === 0 && match && character === ',') {
 				let until = offset + length - 1;
 
-				let c;
+				let c: number | undefined;
+
 				while((c = text.codePointAt(until + 1)) === 9 || c === 32 || c === 10 || c === 13) {
-					++until;
+					until += 1;
 
 					if(c === 10) {
 						break;
 					}
 					else if(c === 13 && text.codePointAt(until + 1) === 10) {
-						++until;
+						until += 1;
 					}
 				}
 
@@ -81,9 +84,11 @@ export function removeProperties(text: string, properties: string[]): string {
 
 	visit(text, visitor);
 
+	let result = text;
+
 	for(const { from, until } of matches) {
-		text = text.slice(0, from) + text.slice(until);
+		result = text.slice(0, from) + text.slice(until);
 	}
 
-	return text;
+	return result;
 }

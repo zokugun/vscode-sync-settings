@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+
 import { Logger } from './logger.js';
 
 export async function installExtension(id: string, version: string | undefined, saved: Record<string, vscode.Uri>): Promise<boolean> {
@@ -16,7 +17,7 @@ export async function installExtension(id: string, version: string | undefined, 
 
 		return true;
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 
 		return false;

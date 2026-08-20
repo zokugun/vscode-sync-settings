@@ -1,9 +1,13 @@
+import type { OutputChannel } from 'vscode';
+
+import { isArray, isString } from '@zokugun/is-it-type';
 import { transform } from '@zokugun/jsonc-preprocessor';
 import * as JSONC from 'jsonc-parser';
 import { vol } from 'memfs';
-import { type OutputChannel } from 'vscode';
 import yaml from 'yaml';
+
 import { Uri } from './vscode/uri.js';
+import { unsafeCast } from '../../src/utils/unsafe-cast.js';
 
 type Extension = {
 	id: string;
@@ -21,49 +25,29 @@ const $managedExtensions: string[] = [];
 const $outputLines: string[] = [];
 
 const $outputChannel = {
-	appendLine(value: string) {
+	appendLine: (value: string): void => {
 		$outputLines.push(value);
 	},
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	show() {},
+	show: (): void => {},
 };
 
-// eslint-disable-next-line import/no-mutable-exports
 let $platform = 'linux';
 
 const $process = {
-	get platform() {
+	get platform(): string {
 		return $platform;
 	},
 };
 
-let $settings: Record<string, any> = {};
+let $settings: Record<string, unknown> = {};
 
 const $vscode = {
 	commands: {
-		getCommands() {
-			if($manageExtensions) {
-				return [
-					'workbench.action.reloadWindow',
-					'workbench.extensions.disableExtension',
-					'workbench.extensions.enableExtension',
-					'workbench.extensions.installExtension',
-					'workbench.extensions.uninstallExtension',
-				];
-			}
-			else {
-				return [
-					'workbench.action.reloadWindow',
-					'workbench.extensions.installExtension',
-					'workbench.extensions.uninstallExtension',
-				];
-			}
-		},
-		executeCommand(command: string, ...args: any[]) { // {{{
+		executeCommand(command: string, ...args: unknown[]): void { // {{{
 			$executedCommands.push(command);
 
 			if(command === 'workbench.extensions.disableExtension') {
-				const id = args[0] as string;
+				const id = unsafeCast<string>(args[0]);
 
 				for(const [index, extension] of $vscode.extensions.all.entries()) {
 					if(extension.id === id) {
@@ -74,7 +58,7 @@ const $vscode = {
 				}
 			}
 			else if(command === 'workbench.extensions.enableExtension') {
-				const id = args[0] as string;
+				const id = unsafeCast<string>(args[0]);
 
 				if(!$vscode.extensions.all.some((extension) => extension.id === id)) {
 					$vscode.extensions.all.push({
@@ -88,7 +72,7 @@ const $vscode = {
 				}
 			}
 			else if(command === 'workbench.extensions.installExtension') {
-				const id = args[0] as string;
+				const id = unsafeCast<string>(args[0]);
 
 				if($vscode.extensions.all.some((extension) => extension.id === id)) {
 					return;
@@ -132,9 +116,10 @@ const $vscode = {
 				}
 			}
 			else if(command === 'workbench.extensions.uninstallExtension') {
-				const id = args[0] as string;
+				const id = unsafeCast<string>(args[0]);
 
 				const index = $extensions.indexOf(id);
+
 				if(index === -1) {
 					throw new Error(`Extension '${id}' is not installed. Make sure you use the full extension ID, including the publisher, e.g.: ms-dotnettools.csharp.`);
 				}
@@ -148,6 +133,7 @@ const $vscode = {
 				}
 
 				const dir = `/.vscode/extensions/${id}-0.0.0`;
+
 				if(vol.existsSync(dir)) {
 					vol.rmdirSync(dir, { recursive: true });
 				}
@@ -155,12 +141,30 @@ const $vscode = {
 				$extensions.splice(index, 1);
 			}
 		}, // }}}
+		getCommands(): string[] {
+			if($manageExtensions) {
+				return [
+					'workbench.action.reloadWindow',
+					'workbench.extensions.disableExtension',
+					'workbench.extensions.enableExtension',
+					'workbench.extensions.installExtension',
+					'workbench.extensions.uninstallExtension',
+				];
+			}
+			else {
+				return [
+					'workbench.action.reloadWindow',
+					'workbench.extensions.installExtension',
+					'workbench.extensions.uninstallExtension',
+				];
+			}
+		},
 	},
 	DiagnosticSeverity: {
 		Error: 0,
-		Warning: 1,
-		Information: 2,
 		Hint: 3,
+		Information: 2,
+		Warning: 1,
 	},
 	env: {
 		appName: 'vscode',
@@ -172,15 +176,12 @@ const $vscode = {
 	},
 	extensions: {
 		all: [] as Extension[],
-		getExtension(name: string) {
+		getExtension(name: string): unknown {
 			if(name === 'zokugun.vsix-manager') {
 				return {
 					exports: {
-						listManagedExtensions() {
-							return $managedExtensions;
-						},
-						// eslint-disable-next-line @typescript-eslint/no-empty-function
-						installExtensions() {},
+						installExtensions: (): void => {},
+						listManagedExtensions: (): string[] => $managedExtensions,
 					},
 				};
 			}
@@ -195,22 +196,19 @@ const $vscode = {
 	Uri,
 	version: '1.0.0',
 	window: {
-		showWarningMessage: (): undefined => undefined,
+		createOutputChannel: (): Partial<OutputChannel> => $outputChannel,
 		showErrorMessage: (): undefined => undefined,
 		showInformationMessage: (): undefined => undefined,
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		async showQuickPick(): Promise<void> {},
-		createOutputChannel: (): Partial<OutputChannel> => $outputChannel,
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		async withProgress(): Promise<void> {},
+		showQuickPick: async (): Promise<void> => {},
+		showWarningMessage: (): undefined => undefined,
+		withProgress: async (): Promise<void> => {},
 	},
 	workspace: {
-		getConfiguration: (group: string) => ({
-			get: (name: string): any => $settings[`${group}.${name}`],
-			inspect: (name: string): any => ({
-				key: name,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		getConfiguration: (group: string): unknown => ({
+			get: (name: string): unknown => $settings[`${group}.${name}`],
+			inspect: (name: string): unknown => ({
 				globalValue: $settings[`${group}.${name}`],
+				key: name,
 			}),
 		}),
 	},
@@ -222,9 +220,8 @@ function addSnippet(name: string, data: string): void { // {{{
 	vol.writeFileSync(`/user/snippets/${name}.json`, data, { encoding: 'utf8' });
 } // }}}
 
-// eslint-disable-next-line unicorn/prevent-abbreviations
 function ext2yml({ disabled, enabled, uninstall }: { disabled: string[]; enabled: string[]; uninstall?: string[] }): string { // {{{
-	const data: any = {
+	const data: Record<string, Array<{ id: string; uuid: string }>> = {
 		disabled: disabled.map((id) => ({
 			id,
 			uuid: '00000000-0000-0000-0000-000000000000',
@@ -256,6 +253,17 @@ function getExtensions(): { disabled: string[]; enabled: string[] } { // {{{
 		disabled,
 		enabled,
 	};
+} // }}}
+
+function reset(): void { // {{{
+	$executedCommands.length = 0;
+	$extensions.length = 0;
+	$managedExtensions.length = 0;
+	$outputLines.length = 0;
+	$platform = 'linux';
+	$settings = {};
+
+	$vscode.extensions.all = [];
 } // }}}
 
 function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: string[] }): void { // {{{
@@ -305,79 +313,74 @@ function setExtensions({ disabled, enabled }: { disabled: string[]; enabled: str
 	$extensions.push(...enabled, ...disabled);
 } // }}}
 
-function setKeybindings(data: string | any[]): void { // {{{
-	if(Array.isArray(data)) {
-		data = JSON.stringify(data, null, '\t');
+function setKeybindings(data: string | unknown[]): void { // {{{
+	let output: string | undefined;
+
+	if(isArray(data)) {
+		output = JSON.stringify(data, null, '\t');
+	}
+	else {
+		output = data;
 	}
 
 	vol.mkdirSync('/user', { recursive: true });
 
-	vol.writeFileSync('/user/keybindings.json', data, { encoding: 'utf8' });
-} // }}}
-
-function setManageExtensions(manage: boolean): void { // {{{
-	$manageExtensions = manage;
+	vol.writeFileSync('/user/keybindings.json', output, { encoding: 'utf8' });
 } // }}}
 
 function setManagedExtensions(managedExtensions: string[]): void { // {{{
 	$managedExtensions.push(...managedExtensions);
 } // }}}
 
+function setManageExtensions(manage: boolean): void { // {{{
+	$manageExtensions = manage;
+} // }}}
+
 function setPlatform(platform: string): void { // {{{
 	$platform = platform;
 } // }}}
 
-function setSettings(data: any | string, { profile, hostname }: { profile: string; hostname: string } = { profile: 'main', hostname: '' }): void { // {{{
+function setSettings(data: Record<string, unknown> | string, { hostname, profile }: { hostname: string; profile: string } = { hostname: '', profile: 'main' }): void { // {{{
 	vol.mkdirSync('/user', { recursive: true });
 
-	if(typeof data === 'string') {
+	let output: string | undefined;
+
+	if(isString(data)) {
 		const args = {
-			host: hostname,
-			profile,
-			os: $platform,
 			editor: 'vscode',
+			host: hostname,
+			os: $platform,
+			profile,
 			version: '1.0.0',
 		};
 
-		data = transform(data, { version: 'version' }, args);
+		output = transform(data, { version: 'version' }, args);
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-assignment
-		$settings = JSONC.parse(data);
+		$settings = unsafeCast<Record<string, unknown>>(JSONC.parse(data));
 	}
 	else {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		$settings = data;
-		data = JSON.stringify(data, null, '\t');
+
+		output = JSON.stringify(data, null, '\t');
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-	vol.writeFileSync('/user/settings.json', data, { encoding: 'utf8' });
-} // }}}
-
-export function reset(): void { // {{{
-	$executedCommands.length = 0;
-	$extensions.length = 0;
-	$managedExtensions.length = 0;
-	$outputLines.length = 0;
-	$platform = 'linux';
-	$settings = {};
-
-	$vscode.extensions.all = [];
+	vol.writeFileSync('/user/settings.json', output, { encoding: 'utf8' });
 } // }}}
 
 export {
+	addSnippet,
 	$executedCommands as executedCommands,
+	ext2yml,
+	getExtensions,
 	$outputLines as outputLines,
 	$platform as platform,
 	$process as process,
-	$vscode as vscode,
-	addSnippet,
-	ext2yml,
-	getExtensions,
+	reset,
 	setExtensions,
 	setKeybindings,
-	setManageExtensions,
 	setManagedExtensions,
+	setManageExtensions,
 	setPlatform,
 	setSettings,
+	$vscode as vscode,
 };

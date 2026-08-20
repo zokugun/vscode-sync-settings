@@ -1,7 +1,6 @@
-export function isEmpty(object: Record<string, unknown>) {
+export function isEmpty(object: Record<string, unknown>): boolean {
 	for(const key in object) {
-		// eslint-disable-next-line no-prototype-builtins
-		if(object.hasOwnProperty(key)) {
+		if(Object.hasOwn(object, key)) {
 			return false;
 		}
 	}

@@ -1,6 +1,7 @@
+import type { Settings } from '../settings.js';
+
 import path from 'path';
 import process from 'process';
-import { type Settings } from '../settings.js';
 
 let $path: string = '';
 

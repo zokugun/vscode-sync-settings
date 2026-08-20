@@ -7,7 +7,7 @@ migrate:
     duplicate: S-duplicate
     enhancement: T-improvement
     github_actions: A-ci
-    "good first issue": M-awesome
-    "needs more info": S-needs-info
+    good first issue: M-awesome
+    needs more info: S-needs-info
     question: T-question
     stale: S-stale

@@ -1,4 +1,5 @@
 import vscode, { window } from 'vscode';
+
 import { RepositoryFactory } from '../repository-factory.js';
 import { Hook } from '../settings.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
@@ -45,7 +46,7 @@ export async function download(): Promise<void> {
 			}
 		}
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 	}
 }

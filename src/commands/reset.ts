@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+
 import { Logger } from '../utils/logger.js';
 import { reset as doReset } from '../utils/reset.js';
 
@@ -22,7 +23,7 @@ export async function reset(): Promise<void> {
 			}
 		}
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 	}
 }

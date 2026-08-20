@@ -1,39 +1,54 @@
+import type { SqlValue } from 'sql.js';
+
 import { createHash } from 'crypto';
 import os from 'os';
 import path from 'path';
 import process from 'process';
+import { isString } from '@zokugun/is-it-type';
 import { comment } from '@zokugun/jsonc-preprocessor';
 import { deepEqual } from 'fast-equals';
 import fse from 'fs-extra';
 import globby from 'globby';
-import { type SqlValue } from 'sql.js';
 import untildify from 'untildify';
 import vscode, { type WorkspaceConfiguration } from 'vscode';
 import yaml from 'yaml';
+
 import { RepositoryType } from '../repository-type.js';
 import { type ExtensionId, type ExtensionList, Repository, Resource } from '../repository.js';
 import { Hook, Settings } from '../settings.js';
+import { applyExtensionsDiff } from '../utils/apply-extensions-diff.js';
 import { arrayDiff } from '../utils/array-diff.js';
+import { canManageExtensions } from '../utils/can-manage-extensions.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
 import { disableExtension } from '../utils/disable-extension.js';
 import { EDITOR_MODE, EditorMode } from '../utils/editor.js';
 import { enableExtension } from '../utils/enable-extension.js';
 import { exists } from '../utils/exists.js';
 import { extractProperties } from '../utils/extract-properties.js';
+import { getEditorDataProfilesDataPath } from '../utils/get-editor-data-profiles-data-path.js';
+import { getEditorKeybindingsPath } from '../utils/get-editor-keybindings-path.js';
+import { getEditorMcpPath } from '../utils/get-editor-mcp-path.js';
+import { getEditorSnippetsPath } from '../utils/get-editor-snippets-path.js';
+import { getEditorStorageJsonPath } from '../utils/get-editor-storage-json-path.js';
 import { getEditorStorage } from '../utils/get-editor-storage.js';
+import { getEditorTasksPath } from '../utils/get-editor-tasks-path.js';
+import { getEditorUserSettingsPath } from '../utils/get-editor-user-settings-path.js';
 import { getExtensionDataUri } from '../utils/get-extension-data-uri.js';
+import { getIgnoredSettings } from '../utils/get-ignored-settings.js';
 import { getUserDataPath } from '../utils/get-user-data-path.js';
 import { insertProperties } from '../utils/insert-properties.js';
 import { installExtension } from '../utils/install-extension.js';
 import { isEmpty } from '../utils/is-empty.js';
+import { listEditorSnippets } from '../utils/list-editor-snippets.js';
+import { listEditorUIStateProperties } from '../utils/list-editor-ui-state-properties.js';
 import { Logger } from '../utils/logger.js';
 import { NIL_UUID } from '../utils/nil-uuid.js';
 import { preprocessJSONC } from '../utils/preprocess-jsonc.js';
-import { readStateDB } from '../utils/read-statedb.js';
 import { removeProperties } from '../utils/remove-properties.js';
 import { restartEditor, type RestartMode } from '../utils/restart.js';
 import { sortExtensionList } from '../utils/sort-extension-list.js';
 import { uninstallExtension } from '../utils/uninstall-extension.js';
+import { unsafeCast } from '../utils/unsafe-cast.js';
 import { getVSIXManager } from '../utils/vsix-manager.js';
 import { writeStateDB } from '../utils/write-statedb.js';
 
@@ -43,9 +58,9 @@ type ProfileSettings = {
 
 type ProfileSyncSettings = {
 	additionalFiles?: string[];
-	keybindingsPerPlatform?: boolean;
 	ignoredExtensions?: string[];
 	ignoredSettings?: string[];
+	keybindingsPerPlatform?: boolean;
 	resources?: Resource[];
 };
 
@@ -54,70 +69,9 @@ type SnippetsDiff = {
 };
 
 type UIStateDiff = {
-	modified: Record<string, unknown>;
+	modified: Record<string, number | string | null>;
 	removed: string[];
 };
-
-function parseExtensionList(items: Array<string | ExtensionId>): ExtensionId[] { // {{{
-	const result: ExtensionId[] = [];
-
-	if(Array.isArray(items) && items.length > 0) {
-		for(const item of items) {
-			if(typeof item === 'string') {
-				result.push({ id: item, uuid: NIL_UUID });
-			}
-			else if(typeof item === 'object' && typeof item.id === 'string') {
-				result.push(item);
-			}
-		}
-	}
-
-	return result;
-} // }}}
-
-function parseHook(fromYaml?: string | string[], fromJson?: string | string[]): string[] { // {{{
-	const result: string[] = [];
-
-	if(fromYaml) {
-		if(Array.isArray(fromYaml)) {
-			for(let cmd of fromYaml) {
-				cmd = cmd.trim();
-
-				if(cmd.length > 0) {
-					result.push(cmd);
-				}
-			}
-		}
-		else {
-			fromYaml = fromYaml.trim();
-
-			if(fromYaml.length > 0) {
-				result.push(fromYaml);
-			}
-		}
-	}
-
-	if(result.length === 0 && fromJson) {
-		if(Array.isArray(fromJson)) {
-			for(let cmd of fromJson) {
-				cmd = cmd.trim();
-
-				if(cmd.length > 0) {
-					result.push(cmd);
-				}
-			}
-		}
-		else {
-			fromYaml = fromJson.trim();
-
-			if(fromJson.length > 0) {
-				result.push(fromJson);
-			}
-		}
-	}
-
-	return result;
-} // }}}
 
 export class FileRepository extends Repository {
 	protected _hooks: Record<Hook, string[]>;
@@ -125,7 +79,7 @@ export class FileRepository extends Repository {
 	protected _restartMode: RestartMode;
 	protected _rootPath: string;
 
-	constructor(settings: Settings, rootPath?: string) { // {{{
+	public constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings);
 
 		this._rootPath = untildify(rootPath ?? settings.repository.path!);
@@ -134,17 +88,17 @@ export class FileRepository extends Repository {
 		const hooksStg = settings.hooks ?? {};
 
 		this._hooks = {
-			[Hook.PreDownload]: parseHook(hooksStg[Hook.PreDownload], hooksCfg.get('preDownload')),
 			[Hook.PostDownload]: parseHook(hooksStg[Hook.PostDownload], hooksCfg.get('postDownload')),
-			[Hook.PreUpload]: parseHook(hooksStg[Hook.PreUpload], hooksCfg.get('preUpload')),
 			[Hook.PostUpload]: parseHook(hooksStg[Hook.PostUpload], hooksCfg.get('postUpload')),
+			[Hook.PreDownload]: parseHook(hooksStg[Hook.PreDownload], hooksCfg.get('preDownload')),
+			[Hook.PreUpload]: parseHook(hooksStg[Hook.PreUpload], hooksCfg.get('preUpload')),
 		};
 
 		this._restartMode = vscode.workspace.getConfiguration('syncSettings').get<RestartMode>('restartMode') ?? 'auto';
 		this._restartBinary = vscode.workspace.getConfiguration('syncSettings').get<string>('restartBinary');
 	} // }}}
 
-	public override get type() { // {{{
+	public override get type(): RepositoryType { // {{{
 		return RepositoryType.FILE;
 	} // }}}
 
@@ -248,15 +202,6 @@ export class FileRepository extends Repository {
 		this._initialized = true;
 	} // }}}
 
-	public override async listProfiles(): Promise<string[]> { // {{{
-		this.checkInitialized();
-
-		return globby('*', {
-			cwd: path.join(this._rootPath, 'profiles'),
-			onlyDirectories: true,
-		});
-	} // }}}
-
 	public override async listProfileExtensions(profile: string = this.profile): Promise<ExtensionList> { // {{{
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileExtensionsPath(profile);
@@ -267,13 +212,13 @@ export class FileRepository extends Repository {
 			}
 
 			const data = await fse.readFile(dataPath, 'utf8');
-			const raw = yaml.parse(data) as {
+			const raw = unsafeCast<{
 				builtin?: {
 					disabled?: string[];
 				};
-				disabled: Array<string | ExtensionId>;
-				enabled: Array<string | ExtensionId>;
-			};
+				disabled: Array<ExtensionId | string>;
+				enabled: Array<ExtensionId | string>;
+			}>(yaml.parse(data));
 
 			if(!raw || typeof raw !== 'object') {
 				return {
@@ -294,33 +239,44 @@ export class FileRepository extends Repository {
 		}
 
 		const data = await fse.readFile(dataPath, 'utf8');
-		const raw = yaml.parse(data) as {
+		const raw = unsafeCast<{
 			builtin?: {
 				disabled?: string[];
 				enabled?: string[];
 			};
-			disabled: Array<string | ExtensionId>;
-			enabled: Array<string | ExtensionId>;
-			uninstall?: Array<string | ExtensionId>;
-		};
+			disabled: Array<ExtensionId | string>;
+			enabled: Array<ExtensionId | string>;
+			uninstall?: Array<ExtensionId | string>;
+		}>(yaml.parse(data));
 
-		const extensions = !raw || typeof raw !== 'object' ? {
-			disabled: [],
-			enabled: [],
-			uninstall: undefined,
-		} : {
-			builtin: {
-				disabled: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? raw.builtin.disabled.filter((value) => typeof value === 'string') : [],
-				enabled: raw.builtin?.enabled && Array.isArray(raw.builtin.enabled) ? raw.builtin.enabled.filter((value) => typeof value === 'string') : [],
-			},
-			disabled: parseExtensionList(raw.disabled),
-			enabled: parseExtensionList(raw.enabled),
-			uninstall: raw.uninstall ? parseExtensionList(raw.uninstall) : undefined,
-		};
+		const extensions = !raw || typeof raw !== 'object'
+			? {
+				disabled: [],
+				enabled: [],
+				uninstall: undefined,
+			}
+			: {
+				builtin: {
+					disabled: raw.builtin?.disabled && Array.isArray(raw.builtin.disabled) ? raw.builtin.disabled.filter((value) => typeof value === 'string') : [],
+					enabled: raw.builtin?.enabled && Array.isArray(raw.builtin.enabled) ? raw.builtin.enabled.filter((value) => typeof value === 'string') : [],
+				},
+				disabled: parseExtensionList(raw.disabled),
+				enabled: parseExtensionList(raw.enabled),
+				uninstall: raw.uninstall ? parseExtensionList(raw.uninstall) : undefined,
+			};
 
 		const ancestors = await this.listProfileExtensions(settings.extends);
 
-		return this.applyExtensionsDiff(ancestors, extensions);
+		return applyExtensionsDiff(ancestors, extensions);
+	} // }}}
+
+	public override async listProfiles(): Promise<string[]> { // {{{
+		this.checkInitialized();
+
+		return globby('*', {
+			cwd: path.join(this._rootPath, 'profiles'),
+			onlyDirectories: true,
+		});
 	} // }}}
 
 	public async loadProfileSettings(profile: string = this.profile): Promise<ProfileSettings> { // {{{
@@ -328,7 +284,7 @@ export class FileRepository extends Repository {
 
 		if(await exists(path)) {
 			const data = await fse.readFile(path, 'utf8');
-			const settings = yaml.parse(data) as ProfileSettings;
+			const settings = unsafeCast<ProfileSettings>(yaml.parse(data));
 
 			return settings ?? {};
 		}
@@ -543,81 +499,6 @@ export class FileRepository extends Repository {
 		return true;
 	} // }}}
 
-	protected applyExtensionsDiff({ disabled, enabled, builtin }: ExtensionList, diff: ExtensionList): ExtensionList { // {{{
-		for(const extension of diff.disabled) {
-			const index = enabled.findIndex((item) => item.id === extension.id);
-			if(index !== -1) {
-				enabled.splice(index, 1);
-			}
-
-			if(!disabled.some((item) => item.id === extension.id)) {
-				disabled.push(extension);
-			}
-		}
-
-		for(const extension of diff.enabled) {
-			const index = disabled.findIndex((item) => item.id === extension.id);
-			if(index !== -1) {
-				disabled.splice(index, 1);
-			}
-
-			if(!enabled.some((item) => item.id === extension.id)) {
-				enabled.push(extension);
-			}
-		}
-
-		if(diff.uninstall) {
-			for(const { id } of diff.uninstall) {
-				const index = disabled.findIndex((item) => item.id === id);
-				if(index === -1) {
-					const index = enabled.findIndex((item) => item.id === id);
-					if(index !== -1) {
-						enabled.splice(index, 1);
-					}
-				}
-				else {
-					disabled.splice(index, 1);
-				}
-			}
-		}
-
-		if(builtin) {
-			builtin.disabled ??= [];
-			builtin.enabled ??= [];
-
-			for(const id of diff.builtin!.disabled!) {
-				const index = builtin.enabled.indexOf(id);
-				if(index !== -1) {
-					builtin.enabled.splice(index, 1);
-				}
-
-				if(!builtin.disabled.includes(id)) {
-					builtin.disabled.push(id);
-				}
-			}
-
-			for(const id of diff.builtin!.enabled!) {
-				const index = builtin.disabled.indexOf(id);
-				if(index !== -1) {
-					builtin.disabled.splice(index, 1);
-				}
-
-				if(!builtin.enabled.includes(id)) {
-					builtin.enabled.push(id);
-				}
-			}
-		}
-		else {
-			builtin = diff.builtin;
-		}
-
-		return {
-			builtin,
-			disabled,
-			enabled,
-		};
-	} // }}}
-
 	protected async expandPath(file: string): Promise<string> { // {{{
 		if(file.startsWith('~/')) {
 			return path.join(os.homedir(), file.slice(2));
@@ -715,36 +596,6 @@ export class FileRepository extends Repository {
 		}
 	} // }}}
 
-	protected async listEditorUIStateProperties(userDataPath: string, extensions: ExtensionList | String[]): Promise<Record<string, SqlValue>> { // {{{
-		const keys = Array.isArray(extensions) ? extensions : [
-			...extensions.disabled.map(({ id }) => id),
-			...extensions.enabled.map(({ id }) => id),
-		];
-
-		const data = await readStateDB(userDataPath, `SELECT key, value FROM ItemTable WHERE key IN ('${keys.join('\', \'')}') OR key LIKE 'workbench.%' ORDER BY key COLLATE NOCASE ASC`);
-		if(!data) {
-			return {};
-		}
-
-		const properties: Record<string, SqlValue> = {};
-		const extensionDataPath = await getExtensionDataUri();
-		const homeDirectory = os.homedir();
-
-		for(let [key, value] of data.values) {
-			if(typeof value === 'string') {
-				value = value.replaceAll(extensionDataPath, '%%EXTENSION_DATA_PATH%%');
-
-				if(value.includes(homeDirectory)) {
-					continue;
-				}
-			}
-
-			properties[key as string] = value;
-		}
-
-		return properties;
-	} // }}}
-
 	protected async listProfileSnippetHashes(profile: string = this.profile): Promise<Record<string, string>> { // {{{
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileSnippetsPath(profile);
@@ -760,6 +611,7 @@ export class FileRepository extends Repository {
 			if(diff) {
 				for(const name of diff.removed) {
 					if(snippets[name]) {
+						// eslint-disable-next-line ts/no-dynamic-delete
 						delete snippets[name];
 					}
 				}
@@ -805,6 +657,7 @@ export class FileRepository extends Repository {
 			if(diff) {
 				for(const name of diff.removed) {
 					if(snippets[name]) {
+						// eslint-disable-next-line ts/no-dynamic-delete
 						delete snippets[name];
 					}
 				}
@@ -830,7 +683,7 @@ export class FileRepository extends Repository {
 		return snippets;
 	} // }}}
 
-	protected async listProfileUIStateProperties(profile: string = this.profile): Promise<Record<string, unknown>> { // {{{
+	protected async listProfileUIStateProperties(profile: string = this.profile): Promise<Record<string, number | string | null>> { // {{{
 		const settings = await this.loadProfileSettings(profile);
 		const dataPath = this.getProfileUIStatePath(profile);
 
@@ -841,7 +694,7 @@ export class FileRepository extends Repository {
 
 			const data = await fse.readFile(dataPath, 'utf8');
 
-			return yaml.parse(data) as Record<string, unknown>;
+			return unsafeCast<Record<string, number | string | null>>(yaml.parse(data));
 		}
 
 		const properties = await this.listProfileUIStateProperties(settings.extends);
@@ -856,6 +709,7 @@ export class FileRepository extends Repository {
 		}
 
 		for(const key of diff.removed) {
+			// eslint-disable-next-line ts/no-dynamic-delete
 			delete properties[key];
 		}
 
@@ -905,7 +759,7 @@ export class FileRepository extends Repository {
 
 		const data = await fse.readFile(path, 'utf8');
 
-		return yaml.parse(data) as ProfileSyncSettings;
+		return unsafeCast<ProfileSyncSettings>(yaml.parse(data));
 	} // }}}
 
 	protected async loadSnippetsDiff(profile: string = this.profile): Promise<SnippetsDiff | undefined> { // {{{
@@ -913,7 +767,7 @@ export class FileRepository extends Repository {
 		if(await exists(diffPath)) {
 			const data = await fse.readFile(diffPath, 'utf8');
 
-			return yaml.parse(data) as SnippetsDiff;
+			return unsafeCast<SnippetsDiff>(yaml.parse(data));
 		}
 		else {
 			return undefined;
@@ -925,7 +779,7 @@ export class FileRepository extends Repository {
 		if(await exists(diffPath)) {
 			const data = await fse.readFile(diffPath, 'utf8');
 
-			return yaml.parse(data) as UIStateDiff;
+			return unsafeCast<UIStateDiff>(yaml.parse(data));
 		}
 		else {
 			return undefined;
@@ -959,10 +813,10 @@ export class FileRepository extends Repository {
 	protected async restoreDataProfiles(userDataPath: string, syncAssociations: boolean): Promise<void> { // {{{
 		Logger.info('restore profiles');
 
-		const storagePath = this.getEditorStorageJsonPath(userDataPath);
+		const storagePath = getEditorStorageJsonPath(userDataPath);
 		const configPath = this.getProfileDataProfilesConfigPath(this.profile);
 		const dataPath = this.getProfileDataProfilesDataPath(this.profile);
-		const editorDataPath = this.getEditorDataProfilesDataPath(userDataPath);
+		const editorDataPath = getEditorDataProfilesDataPath(userDataPath);
 
 		if(!await exists(configPath)) {
 			if(await exists(editorDataPath)) {
@@ -977,7 +831,7 @@ export class FileRepository extends Repository {
 				if(result === 'Yes') {
 					await fse.remove(editorDataPath);
 
-					const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
+					const storage = unsafeCast<Record<string, unknown>>(JSON.parse(await fse.readFile(storagePath, 'utf8')));
 
 					delete storage.userDataProfiles;
 
@@ -988,8 +842,8 @@ export class FileRepository extends Repository {
 			return;
 		}
 
-		const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
-		const config = yaml.parse(await fse.readFile(configPath, 'utf8')) as Record<string, unknown>;
+		const storage = unsafeCast<Record<string, unknown>>(JSON.parse(await fse.readFile(storagePath, 'utf8')));
+		const config = unsafeCast<Record<string, unknown>>(yaml.parse(await fse.readFile(configPath, 'utf8')));
 
 		storage.userDataProfiles = config.profiles;
 
@@ -1001,7 +855,7 @@ export class FileRepository extends Repository {
 
 		await fse.emptyDir(editorDataPath);
 
-		for(const { location } of config.profiles as Array<{ location: string }>) {
+		for(const { location } of unsafeCast<Array<{ location: string }>>(config.profiles)) {
 			await fse.copy(path.join(dataPath, location), path.join(editorDataPath, location), {
 				preserveTimestamps: true,
 			});
@@ -1023,21 +877,22 @@ export class FileRepository extends Repository {
 			const uiStatePath = path.join(editorDataPath, location, 'ui-state.yml');
 
 			if(await exists(uiStatePath)) {
-				const data = yaml.parse(await fse.readFile(uiStatePath, 'utf8')) as Record<string, unknown>;
-				const values: any[] = [];
-				const args: Record<string, unknown> = {};
+				const data = unsafeCast<Record<string, SqlValue>>(yaml.parse(await fse.readFile(uiStatePath, 'utf8')));
+				const values: SqlValue[] = [];
+				const args: Record<string, SqlValue> = {};
 				let index = 0;
 
-				for(let [key, value] of Object.entries(data)) {
+				for(const [key, value] of Object.entries(data)) {
 					values.push(`'${key}', $${index}`);
 
-					if(typeof value === 'string') {
-						value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+					if(isString(value)) {
+						args[`$${index}`] = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+					}
+					else {
+						args[`$${index}`] = value;
 					}
 
-					args[`$${index}`] = value;
-
-					++index;
+					index += 1;
 				}
 
 				if(index > 0) {
@@ -1074,7 +929,7 @@ export class FileRepository extends Repository {
 
 		const { builtin, disabled, enabled, uninstall } = await this.listProfileExtensions();
 
-		if(await this.canManageExtensions()) {
+		if(await canManageExtensions()) {
 			if(local) {
 				for(const { id, version } of disabled) {
 					if(!installed[id]) {
@@ -1190,10 +1045,10 @@ export class FileRepository extends Repository {
 						let data: Record<string, string>;
 
 						if(await exists(backendPath)) {
-							data = JSON.parse(await fse.readFile(backendPath, 'utf8')) as Record<string, string>;
+							data = unsafeCast<Record<string, string>>(JSON.parse(await fse.readFile(backendPath, 'utf8')));
 
 							if(data['installedPlugins.disabledPlugins']) {
-								const disabledPlugins = JSON.parse(data['installedPlugins.disabledPlugins']) as string[];
+								const disabledPlugins = unsafeCast<string[]>(JSON.parse(data['installedPlugins.disabledPlugins']));
 
 								for(const { id } of toDisable) {
 									if(!disabledPlugins.includes(id)) {
@@ -1239,7 +1094,7 @@ export class FileRepository extends Repository {
 		Logger.info('restore keybindings');
 
 		const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
-		const dataPath = this.getEditorKeybindingsPath(userDataPath);
+		const dataPath = getEditorKeybindingsPath(userDataPath);
 		const keybindingsPerPlatform = syncSettings.keybindingsPerPlatform ?? true;
 
 		let data = await this.getProfileKeybindings(ancestorProfile, keybindingsPerPlatform);
@@ -1257,7 +1112,7 @@ export class FileRepository extends Repository {
 	protected async restoreMcp(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore mcp');
 
-		const dataPath = this.getEditorMcpPath(userDataPath);
+		const dataPath = getEditorMcpPath(userDataPath);
 		let data = await this.getProfileMcp(this.profile);
 
 		if(data) {
@@ -1283,7 +1138,7 @@ export class FileRepository extends Repository {
 	protected async restoreSnippets(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore snippets');
 
-		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
+		const snippetsPath = getEditorSnippetsPath(userDataPath);
 
 		await fse.emptyDir(snippetsPath);
 
@@ -1308,7 +1163,7 @@ export class FileRepository extends Repository {
 	protected async restoreTasks(userDataPath: string): Promise<void> { // {{{
 		Logger.info('restore tasks');
 
-		const dataPath = this.getEditorTasksPath(userDataPath);
+		const dataPath = getEditorTasksPath(userDataPath);
 		let data = await this.getProfileTasks(this.profile);
 
 		if(data) {
@@ -1336,20 +1191,21 @@ export class FileRepository extends Repository {
 
 		const extensionDataPath = await getExtensionDataUri();
 		const profile = await this.listProfileUIStateProperties();
-		const values: any[] = [];
-		const args: Record<string, unknown> = {};
+		const values: SqlValue[] = [];
+		const args: Record<string, SqlValue> = {};
 		let index = 0;
 
-		for(let [key, value] of Object.entries(profile)) {
+		for(const [key, value] of Object.entries(profile)) {
 			values.push(`'${key}', $${index}`);
 
-			if(typeof value === 'string') {
-				value = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+			if(isString(value)) {
+				args[`$${index}`] = value.replaceAll('%%EXTENSION_DATA_PATH%%', extensionDataPath);
+			}
+			else {
+				args[`$${index}`] = value;
 			}
 
-			args[`$${index}`] = value;
-
-			++index;
+			index += 1;
 		}
 
 		if(index > 0) {
@@ -1362,7 +1218,7 @@ export class FileRepository extends Repository {
 
 		let extracted = '';
 
-		const dataPath = this.getEditorUserSettingsPath(userDataPath);
+		const dataPath = getEditorUserSettingsPath(userDataPath);
 		if(await exists(dataPath)) {
 			const syncSettings = await this.loadProfileSyncSettings(ancestorProfile);
 			const ignoredSettings = syncSettings.ignoredSettings ?? [];
@@ -1388,7 +1244,7 @@ export class FileRepository extends Repository {
 	} // }}}
 
 	protected async saveProfileSyncSettings(config: WorkspaceConfiguration): Promise<void> { // {{{
-		const settings: Record<string, any> = {};
+		const settings: Record<string, unknown> = {};
 
 		let ancestors: ProfileSyncSettings | undefined;
 		let length = 0;
@@ -1401,11 +1257,11 @@ export class FileRepository extends Repository {
 		for(const property of ['keybindingsPerPlatform', 'ignoredExtensions', 'ignoredSettings', 'resources', 'additionalFiles']) {
 			const data = config.inspect(property);
 
-			if(data && data.globalValue !== undefined) {
+			if(data?.globalValue !== undefined) {
 				settings[property] = data.globalValue;
 
 				if(!ancestors || !deepEqual(ancestors[property], data.globalValue)) {
-					++length;
+					length += 1;
 				}
 			}
 		}
@@ -1515,14 +1371,14 @@ export class FileRepository extends Repository {
 	protected async serializeDataProfiles(userDataPath: string, syncAssociations: boolean, extensions: ExtensionList): Promise<void> { // {{{
 		Logger.info('serialize profiles');
 
-		const storagePath = this.getEditorStorageJsonPath(userDataPath);
-		const storage = JSON.parse(await fse.readFile(storagePath, 'utf8')) as Record<string, unknown>;
+		const storagePath = getEditorStorageJsonPath(userDataPath);
+		const storage = unsafeCast<Record<string, unknown>>(JSON.parse(await fse.readFile(storagePath, 'utf8')));
 		const configPath = this.getProfileDataProfilesConfigPath(this.profile);
 		const dataPath = this.getProfileDataProfilesDataPath(this.profile);
-		const editorDataPath = this.getEditorDataProfilesDataPath(userDataPath);
+		const editorDataPath = getEditorDataProfilesDataPath(userDataPath);
 
 		if(Array.isArray(storage.userDataProfiles) && storage.userDataProfiles.length > 0) {
-			const config: { profiles: unknown; associations?: unknown } = {
+			const config: { associations?: unknown; profiles: unknown } = {
 				profiles: storage.userDataProfiles,
 			};
 
@@ -1539,7 +1395,7 @@ export class FileRepository extends Repository {
 
 			await fse.emptyDir(dataPath);
 
-			for(const { location, useDefaultFlags } of storage.userDataProfiles as Array<{ location: string; useDefaultFlags?: { extensions?: boolean } }>) {
+			for(const { location, useDefaultFlags } of unsafeCast<Array<{ location: string; useDefaultFlags?: { extensions?: boolean } }>>(storage.userDataProfiles)) {
 				const source = path.join(editorDataPath, location);
 				const destination = path.join(dataPath, location);
 
@@ -1571,15 +1427,15 @@ export class FileRepository extends Repository {
 					let properties: Record<string, SqlValue>;
 
 					if(useDefaultFlags?.extensions) {
-						properties = await this.listEditorUIStateProperties(uiStatePath, extensions);
+						properties = await listEditorUIStateProperties(uiStatePath, extensions);
 					}
 					else {
 						const extensionPath = path.join(source, 'extensions.json');
 						if(await exists(extensionPath)) {
-							const data = JSON.parse(await fse.readFile(extensionPath, 'utf8')) as Array<{ identifier: { id: string } }>;
+							const data = unsafeCast<Array<{ identifier: { id: string } }>>(JSON.parse(await fse.readFile(extensionPath, 'utf8')));
 							const extensions = data.map(({ identifier }) => identifier.id);
 
-							properties = await this.listEditorUIStateProperties(uiStatePath, extensions);
+							properties = await listEditorUIStateProperties(uiStatePath, extensions);
 						}
 						else {
 							properties = {};
@@ -1633,7 +1489,7 @@ export class FileRepository extends Repository {
 			}
 
 			if(builtinDisabled.length > 0 || builtinEnabled.length > 0) {
-				const builtin: Record<string, any> = {};
+				const builtin: Record<string, unknown> = {};
 
 				if(builtinDisabled.length > 0) {
 					builtin.disabled = builtinDisabled;
@@ -1668,7 +1524,7 @@ export class FileRepository extends Repository {
 
 		let editor: string | undefined;
 
-		const editorPath = this.getEditorKeybindingsPath(userDataPath);
+		const editorPath = getEditorKeybindingsPath(userDataPath);
 		if(await exists(editorPath)) {
 			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(editor);
@@ -1692,7 +1548,7 @@ export class FileRepository extends Repository {
 
 		let editor: string | undefined;
 
-		const editorPath = this.getEditorMcpPath(userDataPath);
+		const editorPath = getEditorMcpPath(userDataPath);
 		if(await exists(editorPath)) {
 			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(editor);
@@ -1714,8 +1570,8 @@ export class FileRepository extends Repository {
 	protected async serializeSnippets(profileSettings: ProfileSettings, userDataPath: string): Promise<void> { // {{{
 		Logger.info('serialize snippets');
 
-		const snippetsPath = this.getEditorSnippetsPath(userDataPath);
-		const editor: string[] = await this.listEditorSnippets(userDataPath);
+		const snippetsPath = getEditorSnippetsPath(userDataPath);
+		const editor: string[] = await listEditorSnippets(userDataPath);
 
 		if(profileSettings.extends) {
 			const profile = await this.listProfileSnippetHashes(profileSettings.extends);
@@ -1773,7 +1629,7 @@ export class FileRepository extends Repository {
 
 		let editor: string | undefined;
 
-		const editorPath = this.getEditorTasksPath(userDataPath);
+		const editorPath = getEditorTasksPath(userDataPath);
 		if(await exists(editorPath)) {
 			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(editor);
@@ -1795,13 +1651,13 @@ export class FileRepository extends Repository {
 	protected async serializeUIState(profileSettings: ProfileSettings, userDataPath: string, extensions: ExtensionList): Promise<void> { // {{{
 		Logger.info('serialize UI state');
 
-		const editor = await this.listEditorUIStateProperties(userDataPath, extensions);
+		const editor = await listEditorUIStateProperties(userDataPath, extensions);
 
 		if(profileSettings.extends) {
 			const profile = await this.listProfileUIStateProperties(profileSettings.extends);
 
 			const removed = arrayDiff(Object.keys(profile), Object.keys(editor));
-			const modified: Record<string, unknown> = {};
+			const modified: Record<string, number | string | null> = {};
 
 			for(const [key, value] of Object.entries(editor)) {
 				if(value !== profile[key]) {
@@ -1826,9 +1682,9 @@ export class FileRepository extends Repository {
 
 		let editor: string | undefined;
 
-		const editorPath = this.getEditorUserSettingsPath(userDataPath);
+		const editorPath = getEditorUserSettingsPath(userDataPath);
 		if(await exists(editorPath)) {
-			const ignoredSettings = this.getIgnoredSettings(config);
+			const ignoredSettings = getIgnoredSettings(config);
 
 			editor = await fse.readFile(editorPath, 'utf8');
 			editor = comment(removeProperties(editor, ignoredSettings));
@@ -1862,12 +1718,12 @@ export class FileRepository extends Repository {
 
 		const extensions = await this.listProfileExtensions();
 
-		if((extensions.disabled.length > 0 || extensions.builtin) && !(await this.canManageExtensions())) {
+		if((extensions.disabled.length > 0 || extensions.builtin) && !(await canManageExtensions())) {
 			return true;
 		}
 
 		if(EDITOR_MODE === EditorMode.VSCode) {
-			const editor = await this.listEditorUIStateProperties(userDataPath, extensions);
+			const editor = await listEditorUIStateProperties(userDataPath, extensions);
 			const profile = await this.listProfileUIStateProperties();
 
 			for(const [key, value] of Object.entries(profile)) {
@@ -1880,3 +1736,64 @@ export class FileRepository extends Repository {
 		return false;
 	} // }}}
 }
+
+function parseExtensionList(items: Array<ExtensionId | string>): ExtensionId[] { // {{{
+	const result: ExtensionId[] = [];
+
+	if(Array.isArray(items) && items.length > 0) {
+		for(const item of items) {
+			if(typeof item === 'string') {
+				result.push({ id: item, uuid: NIL_UUID });
+			}
+			else if(typeof item === 'object' && typeof item.id === 'string') {
+				result.push(item);
+			}
+		}
+	}
+
+	return result;
+} // }}}
+
+function parseHook(fromYaml?: string | string[], fromJson?: string | string[]): string[] { // {{{
+	const result: string[] = [];
+
+	if(fromYaml) {
+		if(Array.isArray(fromYaml)) {
+			for(let cmd of fromYaml) {
+				cmd = cmd.trim();
+
+				if(cmd.length > 0) {
+					result.push(cmd);
+				}
+			}
+		}
+		else {
+			const trimmed = fromYaml.trim();
+
+			if(trimmed.length > 0) {
+				result.push(trimmed);
+			}
+		}
+	}
+
+	if(result.length === 0 && fromJson) {
+		if(Array.isArray(fromJson)) {
+			for(let cmd of fromJson) {
+				cmd = cmd.trim();
+
+				if(cmd.length > 0) {
+					result.push(cmd);
+				}
+			}
+		}
+		else {
+			const trimmed = fromJson.trim();
+
+			if(trimmed.length > 0) {
+				result.push(trimmed);
+			}
+		}
+	}
+
+	return result;
+} // }}}

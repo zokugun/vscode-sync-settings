@@ -4,7 +4,7 @@ export function arrayDiff<T>(original: T[], modified: T[], hasher?: (data: T) =>
 		return original.filter((element) => !rest.has(hasher(element)));
 	}
 	else {
-		const rest = new Set<any>(modified);
+		const rest = new Set<unknown>(modified);
 		return original.filter((element) => !rest.has(element));
 	}
 }

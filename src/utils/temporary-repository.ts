@@ -1,8 +1,10 @@
+import type { Settings } from '../settings.js';
+
 import { createHash } from 'crypto';
 import fs from 'fs/promises';
 import fse from 'fs-extra';
 import { Uri } from 'vscode';
-import { type Settings } from '../settings.js';
+
 import { exists } from './exists.js';
 
 export namespace TemporaryRepository {

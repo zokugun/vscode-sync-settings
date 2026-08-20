@@ -1,8 +1,14 @@
+/* eslint-disable no-console */
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 
+const EXIT_SUCCESS = 0;
+const EXIT_FAILURE = 1;
+
 // Get version from command line argument (with 'v' prefix)
-const version = process.argv[2];
+const [,, version] = process.argv;
 
 try {
 	const changelog = fs.readFileSync(path.join(process.cwd(), 'CHANGELOG.md'), 'utf8');
@@ -14,17 +20,20 @@ try {
 	const match = changelog.match(versionRegex);
 
 	if(match) {
+		const [header] = match;
+
 		// Remove the version header and trim whitespace
-		const notes = match[0].replace(/^## v\d+\.\d+\.\d+ \| \d{4}-\d{2}-\d{2}\n/, '').trim();
+		const notes = header.replace(/^## v\d+\.\d+\.\d+ \| \d{4}-\d{2}-\d{2}\n/, '').trim();
+
 		console.log(notes);
-		process.exit(0);
+		process.exit(EXIT_SUCCESS);
 	}
 	else {
 		console.error(`No changelog entry found for version ${version}`);
-		process.exit(1);
+		process.exit(EXIT_FAILURE);
 	}
 }
 catch(error) {
 	console.error('Error reading CHANGELOG.md:', error);
-	process.exit(1);
+	process.exit(EXIT_FAILURE);
 }

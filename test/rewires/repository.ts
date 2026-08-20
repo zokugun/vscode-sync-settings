@@ -1,6 +1,7 @@
 import os from 'os';
 import path from 'path';
 import rewiremock from 'rewiremock';
+
 import { fs } from '../mocks/fs.js';
 import { process, vscode } from '../mocks/vscode.js';
 
@@ -28,18 +29,14 @@ rewiremock('os').with({
 
 rewiremock.enable();
 
-/* eslint-disable import/first, import/order */
 import { Settings } from '../../src/settings.js';
 import { Logger } from '../../src/utils/logger.js';
 import { RepositoryFactory } from '../../src/repository-factory.js';
-/* eslint-enable import/first, import/order */
 
 rewiremock.disable();
 
-/* eslint-disable unicorn/prefer-export-from */
 export {
 	Logger,
 	RepositoryFactory,
 	Settings,
 };
-/* eslint-enable unicorn/prefer-export-from */

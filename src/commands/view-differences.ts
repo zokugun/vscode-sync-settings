@@ -2,6 +2,7 @@ import os from 'os';
 import path from 'path';
 import fse from 'fs-extra';
 import vscode, { Uri } from 'vscode';
+
 import { FileRepository } from '../repositories/file.js';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Resource } from '../repository.js';

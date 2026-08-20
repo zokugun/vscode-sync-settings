@@ -4,16 +4,19 @@ Crons
 `syncSettings.crons` allows you to schedule the commands `download`, `review` or `upload`.
 
 ```jsonc
-"syncSettings.crons": {
-    "review": "0 * * * *",      // every hour
-    "download": "0 9 * * *",    // at 9AM, every day
-    "upload": "0 17 * * *"      // at 5PM, every day
+{
+   "syncSettings.crons": {
+      "review": "0 * * * *",      // every hour
+      "download": "0 9 * * *",    // at 9AM, every day
+      "upload": "0 17 * * *",     // at 5PM, every day
+   },
 }
 ```
 
 It uses [the cron expression](https://en.wikipedia.org/wiki/Cron) to represent the time to execute the command.
 
-## How to build a cron expression
+How to Build a Cron Expression
+------------------------------
 
 The cron expression has five fields separated by spaces:
 

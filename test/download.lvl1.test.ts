@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
 import yaml from 'yaml';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { Logger, RepositoryFactory, Settings } from './rewires/repository.js';

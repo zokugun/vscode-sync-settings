@@ -1,7 +1,7 @@
 JSONC Attributes
 ================
 
-Upload/Download
+Upload/download
 ---------------
 
 ### Upload
@@ -9,18 +9,20 @@ Upload/Download
 On upload, all identified blocks will be commented
 
 So if locally, you have:
-```
+
+```jsonc
 {
-    // #enable(os="linux")
-    "key": "foobar"
+   // #enable(os="linux")
+   "key": "foobar",
 }
 ```
 
 The following will be uploaded to the repository:
-```
+
+```jsonc
 {
-    // #enable(os="linux")
-    // "key": "foobar"
+   // #enable(os="linux")
+   // "key": "foobar"
 }
 ```
 
@@ -48,10 +50,10 @@ Blocks
 
 ### `enable`
 
-```
+```jsonc
 {
-    // #enable(os="linux")
-    // "key": "foobar"
+   // #enable(os="linux")
+   // "key": "foobar"
 }
 ```
 
@@ -59,17 +61,17 @@ If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented.
 
 ### `if/else`
 
-```
+```jsonc
 {
-    // #if(os="mac")
-    // "key": "foo"
-    // #elif(os="windows", host="host1"|"host2")
-    // "key": "bar"
-    // #elif(version>="1.59.0")
-    // "key": "qux"
-    // #else
-    // "key": "baz"
-    // #endif
+   // #if(os="mac")
+   // "key": "foo"
+   // #elif(os="windows", host="host1"|"host2")
+   // "key": "bar"
+   // #elif(version>="1.59.0")
+   // "key": "qux"
+   // #else
+   // "key": "baz"
+   // #endif
 }
 ```
 
@@ -80,17 +82,17 @@ If `os` is equal to `linux`, the block `"key": "foobar"` will be uncommented.
 
 The property won't be uploaded and is kept when downloading a new `settings.json`.
 
-```
+```jsonc
 {
-    // #ignore
-    "key": "foobar"
+   // #ignore
+   "key": "foobar",
 }
 ```
 
 Condition
 ---------
 
-```
+```ebnf
 condition = expression ("," expression)*
 expression = (unary-operator identifier) | (identifier operator values)
 identifier = \w+
@@ -101,4 +103,3 @@ values = value ("|" value)*
 
 `value` is a double quote string.<br />
 The operators `<`, `<=`, `>`, `>=` are only working for the identifier `version`.
-

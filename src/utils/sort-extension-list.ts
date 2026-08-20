@@ -1,4 +1,4 @@
-import type { ExtensionList, ExtensionId } from '../repository.js';
+import type { ExtensionId, ExtensionList } from '../repository.js';
 
 /**
  * Sorts an ExtensionList by extension IDs in ascending order.

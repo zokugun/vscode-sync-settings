@@ -8,8 +8,7 @@ When running on the server side (`workspace`), only the extensions available on 
 
 It's recommanded to use a new profile for the server side (for example: `profile: remote`).
 
-### Useful settings in `settings.json`
-`remote.extensionKind`
+### Useful Settings in `settings.json`
 
-- `remote.extensionKind`: https://code.visualstudio.com/api/advanced-topics/remote-extensions#common-problems
-- `remote.SSH.defaultExtensions`: https://code.visualstudio.com/docs/remote/ssh#_always-installed-extensions
+- `remote.extensionKind`: [read more on Visual Studio Code docs](https://code.visualstudio.com/api/advanced-topics/remote-extensions#common-problems)
+- `remote.SSH.defaultExtensions`: [read more on Visual Studio Code docs](https://code.visualstudio.com/docs/remote/ssh#_always-installed-extensions)

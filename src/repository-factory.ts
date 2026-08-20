@@ -1,3 +1,5 @@
+import type { Repository } from './repository.js';
+
 import { DummyRepository } from './repositories/dummy.js';
 import { FileRepository } from './repositories/file.js';
 import { LocalGitRepository } from './repositories/local-git.js';
@@ -5,13 +7,12 @@ import { RemoteGitRepository } from './repositories/remote-git.js';
 import { RsyncRepository } from './repositories/rsync.js';
 import { WebDAVRepository } from './repositories/webdav.js';
 import { RepositoryType } from './repository-type.js';
-import { type Repository } from './repository.js';
 import { Settings } from './settings.js';
 import { Logger } from './utils/logger.js';
 
 let $instance: Repository | undefined;
 
-async function create(settings: Settings): Promise<void> { // {{{
+async function create(settings: Settings): Promise<Repository> { // {{{
 	$instance = undefined;
 
 	if(settings.profile.length === 0) {
@@ -47,7 +48,9 @@ async function create(settings: Settings): Promise<void> { // {{{
 		throw new Error(`The repository has an unknown type: ${settings.repository.type}`);
 	}
 
-	return $instance.setProfile(settings.profile);
+	await $instance.setProfile(settings.profile);
+
+	return $instance;
 } // }}}
 
 export namespace RepositoryFactory {
@@ -58,9 +61,7 @@ export namespace RepositoryFactory {
 
 		const settings = Settings.get();
 
-		await create(settings);
-
-		return $instance!;
+		return create(settings);
 	} // }}}
 
 	export async function isDummy(): Promise<boolean> { // {{{

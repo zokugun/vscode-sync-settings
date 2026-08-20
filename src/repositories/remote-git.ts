@@ -1,17 +1,19 @@
+import type { Settings } from '../settings.js';
+
 import fs from 'fs/promises';
 import fse from 'fs-extra';
 import { ResetMode } from 'simple-git';
-import { type Settings } from '../settings.js';
+
+import { type CommitType, LocalGitRepository } from './local-git.js';
 import { exists } from '../utils/exists.js';
 import { Logger } from '../utils/logger.js';
 import { TemporaryRepository } from '../utils/temporary-repository.js';
-import { type CommitType, LocalGitRepository } from './local-git.js';
 
 export class RemoteGitRepository extends LocalGitRepository {
-	protected _remoteUrl: string;
 	protected _pushRegex: RegExp;
+	protected _remoteUrl: string;
 
-	constructor(settings: Settings) { // {{{
+	public constructor(settings: Settings) { // {{{
 		super(settings, TemporaryRepository.getPath(settings));
 
 		this._remoteUrl = settings.repository.url!;
@@ -44,14 +46,14 @@ export class RemoteGitRepository extends LocalGitRepository {
 					const status = await this._git.remote(['show', 'origin']);
 
 					if(!status) {
-						return this.createLocalRepository(true);
+						return await this.createLocalRepository(true);
 					}
 
 					let match: RegExpMatchArray | null;
 
 					// verify origin
 					if((match = /Fetch URL: (\S*)/.exec(status)) && match[1] !== this._remoteUrl) {
-						return this.createLocalRepository(true);
+						return await this.createLocalRepository(true);
 					}
 
 					await this._git.fetch();
@@ -59,7 +61,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 					// switch branch is needed
 					const branch = await this._git.branchLocal();
 					if(branch.current !== this._branch) {
-						return this.createLocalRepository(true);
+						return await this.createLocalRepository(true);
 					}
 
 					// pull
@@ -78,13 +80,13 @@ export class RemoteGitRepository extends LocalGitRepository {
 					return true;
 				}
 				else {
-					return this.createLocalRepository(true);
+					return await this.createLocalRepository(true);
 				}
 			}
 
-			return this.createLocalRepository(false);
+			return await this.createLocalRepository(false);
 		}
-		catch (error: unknown) {
+		catch(error: unknown) {
 			Logger.error(error);
 
 			return false;
@@ -128,7 +130,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 
 			return true;
 		}
-		catch (error: unknown) {
+		catch(error: unknown) {
 			Logger.error(error);
 
 			return false;
@@ -153,7 +155,7 @@ export class RemoteGitRepository extends LocalGitRepository {
 
 			return true;
 		}
-		catch (error: unknown) {
+		catch(error: unknown) {
 			Logger.error(error);
 
 			return false;

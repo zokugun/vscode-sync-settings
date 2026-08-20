@@ -8,7 +8,8 @@ rules:
   type-enum:
     - 2
     - always
-    - - build
+    -
+      - build
       - ci
       - docs
       - enhance

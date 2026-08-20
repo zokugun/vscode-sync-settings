@@ -1,11 +1,9 @@
-import arrayDiffer from 'array-differ';
-import vscode from 'vscode';
-import { RepositoryFactory } from '../repository-factory.js';
 import type { ExtensionId } from '../repository.js';
 
-function id(value: string | ExtensionId): string {
-	return typeof value === 'string' ? value : value.id;
-}
+import arrayDiffer from 'array-differ';
+import vscode from 'vscode';
+
+import { RepositoryFactory } from '../repository-factory.js';
 
 export async function listMissingExtensions(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {
@@ -34,4 +32,8 @@ ${arrayDiffer(profile.disabled.map(id), editor.disabled.map(id)).join('\n')}
 	});
 
 	await vscode.window.showTextDocument(document);
+}
+
+function id(value: ExtensionId | string): string {
+	return typeof value === 'string' ? value : value.id;
 }

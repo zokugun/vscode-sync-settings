@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+
 import { Logger } from './logger.js';
 
 export async function enableExtension(id: string): Promise<boolean> {
@@ -9,7 +10,7 @@ export async function enableExtension(id: string): Promise<boolean> {
 
 		return true;
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 
 		return false;

@@ -2,12 +2,14 @@ import fs from 'fs/promises';
 import path from 'path';
 import globby from 'globby';
 import vscode from 'vscode';
-import { Settings } from '../settings.js';
+
 import { exists } from './exists.js';
 import { getExtensionDataPath } from './get-extension-data-path.js';
 import { getUserDataPath } from './get-user-data-path.js';
 import { Logger } from './logger.js';
 import { uninstallExtension } from './uninstall-extension.js';
+import { unsafeCast } from './unsafe-cast.js';
+import { Settings } from '../settings.js';
 
 export async function reset(): Promise<void> { // {{{
 	Logger.info('removing all settings and extensions');
@@ -24,7 +26,7 @@ async function resetExtensions(settings: Settings): Promise<void> { // {{{
 	const extensionDataPath = await getExtensionDataPath();
 
 	const obsoletePath = path.join(extensionDataPath, '.obsolete');
-	const obsolete = await exists(obsoletePath) ? JSON.parse(await fs.readFile(obsoletePath, 'utf8')) as Record<string, boolean> : {};
+	const obsolete = await exists(obsoletePath) ? unsafeCast<Record<string, boolean>>(JSON.parse(await fs.readFile(obsoletePath, 'utf8'))) : {};
 
 	const extensions = await globby('*', {
 		cwd: extensionDataPath,
@@ -41,7 +43,7 @@ async function resetExtensions(settings: Settings): Promise<void> { // {{{
 			continue;
 		}
 
-		const id = match[1];
+		const [, id] = match;
 
 		if(id !== settings.extensionId) {
 			await uninstallExtension(id);

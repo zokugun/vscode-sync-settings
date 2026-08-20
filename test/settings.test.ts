@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { Settings } from './rewires/settings.js';
@@ -24,8 +25,8 @@ describe('settings', () => {
 
 		expect(settings.profile).to.eql('main');
 		expect(settings.repository).to.eql({
-			type: 'file',
 			path: '/repository',
+			type: 'file',
 		});
 	}); // }}}
 });

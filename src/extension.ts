@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import pkg from '../package.json';
+
 import { createProfile } from './commands/create-profile.js';
 import { deleteProfile } from './commands/delete-profile.js';
 import { download } from './commands/download.js';
@@ -17,41 +17,14 @@ import { viewDifferences } from './commands/view-differences.js';
 import { setupCrons } from './crons.js';
 import { RepositoryFactory } from './repository-factory.js';
 import { Settings } from './settings.js';
-import { ThrottledDelayer } from './utils/async.js';
+import { ThrottledDelayer } from './utils/async/throttled-delayer.js';
 import { EXTENSION_NAME } from './utils/constants.js';
 import { detectEditor } from './utils/editor.js';
 import { Logger } from './utils/logger.js';
 import { setupSettings } from './utils/settings.js';
+import pkg from '../package.json';
 
 const VERSION_KEY = 'version';
-
-async function showWhatsNewMessage(version: string) { // {{{
-	const actions: vscode.MessageItem[] = [{
-		title: 'Homepage',
-	}, {
-		title: 'Release Notes',
-	}];
-
-	const result = await vscode.window.showInformationMessage(
-		`${EXTENSION_NAME} has been updated to v${version} — check out what's new!`,
-		...actions,
-	);
-
-	if(result !== null) {
-		if(result === actions[0]) {
-			await vscode.commands.executeCommand(
-				'vscode.open',
-				vscode.Uri.parse(`${pkg.homepage}`),
-			);
-		}
-		else if(result === actions[1]) {
-			await vscode.commands.executeCommand(
-				'vscode.open',
-				vscode.Uri.parse(`${pkg.homepage}/blob/master/CHANGELOG.md`),
-			);
-		}
-	}
-} // }}}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	await setupSettings(context);
@@ -120,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 			try {
 				await RepositoryFactory.reload();
 			}
-			catch (error: unknown) {
+			catch(error: unknown) {
 				Logger.error(error);
 			}
 		});
@@ -145,3 +118,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 	context.subscriptions.push(statusBarItem)
 }
+
+async function showWhatsNewMessage(version: string): Promise<void> { // {{{
+	const actions: vscode.MessageItem[] = [{
+		title: 'Homepage',
+	}, {
+		title: 'Release Notes',
+	}];
+
+	const result = await vscode.window.showInformationMessage(
+		`${EXTENSION_NAME} has been updated to v${version} — check out what's new!`,
+		...actions,
+	);
+
+	if(result !== null) {
+		if(result === actions[0]) {
+			await vscode.commands.executeCommand(
+				'vscode.open',
+				vscode.Uri.parse(pkg.homepage),
+			);
+		}
+		else if(result === actions[1]) {
+			await vscode.commands.executeCommand(
+				'vscode.open',
+				vscode.Uri.parse(`${pkg.homepage}/blob/master/CHANGELOG.md`),
+			);
+		}
+	}
+} // }}}

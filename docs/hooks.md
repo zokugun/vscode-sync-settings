@@ -9,10 +9,10 @@ By default, the terminal will work in the repository or its local copy if remote
 
 ```jsonc
 {
-    "syncSettings.hooks.preDownload": (string | string[]),
-    "syncSettings.hooks.postDownload": (string | string[]),
-    "syncSettings.hooks.preUpload": (string | string[]),
-    "syncSettings.hooks.postUpload": (string | string[]),
+   "syncSettings.hooks.preDownload": "<string | string[]>",
+   "syncSettings.hooks.postDownload": "<string | string[]>",
+   "syncSettings.hooks.preUpload": "<string | string[]>",
+   "syncSettings.hooks.postUpload": "<string | string[]>",
 }
 ```
 
@@ -22,8 +22,8 @@ Recommanded, shareable between hosts.
 
 ```yaml
 hooks:
-  pre-download: (string | string[])
-  post-download: (string | string[])
-  pre-upload: (string | string[])
-  post-upload: (string | string[])
+   pre-download: (string | string[])
+   post-download: (string | string[])
+   pre-upload: (string | string[])
+   post-upload: (string | string[])
 ```

@@ -1,7 +1,6 @@
 {
 	"debug.onTaskErrors": "debugAnyway",
-	"files.exclude": {
-	},
+	"files.exclude": {},
 	"search.exclude": {
 		"lib/**": true,
 		"out/**": true,

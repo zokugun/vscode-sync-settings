@@ -1,5 +1,5 @@
 import detectNewline from 'detect-newline';
-import { visit } from 'jsonc-parser';
+import { type JSONVisitor, visit } from 'jsonc-parser';
 
 export function extractProperties(text: string, properties: string[]): string {
 	if(properties.length === 0) {
@@ -13,57 +13,61 @@ export function extractProperties(text: string, properties: string[]): string {
 	let level = -1;
 	let match = false;
 
-	const visitor = {
-		onArrayBegin(offset: number, length: number) {
+	const visitor: JSONVisitor = {
+		onArrayBegin(offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
-			++level;
+			level += 1;
 		},
 		onArrayEnd() {
-			--level;
+			level -= 1;
 		},
-		onComment(offset: number, length: number) {
+		onComment(offset, length) {
 			if(/^\/\/\s*#ignore/.test(text.slice(offset, offset + length))) {
-				let c;
-				while((c = text.codePointAt(offset - 1)) === 9 || c === 32) {
-					--offset;
+				let from = offset;
+				let c: number | undefined;
+
+				while((c = text.codePointAt(from - 1)) === 9 || c === 32) {
+					from -= 1;
 				}
 
-				matches.unshift({ from: offset, until: offset + length });
+				matches.unshift({ from, until: from + length });
 
 				match = true;
 			}
 		},
-		onLiteralValue(_: any, offset: number, length: number) {
+		onLiteralValue(_value, offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 		},
-		onObjectBegin(offset: number, length: number) {
+		onObjectBegin(offset, length) {
 			if(level === 0 && match) {
 				matches[0].until = offset + length;
 			}
 
-			++level;
-		},
-		onObjectProperty(name: string, offset: number, length: number) {
-			if(level === 0 && properties.includes(name)) {
-				let c;
-				while((c = text.codePointAt(offset - 1)) === 9 || c === 32) {
-					--offset;
-				}
-
-				matches.unshift({ from: offset, until: offset + length });
-
-				match = true;
-			}
+			level += 1;
 		},
 		onObjectEnd() {
-			--level;
+			level -= 1;
 		},
-		onSeparator(character: string, offset: number, length: number) {
+		onObjectProperty(name, offset, length) {
+			if(level === 0 && properties.includes(name)) {
+				let from = offset;
+				let c: number | undefined;
+
+				while((c = text.codePointAt(from - 1)) === 9 || c === 32) {
+					from -= 1;
+				}
+
+				matches.unshift({ from, until: from + length });
+
+				match = true;
+			}
+		},
+		onSeparator(character, offset, length) {
 			if(level === 0 && match && character === ',') {
 				matches[0].until = offset + length;
 

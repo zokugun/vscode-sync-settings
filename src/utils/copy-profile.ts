@@ -1,10 +1,11 @@
+import type { FileRepository } from '../repositories/file.js';
+
 import path from 'path';
 import fse from 'fs-extra';
-import { type FileRepository } from '../repositories/file.js';
 
 export async function copyProfile(profile: string | null, originalDir: string, temporaryDir: string, repository: FileRepository): Promise<void> { // {{{
 	if(profile === null) {
-		profile = repository.profile;
+		({ profile } = repository);
 
 		const profilePath = path.join(originalDir, profile, 'profile.yml');
 

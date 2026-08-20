@@ -6,6 +6,7 @@
 
 		/* Modules */
 		"module": "commonjs",							/* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */
+
 		/* Basic Options */
 		// "allowJs": false,							/* Allow javascript files to be compiled. */
 		// "checkJs": false,							/* Report errors in '.js' files. */
@@ -27,7 +28,7 @@
 		"lib": [										/* Specify library files to be included in the compilation. */
 			"ES2021",
 			"DOM",
-			"ES2022"
+			"ES2022",
 		],
 		// "allowJs": false,							/* Allow javascript files to be compiled. */
 		// "checkJs": false,							/* Report errors in '.js' files. */
@@ -49,19 +50,19 @@
 
 
 		/* Strict Type-Checking Options */
+		"alwaysStrict": true,							/* Parse in strict mode and emit "use strict" for each source file. */
 		"strict": true,									/* Enable all strict type-checking options. */
 		"strictNullChecks": true,						/* When type checking, take into account null and undefined. */
 		// "strictFunctionTypes": false,				/* Enable strict checking of function types. */
 		// "strictBindCallApply": false,				/* Enable strict 'bind', 'call', and 'apply' methods on functions. */
 		// "strictPropertyInitialization": false,		/* Enable strict checking of property initialization in classes. */
 		// "noImplicitThis": false,						/* Enable error reporting when 'this' is given the type 'any'. */
-		"alwaysStrict": true,							/* Parse in strict mode and emit "use strict" for each source file. */
 
 		/* Additional Checks */
-		"noUnusedLocals": true,							/* Report errors on unused locals. */
-		// "noUnusedParameters": false,					/* Report errors on unused parameters. */
 		"noImplicitAny": false,							/* Report error for expressions and declarations with an implied any type.. */
 		"noImplicitReturns": false,						/* Report error when not all code paths in function return a value. */
+		"noUnusedLocals": true,							/* Report errors on unused locals. */
+		// "noUnusedParameters": false,					/* Report errors on unused parameters. */
 		// "noFallthroughCasesInSwitch": false,			/* Report errors for fallthrough cases in switch statement. */
 		// "noUncheckedIndexedAccess": false,			/* Include 'undefined' in index signature results */
 		// "noImplicitOverride": false,					/* Ensure overriding members in derived classes are marked with an 'override' modifier. */
@@ -74,16 +75,15 @@
 		// "rootDirs": [],								/* Allow multiple folders to be treated as one when resolving modules. */
 		// "typeRoots": [],								/* List of folders to include type definitions from. */
 		// "types": [],									/* Specify type package names to be included without being referenced in a source file. */
-		"esModuleInterop": true,						/* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
 		"allowSyntheticDefaultImports": true,			/* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
+		"esModuleInterop": true,						/* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+
 		/* Experimental Options */
 		// "experimentalDecorators": false,				/* Enables experimental support for ES7 decorators. */
 		// "emitDecoratorMetadata": false,				/* Emit design-type metadata for decorated declarations in source files. */
 
-
-
 		/* Advanced Options */
-		"skipLibCheck": true,							/* Skip type checking all .d.ts files. */
 		"forceConsistentCasingInFileNames": true,		/* Ensure that casing is correct in imports. */
+		"skipLibCheck": true,							/* Skip type checking all .d.ts files. */
 	},
 }

@@ -1,21 +1,36 @@
+import type { RepositoryType } from './repository-type.js';
+import type { Hook, Settings } from './settings.js';
+
 import path from 'path';
 import fse from 'fs-extra';
 import globby from 'globby';
-import vscode, { type WorkspaceConfiguration } from 'vscode';
-import type { RepositoryType } from './repository-type.js';
-import { type Hook, type Settings } from './settings.js';
+import vscode from 'vscode';
+
 import { EDITOR_MODE, EditorMode } from './utils/editor.js';
 import { exists } from './utils/exists.js';
 import { getEditorStorage } from './utils/get-editor-storage.js';
 import { getExtensionDataPath } from './utils/get-extension-data-path.js';
 import { NIL_UUID } from './utils/nil-uuid.js';
+import { unsafeCast } from './utils/unsafe-cast.js';
 import { listVSIXExtensions } from './utils/vsix-manager.js';
 
+export enum Resource {
+	Extensions = 'extensions',
+	Keybindings = 'keybindings',
+	Mcp = 'mcp',
+	ProfileAssociations = 'profile-associations',
+	Profiles = 'profiles',
+	Settings = 'settings',
+	Snippets = 'snippets',
+	Tasks = 'tasks',
+	UIState = 'uiState',
+}
 export type ExtensionId = {
 	id: string;
 	uuid?: string;
 	version?: string;
 };
+
 export type ExtensionList = {
 	builtin?: {
 		disabled?: string[];
@@ -30,34 +45,22 @@ type Metadata = {
 	metadataId?: string;
 	pinned: boolean;
 	source?: string;
-	version: string;
 	uuid: string;
+	version: string;
 };
 
-export enum Resource {
-	Extensions = 'extensions',
-	Keybindings = 'keybindings',
-	Mcp = 'mcp',
-	ProfileAssociations = 'profile-associations',
-	Profiles = 'profiles',
-	Settings = 'settings',
-	Snippets = 'snippets',
-	Tasks = 'tasks',
-	UIState = 'uiState',
-}
-
 export abstract class Repository {
-	protected _profile = '';
-	protected _initialized = false;
-	protected _settings: Settings;
-
 	public abstract type: RepositoryType;
 
-	constructor(settings: Settings) { // {{{
+	protected _initialized = false;
+	protected _profile = '';
+	protected _settings: Settings;
+
+	public constructor(settings: Settings) { // {{{
 		this._settings = settings;
 	} // }}}
 
-	public get profile() { // {{{
+	public get profile(): string { // {{{
 		return this._profile;
 	} // }}}
 
@@ -76,67 +79,39 @@ export abstract class Repository {
 		await this.initialize();
 	} // }}}
 
-	protected async canManageExtensions(): Promise<boolean> { // {{{
-		const commands = await vscode.commands.getCommands();
+	public abstract deleteProfile(profile: string): Promise<void>;
 
-		return commands.some((command) => command === 'workbench.extensions.disableExtension' || command === 'workbench.extensions.enableExtension');
-	} // }}}
+	public abstract download(): Promise<boolean>;
+
+	public abstract duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void>;
+
+	public abstract extendProfileTo(originalProfile: string, newProfile: string): Promise<void>;
+
+	public abstract getProfileSettingsPath(profile?: string): string;
+
+	public abstract getRepositoryPath(): string;
+
+	public abstract initialize(): Promise<void>;
+
+	public abstract listProfileExtensions(profile?: string): Promise<ExtensionList>;
+
+	public abstract listProfiles(): Promise<string[]>;
+
+	public abstract pull(): Promise<boolean>;
+
+	public abstract restoreProfile(): Promise<boolean>;
+
+	public abstract runHook(type: Hook): Promise<void>;
+
+	public abstract serializeProfile(): Promise<void>;
+
+	public abstract terminate(): Promise<void>;
+
+	public abstract upload(): Promise<boolean>;
 
 	protected checkInitialized(): void { // {{{
 		if(!this._initialized) {
 			throw new Error('The repository wasn\'t successfully initialized so the current operation can\'t continue. Please check the previous error.');
-		}
-	} // }}}
-
-	protected getIgnoredSettings(config: WorkspaceConfiguration): string[] { // {{{
-		const ignoredSettings = config.get<string[]>('ignoredSettings') ?? [];
-
-		return ignoredSettings.filter((value) => !value.startsWith('syncSettings'));
-	} // }}}
-
-	protected getEditorDataProfilesDataPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'profiles');
-	} // }}}
-
-	protected getEditorKeybindingsPath(userDataPath: string): string { // {{{
-		if(EDITOR_MODE === EditorMode.Theia) {
-			return path.join(userDataPath, 'keymaps.json');
-		}
-		else {
-			return path.join(userDataPath, 'keybindings.json');
-		}
-	} // }}}
-
-	protected getEditorMcpPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'mcp.json');
-	} // }}}
-
-	protected getEditorSnippetsPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'snippets');
-	} // }}}
-
-	protected getEditorStorageJsonPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'globalStorage', 'storage.json');
-	} // }}}
-
-	protected getEditorTasksPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'tasks.json');
-	} // }}}
-
-	protected getEditorUserSettingsPath(userDataPath: string): string { // {{{
-		return path.join(userDataPath, 'settings.json');
-	} // }}}
-
-	protected async listEditorSnippets(userDataPath: string): Promise<string[]> { // {{{
-		const editorPath = this.getEditorSnippetsPath(userDataPath);
-		if(await exists(editorPath)) {
-			return globby('**', {
-				cwd: editorPath,
-				followSymbolicLinks: false,
-			});
-		}
-		else {
-			return [];
 		}
 	} // }}}
 
@@ -154,8 +129,8 @@ export abstract class Repository {
 		const ids: Record<string, boolean> = {};
 
 		for(const extension of vscode.extensions.all) {
-			const id = extension.id;
-			const packageJSON = extension.packageJSON as { isUnderDevelopment: boolean; keywords?: string[]; packagePath: string };
+			const { id } = extension;
+			const packageJSON = unsafeCast<{ isUnderDevelopment: boolean; keywords?: string[]; packagePath: string }>(extension.packageJSON);
 
 			if(ids[id] || !packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || extensionsFromVSIXManager.includes(id)) {
 				continue;
@@ -181,7 +156,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			const pkg = await fse.readJSON(path.join(extensionDataPath, packagePath)) as { name: string; publisher: string; version: string };
+			const pkg = unsafeCast<{ name: string; publisher: string; version: string }>(await fse.readJSON(path.join(extensionDataPath, packagePath)));
 			const id = `${pkg.publisher}.${pkg.name}`;
 			const idv = `${pkg.publisher}.${pkg.name}@${pkg.version}`;
 
@@ -197,10 +172,10 @@ export abstract class Repository {
 		const backendPath = path.join(storagePath, 'backend-settings.json');
 
 		if(await exists(backendPath)) {
-			const data = JSON.parse(await fse.readFile(backendPath, 'utf8')) as Record<string, string>;
+			const data = unsafeCast<Record<string, string>>(JSON.parse(await fse.readFile(backendPath, 'utf8')));
 
 			if(data['installedPlugins.disabledPlugins']) {
-				const disabledPlugins = JSON.parse(data['installedPlugins.disabledPlugins']) as string[];
+				const disabledPlugins = unsafeCast<string[]>(JSON.parse(data['installedPlugins.disabledPlugins']));
 
 				for(const extension of disabledPlugins) {
 					const [id] = extension.split('@');
@@ -236,8 +211,8 @@ export abstract class Repository {
 		const ids: Record<string, boolean> = {};
 
 		for(const extension of vscode.extensions.all) {
-			const id = extension.id;
-			const packageJSON = extension.packageJSON as { isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string };
+			const { id } = extension;
+			const packageJSON = unsafeCast<{ isBuiltin: boolean; isUnderDevelopment: boolean; uuid: string }>(extension.packageJSON);
 
 			if(ids[id] || !packageJSON || packageJSON.isUnderDevelopment || id === this._settings.extensionId || ignoredExtensions.includes(id) || extensionsFromVSIXManager.includes(id)) {
 				continue;
@@ -257,11 +232,11 @@ export abstract class Repository {
 
 		// id: lowercase
 		const obsoletePath = path.join(extensionDataPath, '.obsolete');
-		const obsolete = await exists(obsoletePath) ? await fse.readJSON(obsoletePath) as Record<string, boolean> : {};
+		const obsolete = await exists(obsoletePath) ? unsafeCast<Record<string, boolean>>(await fse.readJSON(obsoletePath)) : {};
 
 		// id: lowercase
 		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
-		const extensionsJson = await exists(extensionsJsonPath) ? await fse.readJSON(extensionsJsonPath) as Array<{ identifier: { id: string; uuid: string }; metadata: { pinned?: boolean; source: string; id: string }; version: string }> : [];
+		const extensionsJson = await exists(extensionsJsonPath) ? unsafeCast<Array<{ identifier: { id: string; uuid: string }; metadata: { id: string; pinned?: boolean; source: string }; version: string }>>(await fse.readJSON(extensionsJsonPath)) : [];
 		const metadatas: Record<string, Metadata> = {};
 
 		for(const { identifier, metadata, version } of extensionsJson) {
@@ -273,8 +248,8 @@ export abstract class Repository {
 				metadataId: metadata?.id,
 				pinned: metadata?.pinned ?? false,
 				source: metadata?.source,
-				version,
 				uuid: identifier.uuid,
+				version,
 			};
 		}
 
@@ -294,7 +269,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			const pkg = await fse.readJSON(path.join(extensionDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
+			const pkg = unsafeCast<{ __metadata: { id: string }; name: string; publisher: string }>(await fse.readJSON(path.join(extensionDataPath, packagePath)));
 			const id = `${pkg.publisher}.${pkg.name}`;
 			const idLower = id.toLowerCase();
 			const version = metadatas[idLower]?.pinned && metadatas[idLower].source === 'gallery' ? metadatas[idLower].version : undefined;
@@ -339,7 +314,7 @@ export abstract class Repository {
 		});
 
 		for(const packagePath of builtinExtensions) {
-			const pkg = await fse.readJSON(path.join(builtinDataPath, packagePath)) as { name: string; publisher: string; __metadata: { id: string } };
+			const pkg = unsafeCast<{ __metadata: { id: string }; name: string; publisher: string }>(await fse.readJSON(path.join(builtinDataPath, packagePath)));
 			const id = `${pkg.publisher}.${pkg.name}`;
 
 			if(!ids[id]) {
@@ -356,34 +331,4 @@ export abstract class Repository {
 			return { disabled, enabled };
 		}
 	} // }}}
-
-	public abstract download(): Promise<boolean>;
-
-	public abstract deleteProfile(profile: string): Promise<void>;
-
-	public abstract duplicateProfileTo(originalProfile: string, newProfile: string): Promise<void>;
-
-	public abstract extendProfileTo(originalProfile: string, newProfile: string): Promise<void>;
-
-	public abstract getProfileSettingsPath(profile?: string): string;
-
-	public abstract getRepositoryPath(): string;
-
-	public abstract initialize(): Promise<void>;
-
-	public abstract listProfiles(): Promise<string[]>;
-
-	public abstract listProfileExtensions(profile?: string): Promise<ExtensionList>;
-
-	public abstract pull(): Promise<boolean>;
-
-	public abstract restoreProfile(): Promise<boolean>;
-
-	public abstract runHook(type: Hook): Promise<void>;
-
-	public abstract serializeProfile(): Promise<void>;
-
-	public abstract terminate(): Promise<void>;
-
-	public abstract upload(): Promise<boolean>;
 }

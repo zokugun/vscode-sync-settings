@@ -3,14 +3,16 @@ import os from 'os';
 import path from 'path';
 import process from 'process';
 import vscode from 'vscode';
+
 import { EDITOR_MODE, EditorMode } from './editor.js';
+import { unsafeCast } from './unsafe-cast.js';
 
 let $path: string = '';
 
 export async function getEditorStorage(context?: vscode.ExtensionContext): Promise<string> {
 	if(!$path) {
 		if(EDITOR_MODE === EditorMode.Theia) {
-			const packageJSON = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'package.json'), 'utf8')) as { theia: { backend: { config: { configurationFolder: string } } } };
+			const packageJSON = unsafeCast<{ theia: { backend: { config: { configurationFolder: string } } } }>(JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'package.json'), 'utf8')));
 
 			$path = path.join(os.homedir(), packageJSON.theia.backend.config.configurationFolder ?? '.theia-ide');
 		}
@@ -22,7 +24,7 @@ export async function getEditorStorage(context?: vscode.ExtensionContext): Promi
 				$path = path.normalize(path.join(context.extensionPath, '..', '..'));
 			}
 			else {
-				const product = JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf8')) as { dataFolderName: string };
+				const product = unsafeCast<{ dataFolderName: string }>(JSON.parse(await fs.readFile(path.join(vscode.env.appRoot, 'product.json'), 'utf8')));
 
 				$path = path.join(os.homedir(), product.dataFolderName);
 			}

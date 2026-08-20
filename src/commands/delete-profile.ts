@@ -1,4 +1,5 @@
 import { window } from 'vscode';
+
 import { RepositoryFactory } from '../repository-factory.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
@@ -10,7 +11,7 @@ export async function deleteProfile(): Promise<void> {
 
 	try {
 		const repository = await RepositoryFactory.get();
-		const profile = repository.profile;
+		const { profile } = repository;
 		const profiles = await repository.listProfiles();
 
 		const quickPickItems = profiles.map((name) => ({
@@ -39,7 +40,7 @@ export async function deleteProfile(): Promise<void> {
 
 		await window.showInformationMessage(`Source: ${EXTENSION_NAME}\n\nThe profile '${newProfile}' has been deleted`, { modal: true });
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 	}
 }

@@ -1,3 +1,5 @@
+/* eslint-disable ts/unbound-method */
+
 import { promisify } from 'util';
 import { fs as mfs } from 'memfs';
 import { fromCallback as u } from 'universalify';
@@ -18,9 +20,9 @@ const fs = {
 	readdir: u(mfs.readdir),
 	readFile: u(mfs.readFile),
 	realpath: u(mfs.realpath),
+	rename: u(mfs.rename),
 	rm: u(mfs.rm),
 	rmdir: u(mfs.rmdir),
-	rename: u(mfs.rename),
 	stat: u(mfs.stat),
 	Stats: mfs.Stats,
 	unlink: u(mfs.unlink),
@@ -35,9 +37,9 @@ const fs = {
 		readdir: mfs.promises.readdir,
 		readFile: mfs.promises.readFile,
 		realpath: mfs.promises.realpath,
+		rename: mfs.promises.rename,
 		rm: mfs.promises.rm,
 		rmdir: mfs.promises.rmdir,
-		rename: mfs.promises.rename,
 		stat: mfs.promises.stat,
 		Stats: mfs.Stats,
 		unlink: mfs.promises.unlink,

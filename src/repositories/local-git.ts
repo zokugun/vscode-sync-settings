@@ -1,16 +1,18 @@
+import type { Settings } from '../settings.js';
+
 import fs from 'fs/promises';
 import path from 'path';
 import fse from 'fs-extra';
 import semver from 'semver';
 import { simpleGit, type SimpleGit } from 'simple-git';
 import vscode from 'vscode';
+
+import { FileRepository } from './file.js';
 import { RepositoryType } from '../repository-type.js';
-import { type Settings } from '../settings.js';
 import { exists } from '../utils/exists.js';
 import { formatter } from '../utils/formatter.js';
 import { hostname } from '../utils/hostname.js';
 import { Logger } from '../utils/logger.js';
-import { FileRepository } from './file.js';
 
 export enum CommitType {
 	INIT = 'init',
@@ -22,17 +24,17 @@ export class LocalGitRepository extends FileRepository {
 	protected _git: SimpleGit;
 	protected _hostname: string;
 	protected _initMessage: string;
-	protected _version: string | undefined;
 	protected _updateMessage: string;
+	protected _version: string | undefined;
 
-	constructor(settings: Settings, rootPath?: string) { // {{{
+	public constructor(settings: Settings, rootPath?: string) { // {{{
 		super(settings, rootPath);
 
 		this._git = simpleGit();
 		this._branch = settings.repository.branch ?? 'master';
 
 		const config = vscode.workspace.getConfiguration('syncSettings');
-		const messages = settings.repository.messages;
+		const { messages } = settings.repository;
 
 		this._initMessage = messages?.init ?? config.get<string>('gitInitMessage') ?? 'profile({{profile}}): init -- {{now|date:iso}}';
 		this._updateMessage = messages?.update ?? config.get<string>('gitUpdateMessage') ?? 'profile({{profile}}): update -- {{now|date:iso}}';
@@ -40,7 +42,7 @@ export class LocalGitRepository extends FileRepository {
 		this._hostname = settings.hostname ?? hostname(config);
 	} // }}}
 
-	public override get type() { // {{{
+	public override get type(): RepositoryType { // {{{
 		return RepositoryType.GIT;
 	} // }}}
 
@@ -61,7 +63,9 @@ export class LocalGitRepository extends FileRepository {
 
 	public override async initialize(): Promise<void> { // {{{
 		if(!await this.pull()) {
-			return Logger.error('The git repository can not be pulled');
+			Logger.error('The git repository can not be pulled');
+
+			return;
 		}
 
 		const profilePath = path.join(this._rootPath, 'profiles', this._profile);
@@ -104,7 +108,7 @@ export class LocalGitRepository extends FileRepository {
 		}
 
 		const raw = await this._git.raw('--version');
-		const match = /(\d+\.\d+\.\d+)/.exec(raw);
+		const match = /^.{0,32}(\d+\.\d+\.\d+)/.exec(raw);
 		this._version = match ? match[1] : '2.0.0';
 
 		return this._version;
@@ -127,7 +131,7 @@ export class LocalGitRepository extends FileRepository {
 
 			return true;
 		}
-		catch (error) {
+		catch(error) {
 			Logger.error(error);
 
 			if(error instanceof Error) {
@@ -154,9 +158,9 @@ export class LocalGitRepository extends FileRepository {
 		}
 		else {
 			const message = formatter(type === CommitType.INIT ? this._initMessage : this._updateMessage, {
-				profile,
-				now: new Date(),
 				hostname: this._hostname,
+				now: new Date(),
+				profile,
 			});
 
 			Logger.info(`commit: ${message}`);
@@ -164,7 +168,7 @@ export class LocalGitRepository extends FileRepository {
 			try {
 				await this._git.commit(message);
 			}
-			catch (error) {
+			catch(error) {
 				Logger.error(error);
 
 				if(error instanceof Error) {

@@ -1,13 +1,14 @@
+import type vscode from 'vscode';
+
 import path from 'path';
 import process from 'process';
-import type vscode from 'vscode';
 
 export enum EditorMode {
 	Theia = 'theia',
 	VSCode = 'vscode',
 }
 
-// eslint-disable-next-line import/no-mutable-exports,@typescript-eslint/naming-convention
+// eslint-disable-next-line ts/naming-convention
 export let EDITOR_MODE = EditorMode.VSCode;
 
 export function detectEditor(context: vscode.ExtensionContext): void {

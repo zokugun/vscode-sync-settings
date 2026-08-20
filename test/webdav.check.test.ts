@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import { type DirectoryJSON, vol } from 'memfs';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
 import { createWebDAVServer, type WebDAVServer } from './utils/create-webdav-server.js';
 import { fixtures } from './utils/fixtures.js';
 
-async function reset(json: DirectoryJSON) { // {{{
+async function reset(json: DirectoryJSON): Promise<void> { // {{{
 	vol.reset();
 	vscode.reset();
 

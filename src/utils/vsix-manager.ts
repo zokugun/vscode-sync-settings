@@ -1,8 +1,8 @@
 import vscode from 'vscode';
 
 export type VSIXManager = {
-	installExtensions(update?: boolean): Promise<void>;
-	listManagedExtensions(): Promise<string[]>;
+	installExtensions: (update?: boolean) => Promise<void>;
+	listManagedExtensions: () => Promise<string[]>;
 };
 
 export function getVSIXManager(): VSIXManager | undefined {
@@ -12,6 +12,7 @@ export function getVSIXManager(): VSIXManager | undefined {
 		return extension?.exports;
 	}
 	catch {
+		return undefined;
 	}
 }
 

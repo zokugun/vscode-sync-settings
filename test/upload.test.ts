@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { vol } from 'memfs';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
 import { fixtures } from './utils/fixtures.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument,import/no-named-as-default-member
 chai.use(chaiAsPromised);
 
 describe('upload', () => {
@@ -291,8 +291,6 @@ describe('upload', () => {
 
 			const repository = await RepositoryFactory.get();
 
-			// @ts-expect-error rejectedWith has been added by `chai-as-promised`
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			await expect(repository.upload()).to.be.rejectedWith('The file `zokugun.sync-settings/settings.yml` mustn\'t be synchronized.');
 		}); // }}}
 	});
@@ -300,8 +298,8 @@ describe('upload', () => {
 	describe('filters', () => {
 		it('none', async () => { // {{{
 			const settings = {
-				'syncSettings.keybindingsPerPlatform': false,
 				'ext1.prop1': 0,
+				'syncSettings.keybindingsPerPlatform': false,
 			};
 
 			vscode.setExtensions({
@@ -329,13 +327,13 @@ describe('upload', () => {
 
 		it('extensions - clean', async () => { // {{{
 			const settings = {
+				'ext1.prop1': 0,
 				'syncSettings.keybindingsPerPlatform': false,
 				'syncSettings.resources': [
 					'keybindings',
 					'settings',
 					'snippets',
 				],
-				'ext1.prop1': 0,
 			};
 
 			vscode.setExtensions({
@@ -360,13 +358,13 @@ describe('upload', () => {
 
 		it('extensions - dirty', async () => { // {{{
 			const settings = {
+				'ext1.prop1': 0,
 				'syncSettings.keybindingsPerPlatform': false,
 				'syncSettings.resources': [
 					'keybindings',
 					'settings',
 					'snippets',
 				],
-				'ext1.prop1': 0,
 			};
 
 			vol.fromJSON({
@@ -395,13 +393,13 @@ describe('upload', () => {
 
 		it('keybindings - clean', async () => { // {{{
 			const settings = {
+				'ext1.prop1': 0,
 				'syncSettings.keybindingsPerPlatform': false,
 				'syncSettings.resources': [
 					'extensions',
 					'settings',
 					'snippets',
 				],
-				'ext1.prop1': 0,
 			};
 
 			vscode.setExtensions({
@@ -429,19 +427,19 @@ describe('upload', () => {
 
 		it('keybindings - dirty', async () => { // {{{
 			const settings = {
+				'ext1.prop1': 0,
 				'syncSettings.keybindingsPerPlatform': false,
 				'syncSettings.resources': [
 					'extensions',
 					'settings',
 					'snippets',
 				],
-				'ext1.prop1': 0,
 			};
 
 			vol.fromJSON({
 				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
-				'/repository/profiles/main/data/keybindings-macos.json': keybindingsFxt.json.gotoline,
 				'/repository/profiles/main/data/keybindings-linux.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/main/data/keybindings-macos.json': keybindingsFxt.json.gotoline,
 				'/repository/profiles/main/data/keybindings-windows.json': keybindingsFxt.json.gotoline,
 			});
 
@@ -478,8 +476,8 @@ describe('upload', () => {
 
 			it('unmanaged', async () => { // {{{
 				vscode.setExtensions({
-					enabled: [extensionName],
 					disabled: [],
+					enabled: [extensionName],
 				});
 
 				const repository = await RepositoryFactory.get();
@@ -494,8 +492,8 @@ describe('upload', () => {
 
 			it('managed', async () => { // {{{
 				vscode.setExtensions({
-					enabled: [extensionName],
 					disabled: [],
+					enabled: [extensionName],
 				});
 
 				vscode.setManagedExtensions([extensionName]);

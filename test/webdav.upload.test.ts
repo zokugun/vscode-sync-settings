@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
@@ -65,8 +66,8 @@ describe('webdav.upload', () => {
 
 	it('temp', async () => { // {{{
 		vol.fromJSON({
-			'/webdav/.vsx': 'zokugun.sync-settings',
 			'/webdav/.profiles/main/extensions.yml': 'old upload',
+			'/webdav/.vsx': 'zokugun.sync-settings',
 		});
 
 		const repository = await RepositoryFactory.get();

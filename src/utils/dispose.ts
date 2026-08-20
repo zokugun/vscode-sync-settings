@@ -1,5 +1,5 @@
 export type IDisposable = {
-	dispose(): void;
+	dispose: () => void;
 };
 
 export function dispose<T extends IDisposable>(disposables: T[]): T[] {

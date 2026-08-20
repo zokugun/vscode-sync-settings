@@ -2,6 +2,8 @@ import os from 'os';
 import path from 'path';
 import fse from 'fs-extra';
 import vscode, { Uri } from 'vscode';
+
+import { upload } from './upload.js';
 import { FileRepository } from '../repositories/file.js';
 import { RepositoryFactory } from '../repository-factory.js';
 import { Resource } from '../repository.js';
@@ -10,7 +12,6 @@ import { EXTENSION_NAME } from '../utils/constants.js';
 import { copyProfile } from '../utils/copy-profile.js';
 import { hasDifferences } from '../utils/has-differences.js';
 import { Logger } from '../utils/logger.js';
-import { upload } from './upload.js';
 
 export async function review(): Promise<void> {
 	if(await RepositoryFactory.isDummy()) {

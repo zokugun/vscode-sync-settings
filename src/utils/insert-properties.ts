@@ -1,5 +1,5 @@
 import detectNewline from 'detect-newline';
-import { visit } from 'jsonc-parser';
+import { type JSONVisitor, visit } from 'jsonc-parser';
 
 export function insertProperties(text: string, properties: string): string {
 	if(properties.length === 0) {
@@ -12,16 +12,16 @@ export function insertProperties(text: string, properties: string): string {
 	let separated = false;
 	let level = -1;
 
-	const visitor = {
+	const visitor: JSONVisitor = {
 		onArrayBegin() {
-			++level;
+			level += 1;
 		},
 		onArrayEnd() {
-			--level;
+			level -= 1;
 			separated = false;
 		},
 		onObjectBegin() {
-			++level;
+			level += 1;
 		},
 		onObjectEnd(offset: number) {
 			if(level === 0) {
@@ -31,7 +31,7 @@ export function insertProperties(text: string, properties: string): string {
 				separated = false;
 			}
 
-			--level;
+			level -= 1;
 		},
 		onObjectProperty() {
 			separated = false;

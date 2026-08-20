@@ -12,18 +12,17 @@ With [Sync Settings](https://github.com/zokugun/vscode-sync-settings), you can s
 You can also switch between profiles with their own settings/resources.
 It supports with Visual Studio Code, Eclipse Theia, and other Theia/VSCode derivatives.
 
-HowTo
+Howto
 -----
 
 1. configure the repository:
-
    > &gt; Sync Settings: Open the repository settings
 
 2. upload your settings to the repository:
-    > &gt; Sync Settings: Upload (user -> repository)
+   > &gt; Sync Settings: Upload (user -> repository)
 
 3. download your settings into a new editor:
-    > &gt; Sync Settings: Download (repository -> user)
+   > &gt; Sync Settings: Download (repository -> user)
 
 Configuration
 -------------
@@ -43,91 +42,91 @@ hostname: ""
 profile: main
 # repository to sync the settings with, required
 repository:
-  # repository's type, required (dummy: no sync)
-  type: dummy
+   # repository's type, required (dummy: no sync)
+   type: dummy
 ```
 
 You can open that file with the command:
 
 > &gt; Sync Settings: Open the repository settings
 
-### Repository types
+### Repository Types
 
-#### file
+#### File
 
 ```yaml
 # sync on local file system
 repository:
-  type: file
-  # path of the local directory to sync with, required
-  path: ~/Development/settings
+   type: file
+   # path of the local directory to sync with, required
+   path: ~/Development/settings
 ```
 
-#### local git
+#### Local Git
 
 ```yaml
 # sync on local git
 repository:
-  type: git
-  # path of the local git repository to sync with, required
-  path: ~/Development/settings
-  # branch to sync on, optional (set to `master` by default)
-  branch: master
+   type: git
+   # path of the local git repository to sync with, required
+   path: ~/Development/settings
+   # branch to sync on, optional (set to `master` by default)
+   branch: master
 ```
 
 If not initialized, the git repository will be automatically initialized.
 
-[How to personalize the commit messages](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
+[How to personalize the commit messages][commit-messages]
 
-#### remote git
+#### Remote Git
 
 ```yaml
 # sync on remote git
 repository:
-  type: git
-  # url of the remote git repository to sync with, required
-  url: git@github.com:username/settings.git
-  # branch to sync on, optional (set to `master` by default)
-  branch: master
+   type: git
+   # url of the remote git repository to sync with, required
+   url: git@github.com:username/settings.git
+   # branch to sync on, optional (set to `master` by default)
+   branch: master
 ```
 
 No authentifications are stored.<br/>
 But the `git` command on your system will need to be able to read/write on the remote repository.
 
-[How to personalize the commit messages](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md)
+[How to personalize the commit messages][commit-messages]
 
-#### rsync
+#### Rsync
 
 ```yaml
 # sync on remote directory with rsync
 repository:
-  type: rsync
-  # url of the remote directory to sync with, required
-  url: server:~/settings
-  # shell used by rsync, optional (set to `ssh` by default)
-  shell: ssh
+   type: rsync
+   # url of the remote directory to sync with, required
+   url: server:~/settings
+   # shell used by rsync, optional (set to `ssh` by default)
+   shell: ssh
 ```
 
 The access to the server shouldn't require the need of any passwords.
 
-#### webdav
+#### Webdav
 
 ```yaml
 # sync on remote directory with webdav
 repository:
-  type: webdav
-  # url of the remote directory, required
-  url: http://localhost:9988/webdav/server
-  # the username, optional
-  username: webdav-user
-  # the password, optional
-  password: pa$$w0rd!
-  # all options available at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md
+   type: webdav
+   # url of the remote directory, required
+   url: http://localhost:9988/webdav/server
+   # the username, optional
+   username: webdav-user
+   # the password, optional
+   password: pa$$w0rd!
+   # all options available at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md
 ```
 
 [All WebDAV options available here](https://github.com/zokugun/vscode-sync-settings/blob/master/docs/webdav.md)
 
-### Which resources?
+### Which Resources?
 
 You can configure what and how to synchronize with properties in your regular settings (`settings.json`).
 
@@ -142,13 +141,16 @@ External Files
 Additionally, you can sync external files with the following property in your regular settings (`settings.json`):
 
 ```json
-"syncSettings.additionalFiles": [
-    "~globalStorage/alefragnani.project-manager/projects.json",
-    "~/vscode_projects.json",
-]
+{
+   "syncSettings.additionalFiles": [
+      "~globalStorage/alefragnani.project-manager/projects.json",
+      "~/vscode_projects.json"
+   ]
+}
 ```
 
 The paths can start with special prefixes:
+
 - `~/`: the user home (as usual)
 - `~editorStorage`: the directory where the extensions are stored (ex: `~/.vscode`)
 - `~globalStorage`: the directory where the extensions are storing their global states (ex: `~/Library/ApplicationSupport/Code/User/globalStorage`)
@@ -177,6 +179,7 @@ Or switch to an existing one with the command `> Sync Settings: Switch to profil
 ### Profile Inheritance
 
 A profile can extend an existing profile but it's limited to the following resources:
+
 - extensions
 - snippets
 
@@ -205,24 +208,24 @@ JSONC Attributes
 
 JSONC attributes can be used to enable/disable settings based on, for example, the OS or the editor's version.
 
-### example
+### Example
 
-```
+```jsonc
 {
-    // #if(os="mac")
-    // "editor.fontWeight": "300",
-    // #elif(os="windows")
-    // "editor.fontWeight": "400",
-    // #else
-    // "editor.fontWeight": "500",
-    // #endif
+   // #if(os="mac")
+   // "editor.fontWeight": "300",
+   // #elif(os="windows")
+   // "editor.fontWeight": "400",
+   // #else
+   // "editor.fontWeight": "500",
+   // #endif
 }
 ```
 
 When the `settings.json` is downloaded, depending on the OS, the setting `editor.fontWeight` will have the following value:
 
 | OS      | `editor.fontWeight` |
-| ------- |:-------------------:|
+| ------- | :-----------------: |
 | Linux   |        `500`        |
 | MacOS   |        `300`        |
 | Windows |        `400`        |
@@ -233,6 +236,7 @@ Hooks
 -----
 
 Hooks allow you to run commands in an integrated terminal ***before*** and ***after*** the following events:
+
 - `download`
 - `upload`
 
@@ -256,6 +260,7 @@ Eclipse Theia
 -------------
 
 Support for Eclipse Theia is limited to:
+
 - settings
 - keyboard shortcuts
 - tasks
@@ -282,3 +287,5 @@ Support this project by becoming a financial contributor.
 </table>
 
 **Enjoy!**
+
+[commit-messages]: https://github.com/zokugun/vscode-sync-settings/blob/master/docs/commit-messages.md

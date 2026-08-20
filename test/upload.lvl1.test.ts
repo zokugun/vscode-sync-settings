@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { vol } from 'memfs';
+
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
 import { RepositoryFactory, Settings } from './rewires/repository.js';
@@ -31,8 +32,8 @@ describe('upload.lvl1', () => {
 		it('empty', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setSettings(userSettingsFxt.json.empty);
@@ -49,8 +50,8 @@ describe('upload.lvl1', () => {
 		it('notrequired', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setSettings(userSettingsFxt.json.keybindings);
@@ -67,8 +68,8 @@ describe('upload.lvl1', () => {
 		it('required', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.empty,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setSettings(userSettingsFxt.json.keybindings);
@@ -85,8 +86,8 @@ describe('upload.lvl1', () => {
 		it('ignoredSettings', async () => { // {{{
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.ignoredSettings,
-				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.empty,
+				'/repository/profiles/main/extensions.yml': extensionsFxt.yml.empty,
 			});
 
 			vscode.setSettings(userSettingsFxt.json.ignoredSettings);
@@ -305,8 +306,8 @@ describe('upload.lvl1', () => {
 			vol.fromJSON({
 				'/repository/profiles/main/.sync.yml': dotsyncFxt.yml.keybindings,
 				'/repository/profiles/main/data/extensions.yml': extensionsFxt.yml.empty,
-				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
 				'/repository/profiles/main/data/keybindings.json': keybindingsFxt.json.gotoline,
+				'/repository/profiles/main/data/settings.json': userSettingsFxt.json.keybindings,
 			});
 
 			vscode.setSettings(userSettingsFxt.json.keybindings);

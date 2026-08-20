@@ -1,3 +1,8 @@
+/* eslint-disable max-classes-per-file */
+
+import type { BufferLike } from 'webdav';
+import type { Settings } from '../settings.js';
+
 import fs from 'fs/promises';
 import http from 'http';
 import https from 'https';
@@ -7,22 +12,23 @@ import fse from 'fs-extra';
 import globby from 'globby';
 import { fromCallback as u } from 'universalify';
 import { Uri } from 'vscode';
-import { type BufferLike } from 'webdav';
 import { createAdapter, type FsStat, type PathLike } from 'webdav-fs';
-import { RepositoryType } from '../repository-type.js';
-import { type Settings } from '../settings.js';
-import { Logger } from '../utils/logger.js';
-import { TemporaryRepository } from '../utils/temporary-repository.js';
+
 import { FileRepository } from './file.js';
+import { RepositoryType } from '../repository-type.js';
+import { Logger } from '../utils/logger.js';
+import { safeCast } from '../utils/safe-cast.js';
+import { TemporaryRepository } from '../utils/temporary-repository.js';
+import { unsafeCast } from '../utils/unsafe-cast.js';
 
 type WebDAVFS = {
 	mkdir: (dirPath: PathLike) => Promise<void>;
-	readdir: (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<string | FsStat>>;
-	readFile: (filename: PathLike, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<string | BufferLike>;
+	readdir: (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<FsStat | string>>;
+	readFile: (filename: PathLike, encodingOrCallback?: 'binary' | 'text' | 'utf8') => Promise<BufferLike | string>;
 	rename: (filePath: PathLike, targetPath: PathLike) => Promise<void>;
 	rmdir: (targetPath: PathLike) => Promise<void>;
 	stat: (remotePath: PathLike) => Promise<FsStat>;
-	writeFile: (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>;
+	writeFile: (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'binary' | 'text' | 'utf8') => Promise<void>;
 };
 
 class WebDAVError extends Error {
@@ -30,22 +36,22 @@ class WebDAVError extends Error {
 
 export class WebDAVRepository extends FileRepository {
 	protected _fs?: WebDAVFS;
-	protected _url: string;
-	protected _options: Record<string, any>;
 	protected _ignoreTLSErrors: boolean;
+	protected _options: Record<string, unknown>;
+	protected _url: string;
 
-	constructor(settings: Settings) { // {{{
+	public constructor(settings: Settings) { // {{{
 		super(settings, TemporaryRepository.getPath(settings));
 
 		// @ts-expect-error ignoreTLSErrors can be an option
-		const { type, url, ignoreTLSErrors, ...options } = settings.repository;
+		const { ignoreTLSErrors, url, ...options } = settings.repository;
 
 		this._url = url!;
 		this._options = options;
 		this._ignoreTLSErrors = ignoreTLSErrors === true || false;
 	} // }}}
 
-	public override get type() { // {{{
+	public override get type(): RepositoryType { // {{{
 		return RepositoryType.WEBDAV;
 	} // }}}
 
@@ -73,23 +79,23 @@ export class WebDAVRepository extends FileRepository {
 			const { scheme } = Uri.parse(this._url);
 
 			if(scheme === 'https') {
-				options.httpsAgent = new https.Agent(agent as https.AgentOptions);
+				options.httpsAgent = new https.Agent(unsafeCast<https.AgentOptions>(agent));
 			}
 			else if(scheme === 'http') {
-				options.httpAgent = new http.Agent(agent as http.AgentOptions);
+				options.httpAgent = new http.Agent(unsafeCast<https.AgentOptions>(agent));
 			}
 		}
 
 		const fs = createAdapter(this._url, options);
 
 		this._fs = {
-			mkdir: u(fs.mkdir) as (dirPath: PathLike) => Promise<void>,
-			readdir: u(fs.readdir) as (dirPath: PathLike, modeOrCallback?: 'node' | 'stat') => Promise<Array<string | FsStat>>,
-			readFile: u(fs.readFile) as (filename: PathLike, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<string | BufferLike>,
-			rename: u(fs.rename) as (filePath: PathLike, targetPath: PathLike) => Promise<void>,
-			rmdir: u(fs.rmdir) as (targetPath: PathLike) => Promise<void>,
-			stat: u(fs.stat) as (remotePath: PathLike) => Promise<FsStat>,
-			writeFile: u(fs.writeFile) as (filename: PathLike, data: BufferLike | string, encodingOrCallback?: 'utf8' | 'text' | 'binary') => Promise<void>,
+			mkdir: safeCast<WebDAVFS['mkdir']>(u(fs.mkdir)),
+			readdir: safeCast<WebDAVFS['readdir']>(u(fs.readdir)),
+			readFile: safeCast<WebDAVFS['readFile']>(u(fs.readFile)),
+			rename: safeCast<WebDAVFS['rename']>(u(fs.rename)),
+			rmdir: safeCast<WebDAVFS['rmdir']>(u(fs.rmdir)),
+			stat: safeCast<WebDAVFS['stat']>(u(fs.stat)),
+			writeFile: safeCast<WebDAVFS['writeFile']>(u(fs.writeFile)),
 		};
 
 		try {
@@ -101,7 +107,7 @@ export class WebDAVRepository extends FileRepository {
 
 			await this.validate();
 		}
-		catch (error: unknown) {
+		catch(error: unknown) {
 			// @ts-expect-error checking error code
 			if(error?.code === 'ECONNREFUSED') {
 				Logger.error(`The connection to "${this._url}" is refused.`);
@@ -136,7 +142,7 @@ export class WebDAVRepository extends FileRepository {
 		await fse.remove(this._rootPath);
 		await fse.mkdir(this._rootPath);
 
-		const files: FsStat[] = await this._fs!.readdir('/', 'stat') as FsStat[];
+		const files: FsStat[] = safeCast<FsStat[]>(await this._fs!.readdir('/', 'stat'));
 		for(const file of files) {
 			if(file.isDirectory()) {
 				await this.pullDirectory(path.join(this._rootPath, file.name), Uri.file(file.name));
@@ -227,7 +233,7 @@ export class WebDAVRepository extends FileRepository {
 	protected async pullDirectory(localDir: string, remoteDir: Uri): Promise<void> { // {{{
 		await fse.mkdir(localDir);
 
-		const files: FsStat[] = await this._fs!.readdir(remoteDir.path, 'stat') as FsStat[];
+		const files: FsStat[] = safeCast<FsStat[]>(await this._fs!.readdir(remoteDir.path, 'stat'));
 		for(const file of files) {
 			if(file.isDirectory()) {
 				await this.pullDirectory(path.join(localDir, file.name), Uri.joinPath(remoteDir, file.name));
@@ -239,7 +245,7 @@ export class WebDAVRepository extends FileRepository {
 	} // }}}
 
 	protected async pullFile(localFile: string, remoteFile: Uri): Promise<void> { // {{{
-		const data = await this._fs!.readFile(remoteFile.path, 'utf8') as string;
+		const data = safeCast<string>(await this._fs!.readFile(remoteFile.path, 'utf8'));
 
 		await fs.writeFile(localFile, data, 'utf8');
 	} // }}}
@@ -249,8 +255,8 @@ export class WebDAVRepository extends FileRepository {
 
 		const files = await globby('**', {
 			cwd: path.join(this._rootPath, 'profiles'),
-			followSymbolicLinks: false,
 			dot: true, // Include dot files like .sync.yml
+			followSymbolicLinks: false,
 		});
 
 		const temporaryRoot = Uri.parse('/.profiles');
@@ -286,7 +292,7 @@ export class WebDAVRepository extends FileRepository {
 	} // }}}
 
 	protected async validate(): Promise<void> { // {{{
-		const files: string[] = await this._fs!.readdir('/') as string[];
+		const files: string[] = safeCast<string[]>(await this._fs!.readdir('/'));
 		if(files.length === 0) {
 			await this._fs!.writeFile('/.vsx', 'zokugun.sync-settings', 'utf8');
 
@@ -295,7 +301,7 @@ export class WebDAVRepository extends FileRepository {
 			return;
 		}
 		else if(files.includes('.vsx')) {
-			const data = await this._fs!.readFile('/.vsx', 'utf8') as string;
+			const data = safeCast<string>(await this._fs!.readFile('/.vsx', 'utf8'));
 
 			if(data === 'zokugun.sync-settings') {
 				Logger.info('The working directory is valid. Continue.');

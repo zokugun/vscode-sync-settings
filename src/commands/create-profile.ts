@@ -1,4 +1,5 @@
 import { window } from 'vscode';
+
 import { RepositoryFactory } from '../repository-factory.js';
 import { EXTENSION_NAME } from '../utils/constants.js';
 import { Logger } from '../utils/logger.js';
@@ -39,7 +40,7 @@ export async function createProfile(): Promise<void> {
 		}
 
 		const newProfile = answer.value;
-		const profile = repository.profile;
+		const { profile } = repository;
 
 		const quickPickItems = [
 			{
@@ -104,7 +105,7 @@ export async function createProfile(): Promise<void> {
 			await repository.restoreProfile();
 		}
 	}
-	catch (error: unknown) {
+	catch(error: unknown) {
 		Logger.error(error);
 	}
 }

@@ -1,5 +1,7 @@
+import type { WorkspaceConfiguration } from 'vscode';
+
 import * as os from 'os';
-import { type WorkspaceConfiguration } from 'vscode';
+
 import { formatter } from './formatter.js';
 
 export function hostname(config: WorkspaceConfiguration): string {

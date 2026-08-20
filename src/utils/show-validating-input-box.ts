@@ -1,44 +1,46 @@
+import { isBoolean, isNumber, isString } from '@zokugun/is-it-type';
 import { err, ok, type Result } from '@zokugun/xtry';
 import * as vscode from 'vscode';
+
 import { dispose, type IDisposable } from './dispose.js';
 
 export async function showValidatingInputBox(options: {
-	title?: string;
-	step?: number;
-	totalSteps?: number;
-	prompt?: string;
-	placeHolder?: string;
-	value?: string;
-	validateInput: (value: string) => string | undefined | null | Promise<string | undefined | null>;
 	ignoreFocusOut?: boolean;
+	placeHolder?: string;
+	prompt?: string;
+	step?: number;
+	title?: string;
+	totalSteps?: number;
+	validateInput: (value: string) => Promise<string | null | undefined> | string | null | undefined;
+	value?: string;
 }): Promise<Result<string | undefined, string>> {
 	const input = vscode.window.createInputBox();
 
-	if(options.title) {
+	if(isString(options.title)) {
 		input.title = options.title;
 	}
 
-	if(options.step !== undefined) {
+	if(isNumber(options.step)) {
 		input.step = options.step;
 	}
 
-	if(options.totalSteps !== undefined) {
+	if(isNumber(options.totalSteps)) {
 		input.totalSteps = options.totalSteps;
 	}
 
-	if(options.prompt) {
+	if(isString(options.prompt)) {
 		input.prompt = options.prompt;
 	}
 
-	if(options.placeHolder) {
+	if(isString(options.placeHolder)) {
 		input.placeholder = options.placeHolder;
 	}
 
-	if(options.value) {
+	if(isString(options.value)) {
 		input.value = options.value;
 	}
 
-	if(options.ignoreFocusOut !== undefined) {
+	if(isBoolean(options.ignoreFocusOut)) {
 		input.ignoreFocusOut = options.ignoreFocusOut;
 	}
 
@@ -47,6 +49,9 @@ export async function showValidatingInputBox(options: {
 
 		if(typeof message === 'string') {
 			return message;
+		}
+		else {
+			return undefined;
 		}
 	};
 

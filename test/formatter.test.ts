@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+
 import { formatter } from '../src/utils/formatter.js';
 
 describe('formatter', () => {
@@ -95,8 +96,8 @@ describe('formatter', () => {
 		const now = new Date();
 
 		expect(formatter('profile({{profile}}): update -- {{now|date:iso}}', {
-			profile: 'test',
 			now,
+			profile: 'test',
 		})).to.eql(`profile(test): update -- ${now.toISOString()}`);
 	}); // }}}
 });

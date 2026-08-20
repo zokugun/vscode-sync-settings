@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+
 import { RepositoryFactory } from '../repository-factory.js';
 
 export async function openRepositoryDirectory(): Promise<void> {

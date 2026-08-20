@@ -15,22 +15,23 @@ function createWebDAVServer(): WebDAVServer {
 	const auth = new ws.HTTPBasicAuthentication(userManager);
 
 	const privilegeManager = new ws.SimplePathPrivilegeManager();
+
 	privilegeManager.setRights(user, '/', ['all']);
 
 	const server = new ws.WebDAVServer({
-		port: PORT,
-		httpAuthentication: auth,
-		privilegeManager,
-		maxRequestDepth: Number.POSITIVE_INFINITY,
 		headers: {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Methods': 'HEAD, GET, PUT, PROPFIND, DELETE, OPTIONS, MKCOL, MOVE, COPY',
 			'Access-Control-Allow-Headers': 'Accept, Authorization, Content-Type, Content-Length, Depth',
+			'Access-Control-Allow-Methods': 'HEAD, GET, PUT, PROPFIND, DELETE, OPTIONS, MKCOL, MOVE, COPY',
+			'Access-Control-Allow-Origin': '*',
 		},
+		httpAuthentication: auth,
+		maxRequestDepth: Number.POSITIVE_INFINITY,
+		port: PORT,
+		privilegeManager,
 	});
 
 	return {
-		async start() {
+		async start(): Promise<void> {
 			return new Promise((resolve: () => void) => {
 				const fs = new MemFileSystem('/webdav');
 
@@ -40,7 +41,7 @@ function createWebDAVServer(): WebDAVServer {
 			});
 		},
 
-		async stop() {
+		async stop(): Promise<void> {
 			return new Promise((resolve: () => void) => {
 				server.stop(resolve);
 			});
@@ -50,5 +51,6 @@ function createWebDAVServer(): WebDAVServer {
 
 export {
 	type WebDAVServer,
+
 	createWebDAVServer,
 };

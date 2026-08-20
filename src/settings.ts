@@ -1,40 +1,31 @@
 import { createHash } from 'crypto';
 import fse from 'fs-extra';
-import { type ExtensionContext, type Terminal, type TerminalOptions, ExtensionKind, Uri, window } from 'vscode';
+import { type ExtensionContext, ExtensionKind, type Terminal, type TerminalOptions, Uri, window } from 'vscode';
 import yaml from 'yaml';
+
 import { RepositoryType } from './repository-type.js';
 import { exists } from './utils/exists.js';
 import { getEditorStorage } from './utils/get-editor-storage.js';
 import { Logger } from './utils/logger.js';
+import { unsafeCast } from './utils/unsafe-cast.js';
 
 const $hasher = createHash('SHA1');
 
 let $instance: Settings | undefined;
 let $terminal: Terminal | undefined;
 
-function defaults() { // {{{
-	return {
-		hostname: '',
-		repository: {
-			type: RepositoryType.DUMMY,
-			path: '',
-		},
-		profile: 'main',
-	};
-} // }}}
-
 export enum Hook {
-	PreDownload = 'pre-download',
 	PostDownload = 'post-download',
-	PreUpload = 'pre-upload',
 	PostUpload = 'post-upload',
+	PreDownload = 'pre-download',
+	PreUpload = 'pre-upload',
 }
 
 export type Hooks = {
-	[Hook.PreDownload]?: string | string[];
 	[Hook.PostDownload]?: string | string[];
-	[Hook.PreUpload]?: string | string[];
 	[Hook.PostUpload]?: string | string[];
+	[Hook.PreDownload]?: string | string[];
+	[Hook.PreUpload]?: string | string[];
 };
 
 export type RepositorySettings = {
@@ -54,89 +45,12 @@ type SettingsData = {
 };
 
 export class Settings {
-	public readonly extensionId: string;
-	public readonly globalStorageUri: Uri;
-	public readonly remote: boolean;
-	public readonly settingsUri: Uri;
-
-	private _hash = '';
-	private _hooks: Hooks = {};
-	private _hostname?: string;
-	private _profile: string = '';
-	private _repository: RepositorySettings = {
-		type: RepositoryType.DUMMY,
-	};
-
-	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri, remote: boolean) { // {{{
-		this.extensionId = id;
-		this.globalStorageUri = globalStorageUri;
-		this.settingsUri = settingsUri;
-		this.remote = remote;
-	} // }}}
-
-	public get hooks() { // {{{
-		return this._hooks;
-	} // }}}
-
-	public get hostname() { // {{{
-		return this._hostname;
-	} // }}}
-
-	public get profile() { // {{{
-		return this._profile;
-	} // }}}
-
-	public get repository() { // {{{
-		return this._repository;
-	} // }}}
-
 	public static get(): Settings { // {{{
 		if($instance) {
 			return $instance;
 		}
 
 		throw new Error('The settings are not initialized');
-	} // }}}
-
-	public static async load(context: ExtensionContext): Promise<Settings> { // {{{
-		const settingsPath = Uri.joinPath(context.globalStorageUri, 'settings.yml');
-
-		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, context.extension.extensionKind === ExtensionKind.Workspace);
-
-		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf8') : null;
-
-		if(data) {
-			$instance.set(yaml.parse(data) as SettingsData ?? {});
-
-			$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
-		}
-		else {
-			const defaultSettingsPath = Uri.joinPath(context.extensionUri, 'src', 'resources', 'default-settings.yml');
-
-			if(await exists(defaultSettingsPath.fsPath)) {
-				const data = await fse.readFile(defaultSettingsPath.fsPath, 'utf8');
-
-				$instance.set(yaml.parse(data) as SettingsData ?? {});
-
-				await fse.ensureDir(Uri.joinPath($instance.settingsUri, '..').fsPath);
-
-				await fse.writeFile($instance.settingsUri.fsPath, data, {
-					encoding: 'utf8',
-					mode: 0o600,
-				});
-
-				$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
-			}
-			else {
-				$instance.set(defaults());
-
-				await $instance.save();
-			}
-		}
-
-		void getEditorStorage(context);
-
-		return $instance;
 	} // }}}
 
 	public static async getTerminal(workingDirectory: string): Promise<Terminal> { // {{{
@@ -173,6 +87,83 @@ export class Settings {
 		return $terminal;
 	} // }}}
 
+	public static async load(context: ExtensionContext): Promise<Settings> { // {{{
+		const settingsPath = Uri.joinPath(context.globalStorageUri, 'settings.yml');
+
+		$instance = new Settings(context.extension.id, context.globalStorageUri, settingsPath, context.extension.extensionKind === ExtensionKind.Workspace);
+
+		const data = await exists(settingsPath.fsPath) ? await fse.readFile(settingsPath.fsPath, 'utf8') : null;
+
+		if(data) {
+			$instance.set(unsafeCast<SettingsData>(yaml.parse(data) ?? {}));
+
+			$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
+		}
+		else {
+			const defaultSettingsPath = Uri.joinPath(context.extensionUri, 'src', 'resources', 'default-settings.yml');
+
+			if(await exists(defaultSettingsPath.fsPath)) {
+				const data = await fse.readFile(defaultSettingsPath.fsPath, 'utf8');
+
+				$instance.set(unsafeCast<SettingsData>(yaml.parse(data) ?? {}));
+
+				await fse.ensureDir(Uri.joinPath($instance.settingsUri, '..').fsPath);
+
+				await fse.writeFile($instance.settingsUri.fsPath, data, {
+					encoding: 'utf8',
+					mode: 0o600,
+				});
+
+				$instance._hash = $hasher.copy().update(data ?? '').digest('hex');
+			}
+			else {
+				$instance.set(defaults());
+
+				await $instance.save();
+			}
+		}
+
+		void getEditorStorage(context);
+
+		return $instance;
+	} // }}}
+
+	public readonly extensionId: string;
+	public readonly globalStorageUri: Uri;
+	public readonly remote: boolean;
+	public readonly settingsUri: Uri;
+
+	private _hash = '';
+	private _hooks: Hooks = {};
+	private _hostname?: string;
+	private _profile: string = '';
+	private _repository: RepositorySettings = {
+		type: RepositoryType.DUMMY,
+	};
+
+	private constructor(id: string, globalStorageUri: Uri, settingsUri: Uri, remote: boolean) { // {{{
+		this.extensionId = id;
+		this.globalStorageUri = globalStorageUri;
+		this.settingsUri = settingsUri;
+		this.remote = remote;
+	} // }}}
+
+	public get hooks(): Hooks { // {{{
+		return this._hooks;
+	} // }}}
+
+	public get hostname(): string | undefined { // {{{
+		return this._hostname;
+	} // }}}
+
+	public get profile(): string { // {{{
+		return this._profile;
+	} // }}}
+
+	public get repository(): RepositorySettings { // {{{
+		return this._repository;
+	} // }}}
+
 	public async reload(): Promise<boolean> { // {{{
 		const data = await exists(this.settingsUri.fsPath) ? await fse.readFile(this.settingsUri.fsPath, 'utf8') : null;
 		const hash = $hasher.copy().update(data ?? '').digest('hex');
@@ -182,7 +173,7 @@ export class Settings {
 		}
 		else {
 			if(data) {
-				this.set(yaml.parse(data) as SettingsData ?? {});
+				this.set(unsafeCast<SettingsData>(yaml.parse(data) ?? {}));
 			}
 			else {
 				this.set(defaults());
@@ -229,7 +220,7 @@ export class Settings {
 		return this.save();
 	} // }}}
 
-	private set(data: SettingsData) { // {{{
+	private set(data: SettingsData): void { // {{{
 		Logger.info('repository:', JSON.stringify(data.repository, (key: string, value: unknown) => key === 'password' || key === 'token' ? '...' : value));
 		if(data.profile) {
 			Logger.info('profile:', data.profile);
@@ -260,3 +251,14 @@ export class Settings {
 		}
 	} // }}}
 }
+
+function defaults(): SettingsData { // {{{
+	return {
+		hostname: '',
+		profile: 'main',
+		repository: {
+			path: '',
+			type: RepositoryType.DUMMY,
+		},
+	};
+} // }}}

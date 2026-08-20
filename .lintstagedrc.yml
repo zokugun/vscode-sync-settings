@@ -2,4 +2,4 @@
   - fixpack
   # - npm audit
 .github/workflows/*.yml: zizmor
-"*.ts": xo
+# "*.ts": eslint

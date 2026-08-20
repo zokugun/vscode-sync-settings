@@ -1,6 +1,7 @@
+import type { Hook } from '../settings.js';
+
 import { RepositoryType } from '../repository-type.js';
 import { type ExtensionList, Repository } from '../repository.js';
-import { type Hook } from '../settings.js';
 
 export class DummyRepository extends Repository {
 	public override readonly type = RepositoryType.DUMMY;
@@ -29,15 +30,15 @@ export class DummyRepository extends Repository {
 	public override async initialize(): Promise<void> { // {{{
 	} // }}}
 
-	public override async listProfiles(): Promise<string[]> { // {{{
-		return [];
-	} // }}}
-
 	public override async listProfileExtensions(_profile?: string): Promise<ExtensionList> { // {{{
 		return {
-			enabled: [],
 			disabled: [],
+			enabled: [],
 		};
+	} // }}}
+
+	public override async listProfiles(): Promise<string[]> { // {{{
+		return [];
 	} // }}}
 
 	public override async pull(): Promise<boolean> { // {{{

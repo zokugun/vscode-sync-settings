@@ -74,4 +74,3 @@ body:
       description: Please note that Open Source projects are maintained by volunteers, where your cases might not be always relevant to the others. It would make things move faster if you could help investigate and propose solutions.
       options:
         - label: I am willing to submit a PR to fix this issue
-

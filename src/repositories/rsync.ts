@@ -1,23 +1,25 @@
+import type { Settings } from '../settings.js';
+
 import path from 'path';
 import Rsync from 'rsync';
+
+import { FileRepository } from './file.js';
 import { RepositoryType } from '../repository-type.js';
-import { type Settings } from '../settings.js';
 import { Logger } from '../utils/logger.js';
 import { TemporaryRepository } from '../utils/temporary-repository.js';
-import { FileRepository } from './file.js';
 
 export class RsyncRepository extends FileRepository {
 	protected _remoteUrl: string;
 	protected _shell: string;
 
-	constructor(settings: Settings) { // {{{
+	public constructor(settings: Settings) { // {{{
 		super(settings, TemporaryRepository.getPath(settings));
 
 		this._remoteUrl = settings.repository.url!;
 		this._shell = settings.repository.shell ?? 'ssh';
 	} // }}}
 
-	public override get type() { // {{{
+	public override get type(): RepositoryType { // {{{
 		return RepositoryType.RSYNC;
 	} // }}}
 

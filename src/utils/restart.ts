@@ -1,5 +1,6 @@
 import { restartApp } from '@zokugun/vscode-utils';
 import vscode from 'vscode';
+
 import { EXTENSION_NAME } from './constants.js';
 import { Logger } from './logger.js';
 
@@ -28,7 +29,6 @@ export async function restartEditor(restart: boolean, reload: boolean, mode: Res
 		}
 	}
 	else if(mode === 'restart-host') {
-		// eslint-disable-next-line unicorn/no-lonely-if
 		if(restart || reload) {
 			await vscode.commands.executeCommand('workbench.action.restartExtensionHost');
 		}

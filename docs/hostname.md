@@ -6,7 +6,7 @@ The hostname can be used to filter settings or in the commit message.
 It can be configured in the extension's `settings.yml` or generated based on the `syncSettings.hostname` setting.
 
 In **`settings.yml`**
---------------
+---------------------
 
 ```yaml
 # current machine's name, optional
@@ -18,8 +18,10 @@ That property needs to be deleted to be able to use the `syncSettings.hostname` 
 In **`settings.json`**
 ----------------------
 
-```json
-"syncSettings.hostname": "{{hostname}}"
+```jsonc
+{
+   "syncSettings.hostname": "{{hostname}}",
+}
 ```
 
 The hostname are generated using a very basic formatter.
