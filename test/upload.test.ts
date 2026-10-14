@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { vol } from 'memfs';
+import yaml from 'yaml';
 
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
@@ -57,6 +58,45 @@ describe('upload', () => {
 		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+		}));
+	}); // }}}
+
+	it('disabled extension resolves uuid/version from extensions.json with mixed-case id', async () => { // {{{
+		// A disabled extension is discovered on disk only. When its own
+		// `package.json` has no `__metadata.id`, the uuid (and pinned version)
+		// must be resolved from `extensions.json`. Marketplace ids are often
+		// mixed-case, and that lookup is done by lowercased id, so the
+		// `extensions.json` map must be keyed by the lowercased id too.
+		vol.mkdirSync('/.vscode/extensions/GitHub.copilot-1.2.3', { recursive: true });
+		vol.writeFileSync('/.vscode/extensions/GitHub.copilot-1.2.3/package.json', JSON.stringify({
+			name: 'copilot',
+			publisher: 'GitHub',
+			version: '1.2.3',
+		}), { encoding: 'utf8' });
+
+		vol.writeFileSync('/.vscode/extensions/extensions.json', JSON.stringify([
+			{
+				identifier: { id: 'GitHub.copilot', uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' },
+				metadata: { id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', pinned: true, source: 'gallery' },
+				version: '1.2.3',
+			},
+		]), { encoding: 'utf8' });
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.upload();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(yaml.stringify({
+			disabled: [
+				{
+					id: 'GitHub.copilot',
+					uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+					version: '1.2.3',
+				},
+			],
+			enabled: [],
 		}));
 	}); // }}}
 

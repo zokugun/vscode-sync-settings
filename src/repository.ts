@@ -244,7 +244,7 @@ export abstract class Repository {
 				continue;
 			}
 
-			metadatas[identifier.id] = {
+			metadatas[identifier.id.toLowerCase()] = {
 				metadataId: metadata?.id,
 				pinned: metadata?.pinned ?? false,
 				source: metadata?.source,
