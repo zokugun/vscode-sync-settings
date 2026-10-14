@@ -236,19 +236,21 @@ export abstract class Repository {
 
 		// id: lowercase
 		const extensionsJsonPath = path.join(extensionDataPath, 'extensions.json');
-		const extensionsJson = await exists(extensionsJsonPath) ? unsafeCast<Array<{ identifier: { id: string; uuid: string }; metadata: { id: string; pinned?: boolean; source: string }; version: string }>>(await fse.readJSON(extensionsJsonPath)) : [];
+		const extensionsJson = await exists(extensionsJsonPath) ? unsafeCast<Array<{ identifier: { id: string; uuid?: string }; metadata: { id?: string; pinned?: boolean; source: string }; version: string }>>(await fse.readJSON(extensionsJsonPath)) : [];
 		const metadatas: Record<string, Metadata> = {};
 
 		for(const { identifier, metadata, version } of extensionsJson) {
-			if(!identifier?.id || !identifier.uuid || !version) {
+			const uuid = metadata?.id ?? identifier?.uuid;
+
+			if(!identifier?.id || !uuid || !version) {
 				continue;
 			}
 
-			metadatas[identifier.id] = {
+			metadatas[identifier.id.toLowerCase()] = {
 				metadataId: metadata?.id,
 				pinned: metadata?.pinned ?? false,
 				source: metadata?.source,
-				uuid: identifier.uuid,
+				uuid,
 				version,
 			};
 		}

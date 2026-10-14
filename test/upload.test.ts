@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { vol } from 'memfs';
+import yaml from 'yaml';
 
 import { context } from './mocks/context.js';
 import * as vscode from './mocks/vscode.js';
@@ -57,6 +58,92 @@ describe('upload', () => {
 		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(vscode.ext2yml({
 			disabled: ['pub1.ext3', 'pub3.ext1'],
 			enabled: ['pub1.ext1', 'pub1.ext2', 'pub2.ext1', 'pub2.ext2'],
+		}));
+	}); // }}}
+
+	it('disabled extension resolves uuid/version from extensions.json with mixed-case id', async () => { // {{{
+		// A disabled extension is discovered on disk only. When its own
+		// `package.json` has no `__metadata.id`, the uuid (and pinned version)
+		// must be resolved from `extensions.json`. Marketplace ids are often
+		// mixed-case, and that lookup is done by lowercased id, so the
+		// `extensions.json` map must be keyed by the lowercased id too.
+		vol.mkdirSync('/.vscode/extensions/GitHub.copilot-1.2.3', { recursive: true });
+		vol.writeFileSync('/.vscode/extensions/GitHub.copilot-1.2.3/package.json', JSON.stringify({
+			name: 'copilot',
+			publisher: 'GitHub',
+			version: '1.2.3',
+		}), { encoding: 'utf8' });
+
+		vol.writeFileSync('/.vscode/extensions/extensions.json', JSON.stringify([
+			{
+				identifier: { id: 'GitHub.copilot', uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' },
+				metadata: { id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', pinned: true, source: 'gallery' },
+				version: '1.2.3',
+			},
+		]), { encoding: 'utf8' });
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.upload();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(yaml.stringify({
+			disabled: [
+				{
+					id: 'GitHub.copilot',
+					uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+					version: '1.2.3',
+				},
+			],
+			enabled: [],
+		}));
+	}); // }}}
+
+	it('disabled extension resolves uuid/version when extensions.json has no identifier.uuid', async () => { // {{{
+		// `identifier.uuid` might be omitted in `extensions.json` and store the
+		// uuid in `metadata.id` instead. The entry must still be used to
+		// resolve the uuid and pinned gallery version instead of falling back
+		// to the NIL uuid with no version.
+		vol.mkdirSync('/.vscode/extensions/kilocode.kilo-code-7.8.3-linux-x64', { recursive: true });
+		vol.writeFileSync('/.vscode/extensions/kilocode.kilo-code-7.8.3-linux-x64/package.json', JSON.stringify({
+			name: 'kilo-code',
+			publisher: 'kilocode',
+			version: '7.8.3',
+		}), { encoding: 'utf8' });
+
+		vol.writeFileSync('/.vscode/extensions/extensions.json', JSON.stringify([
+			{
+				identifier: { id: 'kilocode.kilo-code' },
+				version: '7.8.3',
+				relativeLocation: 'kilocode.kilo-code-7.8.3-linux-x64',
+				metadata: {
+					isBuiltin: false,
+					pinned: true,
+					source: 'gallery',
+					id: '849d53b8-0eb4-4e6b-b73f-870eefcbbf1b',
+					publisherId: 'bab28d06-550e-49ba-979f-fb044328e51d',
+					publisherDisplayName: 'kilocode',
+					targetPlatform: 'linux-x64',
+				},
+			},
+		]), { encoding: 'utf8' });
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.upload();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(yaml.stringify({
+			disabled: [
+				{
+					id: 'kilocode.kilo-code',
+					uuid: '849d53b8-0eb4-4e6b-b73f-870eefcbbf1b',
+					version: '7.8.3',
+				},
+			],
+			enabled: [],
 		}));
 	}); // }}}
 
