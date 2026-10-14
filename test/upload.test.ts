@@ -100,6 +100,53 @@ describe('upload', () => {
 		}));
 	}); // }}}
 
+	it('disabled extension resolves uuid/version when extensions.json has no identifier.uuid', async () => { // {{{
+		// `identifier.uuid` might be omitted in `extensions.json` and store the
+		// uuid in `metadata.id` instead. The entry must still be used to
+		// resolve the uuid and pinned gallery version instead of falling back
+		// to the NIL uuid with no version.
+		vol.mkdirSync('/.vscode/extensions/kilocode.kilo-code-7.8.3-linux-x64', { recursive: true });
+		vol.writeFileSync('/.vscode/extensions/kilocode.kilo-code-7.8.3-linux-x64/package.json', JSON.stringify({
+			name: 'kilo-code',
+			publisher: 'kilocode',
+			version: '7.8.3',
+		}), { encoding: 'utf8' });
+
+		vol.writeFileSync('/.vscode/extensions/extensions.json', JSON.stringify([
+			{
+				identifier: { id: 'kilocode.kilo-code' },
+				version: '7.8.3',
+				relativeLocation: 'kilocode.kilo-code-7.8.3-linux-x64',
+				metadata: {
+					isBuiltin: false,
+					pinned: true,
+					source: 'gallery',
+					id: '849d53b8-0eb4-4e6b-b73f-870eefcbbf1b',
+					publisherId: 'bab28d06-550e-49ba-979f-fb044328e51d',
+					publisherDisplayName: 'kilocode',
+					targetPlatform: 'linux-x64',
+				},
+			},
+		]), { encoding: 'utf8' });
+
+		const repository = await RepositoryFactory.get();
+
+		await repository.upload();
+
+		expect(vscode.outputLines.pop()).to.eql('[info] serialize done');
+
+		expect(vol.readFileSync('/repository/profiles/main/data/extensions.yml', 'utf8')).to.eql(yaml.stringify({
+			disabled: [
+				{
+					id: 'kilocode.kilo-code',
+					uuid: '849d53b8-0eb4-4e6b-b73f-870eefcbbf1b',
+					version: '7.8.3',
+				},
+			],
+			enabled: [],
+		}));
+	}); // }}}
+
 	describe('keybindings', () => {
 		it('all', async () => { // {{{
 			vscode.setSettings({
